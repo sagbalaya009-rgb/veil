@@ -4,7 +4,7 @@ import { Check, ChevronLeft, CirclePause, Coffee, Dumbbell, Footprints, PenLine,
 
 type View = "home" | "reset" | "active" | "note";
 
-const durations = ["2 min", "5 min", "10 min", "15 min"];
+const durations = ["2 min", "5 min", "10 min", "15 min", "30 min", "45 min", "1 hour"];
 const resetOptions = [
   { name: "Push-ups", detail: "10 gentle reps", icon: Dumbbell },
   { name: "Breathing", detail: "2 minutes", icon: Waves },
@@ -67,7 +67,7 @@ export default function Home() {
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-[#5474ab]">Reset</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Make a small plan.</h1>
               <div className="mt-8 border-y border-[#deddd8] py-6">
-                <p className="text-sm font-medium">How long?</p>
+                <p className="text-sm font-medium">How long do you want this reset to last?</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {durations.map((item) => <button key={item} onClick={() => setDuration(item)} className={`rounded-md border px-3 py-2 text-sm ${duration === item ? "border-[#385c98] bg-[#e9edf5] text-[#385c98]" : "border-[#d6d5d0] bg-white text-[#5f5f63] hover:border-[#a6a5a1]"}`}>{item}</button>)}
                 </div>
