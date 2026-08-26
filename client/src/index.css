@@ -1,4 +1,4 @@
-/** Minimal Veil styles: a single quiet dark canvas with restrained cobalt interaction states. */
+/** Calm Minimal Veil styles: warm paper, quiet blue, and no imagery or decorative visual effects. */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -13,31 +13,21 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-border: var(--border);
-  --color-ring: var(--ring);
 }
 
 :root {
-  --background: oklch(0.14 0.006 286);
-  --foreground: oklch(0.95 0.01 75);
+  --background: oklch(0.97 0.004 85);
+  --foreground: oklch(0.22 0.005 286);
   --primary: oklch(0.46 0.11 258);
   --primary-foreground: oklch(0.98 0.005 75);
-  --border: oklch(1 0 0 / 10%);
-  --ring: oklch(0.56 0.1 258);
+  --border: oklch(0.87 0.004 85);
 }
 
 * { border-color: var(--border); }
-body { margin: 0; min-width: 320px; background: #101114; color: #f1eee8; font-family: "DM Sans", sans-serif; }
-button:focus-visible, textarea:focus-visible { outline: 2px solid #8ea9d6; outline-offset: 3px; }
+body { margin: 0; min-width: 320px; background: #f7f6f3; color: #1c1d20; font-family: "DM Sans", sans-serif; }
+button:focus-visible, textarea:focus-visible { outline: 2px solid #385c98; outline-offset: 3px; }
 button { -webkit-tap-highlight-color: transparent; }
-
-.veil-room { isolation: isolate; }
-.veil-room::before { content: ""; position: absolute; inset: 14% -2rem 9% -2rem; z-index: -2; border: 1px solid rgba(255,255,255,.055); pointer-events: none; }
-.veil-signal { position: absolute; z-index: -1; top: 5.5rem; bottom: 4.2rem; left: -1px; width: 1px; background: #385c98; opacity: .75; }
-.veil-plane { position: relative; }
-.veil-plane::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 26%; border-left: 1px solid rgba(255,255,255,.025); background: rgba(255,255,255,.012); pointer-events: none; }
-.veil-mark { box-shadow: inset 0 0 0 1px rgba(91,132,198,.3); }
-
-@media (max-width: 1023px) {
-  .veil-room::before { inset-left: -1rem; inset-right: -1rem; }
-  .veil-signal { left: 0; opacity: .48; }
-}
+.veil-room { position: relative; isolation: isolate; }
+.veil-room::before { content: ""; position: absolute; z-index: -1; top: 7.75rem; bottom: 5.25rem; left: 0; right: 0; border: 1px solid rgba(28,29,32,.07); pointer-events: none; }
+.veil-signal { position: absolute; z-index: 0; top: 7.75rem; bottom: 5.25rem; left: 0; width: 1px; background: #385c98; }
+.veil-room > *:not(.veil-signal) { position: relative; z-index: 1; }
