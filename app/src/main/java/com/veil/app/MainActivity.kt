@@ -28,10 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewModelScope
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.veil.app.core.ProtectionEngine
+import com.veil.app.core.ProtectionSettings
+import com.veil.app.data.VeilRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.veil.app.core.ProtectionState
-import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -54,7 +60,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @androidx.compose.runtime.Composable
-private fun VeilApp(viewModel: VeilViewModel = viewModel()) {
+private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = VeilBackground,
@@ -258,19 +264,43 @@ private fun formatTime(instant: Instant): String = DateTimeFormatter
     .withZone(ZoneId.systemDefault())
     .format(instant)
 
-class VeilViewModel : ViewModel() {
-    private val engine = ProtectionEngine()
+@HiltViewModel
+class VeilViewModel @Inject constructor(
+    private val repository: VeilRepository,
+) : ViewModel() {
+    private var settings = ProtectionSettings()
+    private var engine = ProtectionEngine(settings = settings)
+
     var state by mutableStateOf<ProtectionState>(engine.state)
         private set
     var onboardingComplete by mutableStateOf(false)
         private set
+    var interventionCount by mutableStateOf(0)
+        private set
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            val saved = repository.loadSettings()
+            settings = repository.settingsFrom(saved)
+            engine = ProtectionEngine(settings = settings)
+            onboardingComplete = saved.onboardingComplete
+            interventionCount = repository.observeEventCountSnapshot()
+        }
+    }
 
     fun completeOnboarding() {
         onboardingComplete = true
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.saveSettings(settings, onboardingComplete = true)
+        }
     }
 
     fun activate() {
         state = engine.startProtection()
+        val event = engine.events.lastOrNull()
+        if (event != null) {
+            viewModelScope.launch(Dispatchers.IO) { repository.recordEvent(event) }
+        }
     }
 }
 
