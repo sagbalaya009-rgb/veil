@@ -30,8 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.veil.app.core.CooldownDuration
+import com.veil.app.core.LockPeriod
 import com.veil.app.core.ProtectionEngine
+import com.veil.app.core.ProtectionLevel
 import com.veil.app.core.ProtectionSettings
+import com.veil.app.core.RecoveryTask
 import com.veil.app.data.VeilRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -77,9 +81,13 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
 }
 
 @androidx.compose.runtime.Composable
-private fun OnboardingScreen(onComplete: () -> Unit) {
+private fun OnboardingScreen(onComplete: (ProtectionSettings) -> Unit) {
     var step by remember { mutableStateOf(0) }
     val isLastStep = step == 3
+    var level by remember { mutableStateOf(ProtectionLevel.BALANCED) }
+    var cooldown by remember { mutableStateOf(CooldownDuration.TEN) }
+    var recoveryTask by remember { mutableStateOf(RecoveryTask.BREATHING) }
+    var lockPeriod by remember { mutableStateOf(LockPeriod.TWO_HOURS) }
 
     Column(
         modifier = Modifier
@@ -132,10 +140,18 @@ private fun OnboardingScreen(onComplete: () -> Unit) {
                     Text("Protection setup.", color = VeilText, style = MaterialTheme.typography.headlineMedium)
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        text = "Choose your protection level, cooldown, recovery task, and lock period next.",
+                        text = "Choose the defaults Veil will use for your protection commitment.",
                         color = VeilMuted,
                         style = MaterialTheme.typography.bodyLarge,
                     )
+                    Spacer(Modifier.height(18.dp))
+                    SelectionRow("Balanced", level == ProtectionLevel.BALANCED) { level = ProtectionLevel.BALANCED }
+                    SelectionRow("Strict", level == ProtectionLevel.STRICT) { level = ProtectionLevel.STRICT }
+                    SelectionRow("Nuclear", level == ProtectionLevel.NUCLEAR) { level = ProtectionLevel.NUCLEAR }
+                    SelectionRow("5 min cooldown", cooldown == CooldownDuration.FIVE) { cooldown = CooldownDuration.FIVE }
+                    SelectionRow("10 min cooldown", cooldown == CooldownDuration.TEN) { cooldown = CooldownDuration.TEN }
+                    SelectionRow("Breathing recovery", recoveryTask == RecoveryTask.BREATHING) { recoveryTask = RecoveryTask.BREATHING }
+                    SelectionRow("2 hour lock", lockPeriod == LockPeriod.TWO_HOURS) { lockPeriod = LockPeriod.TWO_HOURS }
                 }
             }
         }
@@ -143,7 +159,18 @@ private fun OnboardingScreen(onComplete: () -> Unit) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Button(
                 onClick = {
-                    if (isLastStep) onComplete() else step += 1
+                    if (isLastStep) {
+                        onComplete(
+                            ProtectionSettings(
+                                level = level,
+                                cooldown = cooldown,
+                                recoveryTask = recoveryTask,
+                                lockPeriod = lockPeriod,
+                            ),
+                        )
+                    } else {
+                        step += 1
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
@@ -168,6 +195,19 @@ private fun OnboardingScreen(onComplete: () -> Unit) {
                 color = VeilMuted,
                 style = MaterialTheme.typography.bodySmall,
             )
+        }
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun SelectionRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(label, color = if (selected) VeilText else VeilMuted)
+            Text(if (selected) "Selected" else "Choose", color = if (selected) VeilBlue else VeilMuted)
         }
     }
 }
@@ -288,7 +328,9 @@ class VeilViewModel @Inject constructor(
         }
     }
 
-    fun completeOnboarding() {
+    fun completeOnboarding(selectedSettings: ProtectionSettings) {
+        settings = selectedSettings
+        engine = ProtectionEngine(settings = settings)
         onboardingComplete = true
         viewModelScope.launch(Dispatchers.IO) {
             repository.saveSettings(settings, onboardingComplete = true)
