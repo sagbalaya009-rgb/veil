@@ -67,6 +67,7 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.52")
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
