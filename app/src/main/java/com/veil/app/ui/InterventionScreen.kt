@@ -11,128 +11,171 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.veil.app.core.ProtectionState
 import com.veil.app.core.RecoveryTask
 import java.time.Duration
 import java.time.Instant
+import kotlinx.coroutines.delay
 
-private val InterventionBlack = Color.Black
-private val InterventionText = Color(0xFFF7F7FA)
-private val InterventionMuted = Color(0xFFA7A7B0)
-private val InterventionBlue = Color(0xFF385C98)
-
+/** Website-fidelity cooldown panel; it presents local app state and never captures screen content. */
 @Composable
 fun InterventionScreen(
     state: ProtectionState.Cooldown,
     now: Instant = Instant.now(),
     recoveryNote: String? = null,
+    darkMode: Boolean,
     onRecoveryComplete: () -> Unit,
+    onChangePlan: () -> Unit,
     onEmergencyOverride: () -> Unit,
 ) {
-    val secondsRemaining = Duration.between(now, state.cooldownEndsAt).seconds.coerceAtLeast(0)
-    val minutes = secondsRemaining / 60
-    val seconds = secondsRemaining % 60
-    val task = when (state.recoveryTask) {
-        RecoveryTask.PUSH_UPS -> "Complete your push-ups."
-        RecoveryTask.BREATHING -> "Take two minutes to breathe."
-        RecoveryTask.WALK -> "Take a short walk."
-        RecoveryTask.JOURNAL -> "Write one honest sentence."
-        RecoveryTask.WATER -> "Fill a glass of water."
-        RecoveryTask.STRETCH -> "Take three slow minutes to stretch."
-        RecoveryTask.OFFLINE_PAUSE -> "Put the phone down for a moment."
+    val palette = if (darkMode) CooldownPalette.Dark else CooldownPalette.Light
+    var currentTime by remember(state.cooldownEndsAt) { mutableStateOf(now) }
+    LaunchedEffect(state.cooldownEndsAt) {
+        while (currentTime < state.cooldownEndsAt) {
+            delay(1_000)
+            currentTime = Instant.now()
+        }
     }
+    val secondsRemaining = Duration.between(currentTime, state.cooldownEndsAt).seconds.coerceAtLeast(0)
+    val time = "%02d:%02d".format(secondsRemaining / 60, secondsRemaining % 60)
+    val task = taskCopy(state.recoveryTask)
 
-    Surface(modifier = Modifier.fillMaxSize(), color = InterventionBlack) {
+    Surface(modifier = Modifier.fillMaxSize(), color = palette.background) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 28.dp, vertical = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(horizontal = 24.dp, vertical = 28.dp),
             verticalArrangement = Arrangement.Center,
         ) {
-            Text("◉", color = InterventionBlue, style = MaterialTheme.typography.displaySmall)
-            Spacer(Modifier.height(28.dp))
-            Text(
-                text = "Take back control.",
-                color = InterventionText,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Medium,
-            )
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = "Veil is protecting this app until your cooldown ends.",
-                color = InterventionMuted,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Spacer(Modifier.height(10.dp))
-            Text(
-                text = state.protectedApplication.packageName,
-                color = InterventionBlue,
-                style = MaterialTheme.typography.labelLarge,
-            )
-            Spacer(Modifier.height(36.dp))
-            Text(
-                text = "%02d:%02d".format(minutes, seconds),
-                color = InterventionText,
-                style = MaterialTheme.typography.displayLarge,
-                fontWeight = FontWeight.Light,
-            )
-            Spacer(Modifier.height(28.dp))
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFF17171D),
-                shape = RoundedCornerShape(20.dp),
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Recovery task", color = InterventionMuted, style = MaterialTheme.typography.labelLarge)
-                    Spacer(Modifier.height(8.dp))
-                    Text(task, color = InterventionText, style = MaterialTheme.typography.titleMedium)
-                }
-            }
-            if (!recoveryNote.isNullOrBlank()) {
-                Spacer(Modifier.height(12.dp))
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color(0xFF17171D),
-                    shape = RoundedCornerShape(20.dp),
-                ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Your note", color = InterventionMuted, style = MaterialTheme.typography.labelLarge)
-                        Spacer(Modifier.height(8.dp))
-                        Text(recoveryNote, color = InterventionText, style = MaterialTheme.typography.bodyLarge)
+            Surface(color = palette.panel, shape = RoundedCornerShape(5.dp)) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        "COOLDOWN STARTED",
+                        color = palette.primary,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = androidx.compose.ui.unit.TextUnit(2f, androidx.compose.ui.unit.TextUnitType.Sp),
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Good call. You chose a pause.",
+                        color = palette.text,
+                        style = MaterialTheme.typography.displaySmall,
+                        fontFamily = FontFamily.Serif,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        "Your local ${state.recoveryTask.name.lowercase().replace('_', ' ')} reset is active. You made a thoughtful choice for yourself.",
+                        color = palette.muted,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(26.dp))
+                    Surface(color = palette.soft, shape = RoundedCornerShape(0.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(18.dp),
+                        ) {
+                            Text("TIME REMAINING", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(6.dp))
+                            Text(time, color = palette.text, style = MaterialTheme.typography.displayLarge, fontFamily = FontFamily.Serif)
+                        }
                     }
+                    Spacer(Modifier.height(20.dp))
+                    Text("YOUR RESET ACTIVITY", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(7.dp))
+                    Text(task.first, color = palette.text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(3.dp))
+                    Text(task.second, color = palette.muted, style = MaterialTheme.typography.bodyMedium)
+                    if (!recoveryNote.isNullOrBlank()) {
+                        Spacer(Modifier.height(20.dp))
+                        Text("YOUR NOTE", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(7.dp))
+                        Text("“$recoveryNote”", color = palette.text, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
+                    }
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        "Android preview only: this screen is local to Veil. It does not yet inspect other apps or blur your phone.",
+                        color = palette.muted,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Button(
+                        onClick = onRecoveryComplete,
+                        enabled = secondsRemaining == 0L,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(5.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = palette.primary, contentColor = Color.White),
+                    ) { Text("I’m done") }
+                    Spacer(Modifier.height(10.dp))
+                    OutlinedButton(
+                        onClick = onChangePlan,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(5.dp),
+                    ) { Text("Change plan", color = palette.text) }
+                    Spacer(Modifier.height(4.dp))
+                    androidx.compose.material3.TextButton(
+                        onClick = onEmergencyOverride,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    ) { Text("Emergency override", color = palette.muted) }
                 }
-            }
-            Spacer(Modifier.height(24.dp))
-            Button(
-                onClick = onRecoveryComplete,
-                enabled = secondsRemaining == 0L,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = InterventionBlue,
-                    contentColor = InterventionText,
-                ),
-            ) {
-                Text("I completed this", modifier = Modifier.padding(vertical = 6.dp))
-            }
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = onEmergencyOverride,
-                enabled = secondsRemaining > 0L,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(contentColor = InterventionMuted),
-            ) {
-                Text("Emergency override")
             }
         }
+    }
+}
+
+private fun taskCopy(task: RecoveryTask): Pair<String, String> = when (task) {
+    RecoveryTask.PUSH_UPS -> "Push-ups" to "10 gentle reps"
+    RecoveryTask.BREATHING -> "Breathing" to "2 minutes"
+    RecoveryTask.WALK -> "Walk" to "5 minutes"
+    RecoveryTask.JOURNAL -> "Journal" to "One honest line"
+    RecoveryTask.WATER -> "Water" to "Fill a glass"
+    RecoveryTask.STRETCH -> "Stretch" to "3 slow minutes"
+    RecoveryTask.OFFLINE_PAUSE -> "Offline pause" to "Put the phone down"
+}
+
+private data class CooldownPalette(
+    val background: Color,
+    val text: Color,
+    val muted: Color,
+    val panel: Color,
+    val soft: Color,
+    val softText: Color,
+    val primary: Color,
+) {
+    companion object {
+        val Light = CooldownPalette(
+            background = Color(0xFFF7F6F3),
+            text = Color(0xFF1C1D20),
+            muted = Color(0xFF6B6A68),
+            panel = Color.White,
+            soft = Color(0xFFE9EDF5),
+            softText = Color(0xFF385C98),
+            primary = Color(0xFF385C98),
+        )
+        val Dark = CooldownPalette(
+            background = Color(0xFF17181C),
+            text = Color(0xFFF1EEE8),
+            muted = Color(0xFFB0AEA9),
+            panel = Color(0xFF202126),
+            soft = Color(0xFF26334A),
+            softText = Color(0xFFB7C9EA),
+            primary = Color(0xFF385C98),
+        )
     }
 }

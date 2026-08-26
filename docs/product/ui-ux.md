@@ -1,76 +1,41 @@
-# Veil UI/UX Specification
+# Project Veil UI/UX Contract
 
 ## Design philosophy
 
-Veil follows **calm authority**. The user should feel protected, not punished. Every interaction should communicate clarity, safety, confidence, respect, and intentionality. The interface must not feel childish, aggressive, religious, guilt-inducing, manipulative, or noisy.
+Veil follows **calm, practical recovery**. It should feel like a private place to make a better next choice, not an alarm, a surveillance tool, or a punishment. The Android MVP deliberately mirrors the existing browser companion: a quiet paper-like surface, a blue accent rule, familiar words, and one decision at a time.
 
-The product personality is calm under pressure, disciplined, discreet, competent, emotionally neutral, and firm during a lock period.
-
-## Core principles
-
-| Principle | Requirement |
+| Principle | Current requirement |
 |---|---|
-| Minimalism | One primary action per screen and low cognitive load. |
-| Breathing room | Generous spacing, large typography, and little visual clutter. |
-| Dark first | Near-black and charcoal surfaces reduce nighttime stimulation and create intervention contrast. |
-| Purposeful motion | Animation communicates state transitions; decorative motion is excluded. |
-| Accessibility | Support large text, screen readers, high contrast, reduced motion, and color-blind users. |
-| Anti-addictive UX | No infinite scrolling, social feeds, leaderboards, public streaks, achievements, or gamification. |
+| Website fidelity | Android uses the same **Home**, **Reset**, and **Note** flow, wording, duration choices, recovery tasks, and quiet completion language as the browser companion. |
+| Minimalism | The app avoids a stacked settings list. Duration uses compact chips; recovery uses two-column selection tiles; a note is a single local text field. |
+| Local control | Notes and chosen settings remain on the device. The current build does not capture a screen, inspect other apps, transmit data, or request sensitive runtime permissions. |
+| No shame | Headlines are supportive and direct: “What would help right now?”, “Good call. You chose a pause.”, and “You followed through.” |
+| App-specific future | A future confirmed detection may protect only its triggering app. The current interface must not claim live detection or app blocking. |
 
 ## Navigation
 
-Use bottom navigation with no more than four tabs: Home, Focus, History, and Settings. The app should encourage fewer opens, not repeated checking.
+The application header is the website-matched navigation model. It contains the VEIL mark, **Home**, **Reset**, **Note**, and a compact light/dark appearance control. It replaces prior onboarding, status-dashboard, bottom-navigation, streak, and history concepts for this MVP build.
 
-## Onboarding flow
-
-| Screen | Content |
+| Destination | Purpose |
 |---|---|
-| Welcome | “Protect the commitments you make to yourself.” Abstract shield illustration and Continue. |
-| Privacy | Explain that the screen is analyzed locally, nothing is uploaded, and nothing is stored. |
-| Permissions | Give each permission a one-sentence purpose and explain reduced functionality if revoked. |
-| Protection setup | Select protection level, cooldown duration, recovery task, and lock period. |
-| Activation | Confirm that protection is active and show the next state clearly. |
+| Home | Provides two actions only: **Set your cooldown** and **Write a note**. |
+| Reset | Sets the duration and one recovery activity, then starts a clearly labelled local preview cooldown. |
+| Note | Stores one local reminder for the future cooldown screen. |
 
-The onboarding should take less than two minutes.
+## Reset flow
 
-## Core screens
+The Reset screen follows the browser companion’s order and language. The minimum cooldown is **10 minutes**. Available choices are **10 minutes, 15 minutes, 30 minutes, 45 minutes, and 1 hour**. The user chooses one recovery activity: push-ups, breathing, walk, journal, water, stretch, or an offline pause.
 
-### Home
+> **Current capability boundary:** “Test cooldown” is a deliberate local preview. It does not mean Veil has detected content, captured a screen, or protected another application.
 
-The home screen is calm and uncluttered. It shows protection status, time remaining, lock end time, streak, interventions today, and protected hours. A large rounded protection card supports Active, Paused, Cooldown, and Permission Required states.
-
-### Focus
-
-Focus configures commitment periods: 2 hours, 8 hours, 24 hours, 3 days, 7 days, and documented future custom periods. A visual timeline communicates duration.
-
-### History
-
-History is a reflection screen, not a shame screen. It shows intervention count, cooldown completion, recovery tasks, and protection hours. It must not show explicit-content descriptions or triggering details.
-
-### Settings
-
-Settings are grouped into Protection, Privacy, Notifications, Recovery, and Advanced. The Privacy section should be unusually detailed.
-
-### Intervention
-
-This is the most important screen. On detection, transition to pure black with a decisive 150–250 ms fade. Show an outlined shield, “Take back control,” a clear explanation, a dominant countdown, and the selected recovery task. Do not use a progress bar or distracting effects, and do not provide a casual skip action.
-
-The screen should communicate only three things: **you are safe, the urge will pass, and your future self asked for this protection.**
-
-### Recovery tasks
-
-Push-ups show a large count target and “I completed this.” Breathing uses an animated breathing circle, a two-minute timer, and optional haptic pacing. Walking may use a progress ring or step count. Journaling uses one prompt, a text area, and Done. The MVP should begin with simple, reliable flows rather than unnecessary device integrations.
-
-### Completion
-
-Show “Well done.” and “You protected a commitment you made to yourself.” Provide Return to focus. Never use “You resisted temptation” or “You failed.”
-
-### Emergency override
-
-Show a warning icon, “Pause protection?”, a clear explanation, a non-skippable 60-second countdown, a Wait action, and a Pause protection action. The design should create friction without humiliation.
+The preview screen presents the same core elements as the website: a calm confirmation, a live countdown, the selected recovery activity, the saved note when available, and “I’m done” / “Change plan” controls. An emergency override remains visible as a future friction mechanism but is not described as an undefeatable control.
 
 ## Visual language
 
-Use near-black and dark-charcoal backgrounds, white primary text, soft-gray secondary text, deep-blue accents, muted green success, amber warnings, and black for critical intervention. Red is used extremely sparingly. Use a modern sans-serif font with the countdown timer as the dominant typographic element. Prefer outlined shield, lock, timer, moon, target, check, and activity icons.
+The surface defaults to warm off-white with charcoal text, thin neutral rules, white panels, and **Veil blue (`#385C98`)** as the signature color. Dark mode swaps the paper surface for charcoal while retaining the same hierarchy. The Android implementation uses platform fonts where necessary; its headings use a serif face to echo the browser companion’s display typography.
 
-Notifications are quiet and must never include explicit language. Haptics are reserved for state changes: one firm vibration for intervention, two soft vibrations for cooldown completion, and one soft vibration for activation.
+Cards and controls use restrained 5–6 dp corners instead of highly rounded capsules. The layout uses generous empty space, a thin blue vertical accent at the page edge where appropriate, compact chips for duration, and simple bordered two-column activity cards. Icons are secondary to plain-language labels.
+
+## Future sensitive permission flow
+
+No Accessibility, MediaProjection, overlay, foreground-service, notification, or boot permission is requested by the current website-matched build. If and only if live app-specific protection is later introduced, consent must appear as a separate, plain-language capability screen before Android’s system prompt. It must state the purpose, what is not collected, revocation consequences, and degraded-state behavior.
