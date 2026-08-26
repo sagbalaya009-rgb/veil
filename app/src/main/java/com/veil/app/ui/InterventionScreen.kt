@@ -33,6 +33,7 @@ private val InterventionBlue = Color(0xFF385C98)
 fun InterventionScreen(
     state: ProtectionState.Cooldown,
     now: Instant = Instant.now(),
+    recoveryNote: String? = null,
     onRecoveryComplete: () -> Unit,
     onEmergencyOverride: () -> Unit,
 ) {
@@ -64,9 +65,15 @@ fun InterventionScreen(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "Explicit content was detected. You asked Veil to protect this commitment.",
+                text = "Veil is protecting this app until your cooldown ends.",
                 color = InterventionMuted,
                 style = MaterialTheme.typography.bodyLarge,
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = state.protectedApplication.packageName,
+                color = InterventionBlue,
+                style = MaterialTheme.typography.labelLarge,
             )
             Spacer(Modifier.height(36.dp))
             Text(
@@ -85,6 +92,20 @@ fun InterventionScreen(
                     Text("Recovery task", color = InterventionMuted, style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.height(8.dp))
                     Text(task, color = InterventionText, style = MaterialTheme.typography.titleMedium)
+                }
+            }
+            if (!recoveryNote.isNullOrBlank()) {
+                Spacer(Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFF17171D),
+                    shape = RoundedCornerShape(20.dp),
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text("Your note", color = InterventionMuted, style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.height(8.dp))
+                        Text(recoveryNote, color = InterventionText, style = MaterialTheme.typography.bodyLarge)
+                    }
                 }
             }
             Spacer(Modifier.height(24.dp))
