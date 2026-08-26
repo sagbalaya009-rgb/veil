@@ -31,6 +31,7 @@ export default function Home() {
   const [duration, setDuration] = useState(durations[1]);
   const [reset, setReset] = useState(resetOptions[0]);
   const [note, setNote] = useState("");
+  const [savedNote, setSavedNote] = useState("");
   const [saved, setSaved] = useState(false);
   const [dark, setDark] = useState(false);
   const [endsAt, setEndsAt] = useState<number | null>(null);
@@ -41,6 +42,10 @@ export default function Home() {
 
   useEffect(() => {
     setDark(window.localStorage.getItem("veil-theme") === "dark");
+    const recoveryNote = window.localStorage.getItem("veil-recovery-note") ?? "";
+    setNote(recoveryNote);
+    setSavedNote(recoveryNote);
+    setSaved(Boolean(recoveryNote));
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
       setNotificationsEnabled(Notification.permission === "granted" && window.localStorage.getItem("veil-reset-notifications") === "enabled");
@@ -138,7 +143,7 @@ export default function Home() {
       : "Optional. Only sent when this reset ends.";
 
   return (
-    <main className={`veil-app ${dark ? "is-dark" : ""}`}>
+    <main className={`veil-app ${dark ? "is-dark" : ""} ${view === "active" && !completed ? "is-cooldown" : ""}`}>
       <div className="veil-layout">
         <header className="veil-header">
           <button onClick={() => setView("home")} className="veil-brand" aria-label="Veil home"><span className="veil-mark"><Shield size={16} /></span><span>VEIL</span></button>
@@ -155,18 +160,19 @@ export default function Home() {
             <p className="veil-eyebrow">Private reset space</p><h1>What would help right now?</h1>
             <p className="veil-intro">Choose a small reset. Veil does not watch your device or send your activity anywhere.</p>
             <div className="veil-actions">
-              <button onClick={() => setView("reset")} className="veil-action veil-action-primary"><TimerReset size={21} /><strong>Start a reset</strong><span>Pick time and one helpful action.</span></button>
+              <button onClick={() => setView("reset")} className="veil-action veil-action-primary"><TimerReset size={21} /><strong>Set your cooldown</strong><span>Pick time and one helpful action.</span></button>
               <button onClick={() => setView("note")} className="veil-action"><PenLine size={21} /><strong>Write a note</strong><span>Leave one line for yourself.</span></button>
             </div>
           </div>}
 
           {view === "reset" && <div className="veil-flow">
             <button onClick={() => setView("home")} className="veil-back"><ChevronLeft size={16} /> Back</button>
-            <p className="veil-eyebrow">Reset</p><h2>Make a small plan.</h2>
+            <p className="veil-eyebrow">Cooldown plan</p><h2>Decide what will help.</h2>
             <div className="veil-step"><p>How long do you want this reset to last?</p><div className="veil-choice-row">{durations.map((item) => <button key={item} onClick={() => setDuration(item)} className={duration === item ? "selected" : ""}>{item}</button>)}</div></div>
             <div className="veil-step"><p>Choose one reset.</p><div className="veil-options">{resetOptions.map((option) => { const Icon = option.icon; return <button key={option.name} onClick={() => setReset(option)} className={reset.name === option.name ? "selected" : ""}><Icon size={17} /><span><strong>{option.name}</strong><small>{option.detail}</small></span></button>; })}</div></div>
             <div className="veil-notification-row"><div><Bell size={16} /><span><strong>Quiet completion notification</strong><small>{notificationDescription}</small></span></div>{notificationsEnabled ? <button onClick={disableCompletionNotification} className="veil-secondary-button">On</button> : <button onClick={enableCompletionNotification} disabled={notificationPermission === "denied" || notificationPermission === "unsupported"} className="veil-secondary-button">Turn on</button>}</div>
-            <div className="veil-flow-footer"><span>{duration} · {reset.name}</span><button onClick={beginReset} className="veil-primary-button">Begin reset</button></div>
+            <p className="veil-browser-disclaimer">Browser demonstration only: this button simulates a detection. A website cannot inspect other apps or blur your phone.</p>
+            <div className="veil-flow-footer"><span>{duration} · {reset.name}</span><button onClick={beginReset} className="veil-primary-button">Test cooldown</button></div>
           </div>}
 
           {view === "active" && <div className="veil-flow veil-active">
@@ -175,8 +181,8 @@ export default function Home() {
               <div className="veil-status veil-status-complete"><p>Good choice</p><strong>Your pause is complete.</strong><span>Take the steadier next step when you are ready.</span></div>
               <div className="veil-button-row"><button onClick={() => { setCompleted(false); setView("home"); }} className="veil-primary-button">Return home</button><button onClick={() => { setCompleted(false); setView("reset"); }} className="veil-secondary-button">Start another</button></div>
             </> : <>
-              <p className="veil-eyebrow">Reset started</p><h2>Good call. You chose a pause.</h2>
-              <p className="veil-supporting-copy">Your {duration} {reset.name.toLowerCase()} reset has begun. You made a thoughtful choice for yourself.</p>
+              <p className="veil-eyebrow">Cooldown started</p><h2>Good call. You chose a pause.</h2>
+              <p className="veil-supporting-copy">Your {duration} {reset.name.toLowerCase()} cooldown has begun. You made a thoughtful choice for yourself.</p>
               <div className="veil-status"><p>Time remaining</p><strong className="veil-countdown" aria-live="polite">{formatRemaining(remainingSeconds)}</strong><span>{reset.name} · {reset.detail}</span></div>
               <p className="veil-supporting-copy">This reset stays active if you refresh the page. When you are ready, mark it complete or adjust the plan.</p>
               <div className="veil-button-row"><button onClick={completeReset} className="veil-primary-button">I’m done</button><button onClick={changePlan} className="veil-secondary-button">Change plan</button></div>
@@ -187,12 +193,23 @@ export default function Home() {
             <button onClick={() => setView("home")} className="veil-back"><ChevronLeft size={16} /> Back</button>
             <p className="veil-eyebrow">A note for yourself</p><h2>What do you want to remember?</h2>
             <textarea value={note} onChange={(event) => { setNote(event.target.value); setSaved(false); }} placeholder="One line is enough." className="veil-textarea" />
-            <div className="veil-flow-footer"><span>Stored only in this browser session.</span><button onClick={() => note.trim() && setSaved(true)} disabled={!note.trim()} className="veil-primary-button">{saved ? <><Check size={15} /> Saved</> : "Save note"}</button></div>
+            <div className="veil-flow-footer"><span>Stored locally in this browser.</span><button onClick={() => { if (note.trim()) { window.localStorage.setItem("veil-recovery-note", note.trim()); setSavedNote(note.trim()); setSaved(true); } }} disabled={!note.trim()} className="veil-primary-button">{saved ? <><Check size={15} /> Saved</> : "Save note"}</button></div>
           </div>}
         </section>
 
         <footer className="veil-footer">No tracking · no screen capture · no device monitoring</footer>
       </div>
+      {view === "active" && !completed && <aside className="veil-cooldown-screen" role="dialog" aria-modal="true" aria-label="Active Veil cooldown">
+        <div className="veil-cooldown-panel">
+          <p className="veil-eyebrow">Protective cooldown active</p><h2>Take this time back.</h2>
+          <p className="veil-cooldown-copy">Veil has started your {duration} cooldown. The protective screen stays in place until the time ends or you finish deliberately.</p>
+          <div className="veil-cooldown-timer"><span>Time remaining</span><strong aria-live="polite">{formatRemaining(remainingSeconds)}</strong></div>
+          <section className="veil-cooldown-task"><p>Your reset activity</p><strong>{reset.name}</strong><span>{reset.detail}</span></section>
+          {savedNote && <section className="veil-cooldown-note"><p>Your note</p><blockquote>“{savedNote}”</blockquote></section>}
+          <p className="veil-native-disclaimer"><strong>Browser limitation:</strong> this page can blur only Veil itself. It cannot inspect other apps or blur the rest of your phone. Full-device detection and protection will be added in the native Android app with local TensorFlow Lite.</p>
+          <div className="veil-button-row"><button onClick={completeReset} className="veil-primary-button">I’m done</button><button onClick={changePlan} className="veil-secondary-button">Change plan</button></div>
+        </div>
+      </aside>}
     </main>
   );
 }
