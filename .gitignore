@@ -22,3 +22,8 @@ coverage/
 reports/
 artifacts/
 *.tflite.tmp
+
+# Vite / Vercel web build artifacts
+node_modules/
+dist/
+.vercel/
