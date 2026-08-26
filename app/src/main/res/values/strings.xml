@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Veil</string>
+    <string name="accessibility_service_description">Veil uses accessibility events only to support foreground protection and intervention timing. It does not read message contents or record accessibility events.</string>
+</resources>
