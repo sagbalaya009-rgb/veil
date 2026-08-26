@@ -37,6 +37,7 @@ import com.veil.app.core.ProtectionLevel
 import com.veil.app.core.ProtectionSettings
 import com.veil.app.core.RecoveryTask
 import com.veil.app.data.VeilRepository
+import com.veil.app.ui.InterventionScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -69,13 +70,19 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
         modifier = Modifier.fillMaxSize(),
         color = VeilBackground,
     ) {
-        if (viewModel.onboardingComplete) {
+        if (!viewModel.onboardingComplete) {
+            OnboardingScreen(onComplete = viewModel::completeOnboarding)
+        } else if (viewModel.state is ProtectionState.Cooldown) {
+            InterventionScreen(
+                state = viewModel.state as ProtectionState.Cooldown,
+                onRecoveryComplete = viewModel::completeRecovery,
+                onEmergencyOverride = viewModel::useEmergencyOverride,
+            )
+        } else {
             HomeScreen(
                 state = viewModel.state,
                 onActivate = viewModel::activate,
             )
-        } else {
-            OnboardingScreen(onComplete = viewModel::completeOnboarding)
         }
     }
 }
@@ -339,9 +346,26 @@ class VeilViewModel @Inject constructor(
 
     fun activate() {
         state = engine.startProtection()
-        val event = engine.events.lastOrNull()
-        if (event != null) {
-            viewModelScope.launch(Dispatchers.IO) { repository.recordEvent(event) }
+        recordLatestEvent()
+    }
+
+    fun completeRecovery() {
+        state = engine.completeRecovery()
+        recordLatestEvent()
+    }
+
+    fun useEmergencyOverride() {
+        if (engine.useEmergencyOverride()) {
+            state = engine.state
+            recordLatestEvent()
+        }
+    }
+
+    private fun recordLatestEvent() {
+        val event = engine.events.lastOrNull() ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.recordEvent(event)
+            interventionCount = repository.observeEventCountSnapshot()
         }
     }
 }
