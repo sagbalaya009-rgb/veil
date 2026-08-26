@@ -1,0 +1,15877 @@
+android-permissions.md
+
+Android permissions and platform feasibility
+
+Version: 1.0
+
+Status: Platform feasibility analysis
+
+Priority: Critical
+
+Executive summary
+
+Sentinel is technically feasible on Android.
+
+However, it depends on a combination of Android APIs that are heavily regulated by Google.
+
+The product is possible.
+
+The challenge is not engineering.
+
+The challenge is platform policy.
+
+The architecture must therefore be designed to satisfy both Android technical constraints and Google Play policy requirements.
+
+The key question
+
+Can an Android app monitor screen content in real time and intervene across apps?
+
+The answer is:
+
+Yes, with important limitations.
+
+The required capabilities are available through:
+
+- MediaProjection
+
+- Accessibility Service
+
+- Overlay windows
+
+- Foreground services
+
+These APIs are legitimate Android features.
+
+The risk is how they are used.
+
+Required permissions
+
+Accessibility Service
+
+Purpose
+
+Observe foreground app changes.
+
+Detect UI events.
+
+Support intervention behavior.
+
+Assist navigation during protection.
+
+MediaProjection
+
+Purpose
+
+Capture screen frames.
+
+Run on-device AI analysis.
+
+Detect explicit content.
+
+Overlay permission
+
+Purpose
+
+Display the intervention screen above other applications.
+
+Notification permission
+
+Purpose
+
+Protection status.
+
+Cooldown completion.
+
+Service persistence.
+
+Permission architecture
+
+User
+
+↓
+
+Accessibility
+
+↓
+
+MediaProjection
+
+↓
+
+Overlay
+
+↓
+
+Foreground Service
+
+↓
+
+AI Detection
+
+↓
+
+Intervention
+
+All permissions are user-granted.
+
+No hidden permissions.
+
+No root access.
+
+Accessibility Service analysis
+
+Accessibility is the most sensitive permission.
+
+Google Play requires that accessibility services be used for legitimate accessibility or user-facing assistance purposes.
+
+Sentinel’s justification
+
+The service helps users enforce self-control commitments through real-time intervention and lock-period enforcement.
+
+The service provides a user-facing protective function.
+
+The accessibility service must not:
+
+- collect text unnecessarily,
+
+- record user activity,
+
+- transmit screen content,
+
+- monitor users secretly.
+
+Accessibility implementation rules
+
+Only observe events necessary for:
+
+foreground app detection,
+
+intervention timing,
+
+lock enforcement,
+
+permission recovery.
+
+Do not perform OCR.
+
+Do not read message contents.
+
+Do not log accessibility events.
+
+MediaProjection analysis
+
+MediaProjection allows screen capture with explicit user consent.
+
+This is the core technical capability required for Sentinel.
+
+The user must actively approve screen capture.
+
+The approval is visible.
+
+Android displays a screen capture indicator.
+
+This is beneficial because it reinforces transparency.
+
+MediaProjection limitations
+
+The permission can be revoked.
+
+Some OEMs modify behavior.
+
+Performance varies by device.
+
+Future Android versions may change restrictions.
+
+The monitoring architecture must tolerate interruptions.
+
+Overlay analysis
+
+Sentinel requires a full-screen overlay for immediate intervention.
+
+Android allows overlays through:
+
+SYSTEM_ALERT_WINDOW
+
+Requirements
+
+Transparent permission request.
+
+Clear user explanation.
+
+Easy revocation.
+
+The overlay should appear only during interventions.
+
+It should not remain permanently visible.
+
+Foreground service analysis
+
+Continuous monitoring requires a foreground service.
+
+Android increasingly restricts background services.
+
+A foreground service with a persistent notification is the most reliable approach.
+
+The notification should clearly indicate:
+
+Protection active.
+
+This improves transparency and compliance.
+
+Google Play policy analysis
+
+The primary risk
+
+Google may interpret Sentinel as:
+
+surveillance,
+
+device monitoring,
+
+or abusive accessibility usage.
+
+The strongest defense
+
+Sentinel is:
+
+user initiated,
+
+user controlled,
+
+privacy preserving,
+
+local only,
+
+and explicitly designed for digital wellbeing.
+
+Policy alignment
+
+Sentinel should position itself as:
+
+A digital wellbeing and self-control application.
+
+Not a monitoring application.
+
+Required policy documentation
+
+Accessibility declaration.
+
+Privacy policy.
+
+Data safety form.
+
+Permission justification.
+
+On-device processing explanation.
+
+Data Safety form
+
+Sentinel should ideally be able to declare:
+
+Data collected
+
+Minimal.
+
+Data shared
+
+None.
+
+Screen content
+
+Not collected.
+
+Screen content
+
+Not shared.
+
+This is a major advantage.
+
+Android version support
+
+Target
+
+Android 12+
+
+Reasons
+
+Better privacy controls.
+
+Better service behavior.
+
+Better notification APIs.
+
+Better compatibility.
+
+OEM compatibility
+
+High priority devices
+
+Samsung
+
+Pixel
+
+OnePlus
+
+Xiaomi
+
+Oppo
+
+Vivo
+
+Tecno
+
+Infinix
+
+Special attention
+
+Samsung battery optimization.
+
+Xiaomi aggressive process killing.
+
+Tecno background restrictions.
+
+Battery optimization
+
+Users must be guided through:
+
+Battery optimization exclusion.
+
+Auto-start permissions.
+
+Background activity permissions.
+
+This should occur during onboarding.
+
+Process persistence
+
+Android may terminate the service.
+
+Recovery strategy
+
+Foreground service.
+
+Boot receiver.
+
+State persistence.
+
+Automatic restart.
+
+Permission verification.
+
+Reboot behavior
+
+On BOOT_COMPLETED
+
+Restore settings.
+
+Verify permissions.
+
+Restart monitoring.
+
+Notify user if permissions were revoked.
+
+Multi-window behavior
+
+Split screen
+
+Supported.
+
+Picture-in-picture
+
+Partially supported.
+
+Floating windows
+
+Best effort.
+
+The classifier analyzes the visible frame.
+
+Performance constraints
+
+Frame capture
+
+CPU intensive.
+
+Bitmap conversion
+
+Memory intensive.
+
+Inference
+
+CPU/GPU intensive.
+
+The MVP should prioritize battery efficiency over maximum detection speed.
+
+Recommended sampling
+
+Idle
+
+0.5 FPS
+
+Normal
+
+1 FPS
+
+Active scrolling
+
+2 FPS
+
+Cooldown
+
+0 FPS
+
+Screen off
+
+0 FPS
+
+Failure handling
+
+MediaProjection revoked
+
+Stop monitoring.
+
+Show notification.
+
+Request reauthorization.
+
+Accessibility revoked
+
+Disable intervention assistance.
+
+Maintain partial protection.
+
+Overlay revoked
+
+Warn user.
+
+Protection effectiveness reduced.
+
+Security considerations
+
+The permissions used by Sentinel resemble those used by some malware.
+
+Therefore Sentinel must exceed normal transparency standards.
+
+Requirements
+
+Visible foreground notification.
+
+Permission dashboard.
+
+Privacy dashboard.
+
+Open documentation.
+
+No hidden behavior.
+
+Alternative architecture
+
+If Google Play rejects MediaProjection
+
+Fallback mode
+
+App blocking.
+
+Accessibility-based intervention.
+
+Scheduled protection.
+
+Lock periods.
+
+Reduced functionality.
+
+The product remains useful.
+
+Distribution strategy
+
+Primary
+
+Google Play.
+
+Secondary
+
+Direct APK.
+
+Tertiary
+
+F-Droid.
+
+The architecture should support all three.
+
+Compliance checklist
+
+Before release
+
+Accessibility purpose documented.
+
+MediaProjection purpose documented.
+
+Privacy policy published.
+
+Data Safety form completed.
+
+Permissions justified.
+
+No screenshot storage.
+
+No cloud image processing.
+
+Foreground notification implemented.
+
+User consent flows verified.
+
+The most important conclusion
+
+Sentinel is technically feasible on Android.
+
+The real challenge is earning and maintaining platform trust.
+
+Every permission request,
+
+every onboarding screen,
+
+every privacy decision,
+
+and every architectural choice should be designed with one objective:
+
+Make it obvious that Sentinel is helping the user control their own device,
+
+not helping someone else monitor it.
+
+risk-register.md
+
+Sentinel risk register
+
+Version: 1.0
+
+Status: Strategic risk assessment
+
+Priority: Critical
+
+Executive summary
+
+Sentinel is an unusual product.
+
+It combines:
+
+- screen monitoring,
+
+- AI vision,
+
+- background services,
+
+- behavioral intervention,
+
+- and strong privacy guarantees.
+
+This creates significant technical, platform, legal, and trust risks.
+
+The purpose of this document is to identify the risks that could realistically cause Sentinel to fail and define mitigation strategies before development begins.
+
+Risk methodology
+
+Each risk is evaluated on:
+
+- Probability
+
+- Impact
+
+- Detectability
+
+- Mitigation
+
+Scoring
+
+Low
+
+Medium
+
+High
+
+Critical
+
+---
+
+R1
+
+Google Play rejection
+
+Description
+
+Google may reject Sentinel because of:
+
+- Accessibility usage
+
+- MediaProjection usage
+
+- Overlay behavior
+
+- Background monitoring
+
+- Device control behavior
+
+Probability
+
+High
+
+Impact
+
+Critical
+
+Mitigation
+
+Design Accessibility usage around legitimate user-facing functionality.
+
+Minimize permissions.
+
+Provide transparent onboarding.
+
+Document the accessibility purpose clearly.
+
+Maintain a direct APK distribution option.
+
+Consider F-Droid or direct distribution if necessary.
+
+Owner
+
+Founding team
+
+---
+
+R2
+
+Android platform restrictions
+
+Description
+
+Future Android versions may restrict:
+
+- screen capture,
+
+- background services,
+
+- overlays,
+
+- accessibility capabilities.
+
+Probability
+
+Medium
+
+Impact
+
+Critical
+
+Mitigation
+
+Monitor Android beta releases.
+
+Maintain compatibility testing.
+
+Build modular monitoring architecture.
+
+Prepare fallback protection modes.
+
+Avoid relying on undocumented APIs.
+
+---
+
+R3
+
+User privacy distrust
+
+Description
+
+Users may refuse screen monitoring permissions.
+
+Probability
+
+High
+
+Impact
+
+Critical
+
+Mitigation
+
+On-device AI.
+
+Open-source privacy layer.
+
+Independent audits.
+
+Privacy dashboard.
+
+Transparent documentation.
+
+No screenshot storage.
+
+No cloud inference.
+
+---
+
+R4
+
+False positives
+
+Description
+
+Sentinel blocks legitimate content.
+
+Examples
+
+Medical apps
+
+Fitness
+
+Family photos
+
+Education
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Conservative thresholds.
+
+Temporal confirmation.
+
+User reporting.
+
+Rapid model updates.
+
+Extensive evaluation dataset.
+
+---
+
+R5
+
+False negatives
+
+Description
+
+Sentinel misses explicit content.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Dataset expansion.
+
+Model fine-tuning.
+
+Adaptive thresholds.
+
+Continuous evaluation.
+
+---
+
+R6
+
+Battery drain
+
+Description
+
+Continuous screen monitoring consumes excessive battery.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Adaptive frame rate.
+
+Suspend when screen off.
+
+Efficient TensorFlow Lite model.
+
+Performance profiling.
+
+Device-specific optimization.
+
+---
+
+R7
+
+Performance degradation
+
+Description
+
+The app causes lag during scrolling or video playback.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Background inference.
+
+Low sampling rate.
+
+Bitmap optimization.
+
+Memory pooling.
+
+Strict latency budgets.
+
+---
+
+R8
+
+Users disable protection
+
+Description
+
+Users revoke permissions during moments of temptation.
+
+Probability
+
+High
+
+Impact
+
+Medium
+
+Mitigation
+
+Lock periods.
+
+Delayed disable.
+
+Emergency override friction.
+
+Behavioral reminders.
+
+---
+
+R9
+
+App uninstall
+
+Description
+
+Users uninstall Sentinel impulsively.
+
+Probability
+
+High
+
+Impact
+
+Medium
+
+Mitigation
+
+Delayed uninstall guidance.
+
+Commitment framing.
+
+Retention through effectiveness.
+
+---
+
+R10
+
+Trust collapse
+
+Description
+
+A privacy scandal destroys credibility.
+
+Probability
+
+Low
+
+Impact
+
+Existential
+
+Mitigation
+
+Never collect screenshots.
+
+Independent audits.
+
+Open privacy architecture.
+
+Minimal data collection.
+
+Transparency reports.
+
+---
+
+R11
+
+Malware comparison
+
+Description
+
+Users compare Sentinel to spyware.
+
+Probability
+
+High
+
+Impact
+
+High
+
+Mitigation
+
+Open-source components.
+
+Clear privacy guarantees.
+
+Visible operation.
+
+No stealth behavior.
+
+No remote monitoring.
+
+---
+
+R12
+
+Legal classification
+
+Description
+
+Regulators classify Sentinel as monitoring software.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+User-controlled operation.
+
+Explicit consent.
+
+Local processing.
+
+No third-party monitoring.
+
+Legal review before launch.
+
+---
+
+R13
+
+Model bias
+
+Description
+
+The classifier performs differently across content types.
+
+Probability
+
+Medium
+
+Impact
+
+Medium
+
+Mitigation
+
+Diverse dataset.
+
+Regular benchmarking.
+
+False-positive analysis.
+
+Bias testing.
+
+---
+
+R14
+
+Anime detection failure
+
+Description
+
+The model fails on animated explicit content.
+
+Probability
+
+High
+
+Impact
+
+Medium
+
+Mitigation
+
+Dedicated anime dataset.
+
+Separate evaluation benchmark.
+
+Fine-tuning.
+
+---
+
+R15
+
+Adversarial bypass
+
+Description
+
+Users intentionally evade detection.
+
+Examples
+
+Cropped images
+
+Low brightness
+
+Small thumbnails
+
+Split screen
+
+Probability
+
+Medium
+
+Impact
+
+Medium
+
+Mitigation
+
+Adversarial testing.
+
+Multi-scale detection.
+
+Temporal analysis.
+
+Continuous improvement.
+
+---
+
+R16
+
+MediaProjection instability
+
+Description
+
+Screen capture becomes unreliable.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Robust recovery.
+
+Service monitoring.
+
+State restoration.
+
+Graceful failure.
+
+---
+
+R17
+
+Accessibility conflicts
+
+Description
+
+Sentinel conflicts with other accessibility apps.
+
+Probability
+
+Medium
+
+Impact
+
+Medium
+
+Mitigation
+
+Compatibility testing.
+
+Accessibility best practices.
+
+Conflict detection.
+
+---
+
+R18
+
+Device fragmentation
+
+Description
+
+Behavior differs across Android manufacturers.
+
+Probability
+
+High
+
+Impact
+
+High
+
+Mitigation
+
+Test matrix.
+
+Samsung
+
+Pixel
+
+Xiaomi
+
+OnePlus
+
+Oppo
+
+Vivo
+
+Tecno
+
+Infinix
+
+---
+
+R19
+
+Battery optimization killing services
+
+Description
+
+OEM software terminates Sentinel.
+
+Probability
+
+High
+
+Impact
+
+High
+
+Mitigation
+
+Foreground service.
+
+User education.
+
+Auto-recovery.
+
+Vendor-specific guidance.
+
+---
+
+R20
+
+Security vulnerability
+
+Description
+
+An attacker exploits Sentinel.
+
+Probability
+
+Low
+
+Impact
+
+Critical
+
+Mitigation
+
+Code audits.
+
+Dependency scanning.
+
+Encryption.
+
+Minimal attack surface.
+
+Responsible disclosure program.
+
+---
+
+R21
+
+Product-market mismatch
+
+Description
+
+Users want stronger accountability than Sentinel provides.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Early interviews.
+
+Beta testing.
+
+Iterative roadmap.
+
+Optional accountability features.
+
+---
+
+R22
+
+Market too niche
+
+Description
+
+Pornography interruption alone is insufficient.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Expand into behavioral protection.
+
+Focus.
+
+Sleep.
+
+Doomscrolling.
+
+Goal enforcement.
+
+---
+
+R23
+
+Competitor replication
+
+Description
+
+A large company copies Sentinel.
+
+Probability
+
+Medium
+
+Impact
+
+Medium
+
+Mitigation
+
+Trust.
+
+Privacy architecture.
+
+Behavioral intervention engine.
+
+Brand.
+
+Community.
+
+---
+
+R24
+
+Founder burnout
+
+Description
+
+Development stalls.
+
+Probability
+
+Medium
+
+Impact
+
+High
+
+Mitigation
+
+Sprint planning.
+
+Documentation.
+
+Modular architecture.
+
+AI-assisted development.
+
+---
+
+R25
+
+Mission drift
+
+Description
+
+Sentinel becomes surveillance software.
+
+Probability
+
+Low
+
+Impact
+
+Existential
+
+Mitigation
+
+Ethical constitution.
+
+Architecture constraints.
+
+Public commitments.
+
+Privacy-first governance.
+
+---
+
+Top five existential risks
+
+1. Google Play rejection
+
+2. Privacy distrust
+
+3. Trust collapse
+
+4. Android platform restrictions
+
+5. Mission drift
+
+These risks receive founder-level attention.
+
+Monthly risk review
+
+Every month the team reviews
+
+Probability changes
+
+New Android changes
+
+Privacy concerns
+
+Beta feedback
+
+Legal developments
+
+Competitive landscape
+
+Risk ownership
+
+Mitigation progress
+
+The guiding rule
+
+When choosing between
+
+faster growth
+
+or stronger trust,
+
+Sentinel chooses trust.
+
+Trust compounds.
+
+Trust is the moat.
+
+Trust is the product.
+
+Protecting that trust is the highest-priority engineering and business objective.
+
+Sentinel repository operating system
+
+Version: 1.0
+
+Status: Repository blueprint
+
+Repository structure
+
+sentinel/
+
+├── README.md
+
+├── FOUNDER_MEMO.md
+
+├── master-prd.md
+
+├── ethical-boundaries.md
+
+├── LICENSE
+
+├── CONTRIBUTING.md
+
+├── CODE_OF_CONDUCT.md
+
+├── SECURITY.md
+
+├── CHANGELOG.md
+
+├── ROADMAP.md
+
+├── docs/
+
+│ ├── vision.md
+
+│ ├── problem.md
+
+│ ├── mvp-spec.md
+
+│ ├── android-architecture.md
+
+│ ├── ai-system.md
+
+│ ├── privacy-security.md
+
+│ ├── ui-ux.md
+
+│ ├── testing.md
+
+│ ├── roadmap.md
+
+│ ├── business.md
+
+│ ├── build-plan.md
+
+│ ├── engineering-standards.md
+
+│ ├── launch-beta.md
+
+│ └── adr/
+
+│ ├── 0001-on-device-ai.md
+
+│ ├── 0002-no-screenshot-storage.md
+
+│ ├── 0003-android-first.md
+
+│ └── 0004-tensorflow-lite.md
+
+├── app/
+
+├── core/
+
+├── data/
+
+├── services/
+
+├── ui/
+
+├── tests/
+
+├── scripts/
+
+└── .github/
+
+├── ISSUE_TEMPLATE/
+
+├── PULL_REQUEST_TEMPLATE.md
+
+└── workflows/
+
+README structure
+
+README.md should contain
+
+Mission
+
+Vision
+
+Architecture diagram
+
+Privacy guarantee
+
+MVP status
+
+Repository map
+
+Quick start
+
+Contribution guide
+
+Link to PRD
+
+GitHub wiki
+
+Create a wiki with
+
+Home
+
+Architecture
+
+AI
+
+Privacy
+
+Android
+
+Roadmap
+
+Sprint log
+
+Decision log
+
+Glossary
+
+New contributors should be able to become productive within one hour.
+
+Architecture diagram
+
++----------------------------+
+
+| UI |
+
++-------------+--------------+
+
+|
+
+v
+
++----------------------------+
+
+| Protection Manager |
+
++-------------+--------------+
+
+|
+
+v
+
++----------------------------+
+
+| Monitoring Service |
+
++-------------+--------------+
+
+|
+
+v
+
++----------------------------+
+
+| AI Detection Engine |
+
++-------------+--------------+
+
+|
+
+v
+
++----------------------------+
+
+| Intervention Engine |
+
++-------------+--------------+
+
+|
+
+v
+
++----------------------------+
+
+| Cooldown + Recovery |
+
++----------------------------+
+
+Issue templates
+
+Bug
+
+Expected behavior
+
+Actual behavior
+
+Device
+
+Android version
+
+Protection state
+
+Reproduction steps
+
+Privacy impact
+
+Feature request
+
+Problem
+
+Proposed solution
+
+Alternatives considered
+
+Privacy implications
+
+Behavioral impact
+
+AI false positive
+
+Content category
+
+Confidence estimate
+
+Intervention triggered
+
+Severity
+
+AI false negative
+
+App
+
+Content type
+
+Expected intervention
+
+Actual behavior
+
+Pull request template
+
+Summary
+
+Architecture impact
+
+Privacy impact
+
+Security impact
+
+Performance impact
+
+Tests added
+
+Documentation updated
+
+Checklist
+
+No screenshot persistence
+
+No sensitive logging
+
+Tests pass
+
+Docs updated
+
+ADR process
+
+Architecture decisions are recorded permanently.
+
+Example
+
+ADR-0001
+
+Decision
+
+All AI inference will run on-device.
+
+Status
+
+Accepted
+
+Rationale
+
+Privacy, latency, offline operation, trust.
+
+Consequences
+
+Larger APK
+
+Device optimization required
+
+No cloud inference
+
+Every major technical decision gets an ADR.
+
+Definition of ready
+
+A feature may begin only when
+
+Problem documented
+
+User story written
+
+Privacy impact reviewed
+
+Architecture approved
+
+Success metric defined
+
+Definition of done
+
+A feature is complete only when
+
+Code implemented
+
+Tests written
+
+Documentation updated
+
+Privacy reviewed
+
+Performance measured
+
+Failure modes tested
+
+ADR added if necessary
+
+Weekly operating rhythm
+
+Monday
+
+Sprint planning
+
+Tuesday to Thursday
+
+Implementation
+
+Friday
+
+Testing
+
+Documentation
+
+Retrospective
+
+Architecture review
+
+Sprint board
+
+Backlog
+
+Ready
+
+In progress
+
+Review
+
+Testing
+
+Done
+
+Blocked
+
+No feature may skip Testing.
+
+Documentation rule
+
+Documentation is version controlled.
+
+Every feature PR must update
+
+PRD if behavior changes
+
+Architecture if structure changes
+
+Privacy doc if data changes
+
+Roadmap if priorities change
+
+Security process
+
+Quarterly
+
+Dependency audit
+
+Permission audit
+
+Privacy audit
+
+Battery audit
+
+Performance benchmark
+
+Annual
+
+Independent security review
+
+Independent privacy review
+
+Founder dashboard
+
+Track weekly
+
+Detection latency
+
+False positives
+
+False negatives
+
+Battery impact
+
+30-day retention
+
+Trust score
+
+Interventions
+
+Promises kept
+
+The last metric is estimated from intervention outcomes.
+
+The north star
+
+Every meeting should begin with one question
+
+Did we make it easier for users to keep a promise they made to themselves?
+
+If not,
+
+we are building the wrong thing.
+
+SPRINT_01.md
+
+Sprint 01: Sentinel MVP foundation
+
+Sprint duration: 7 days
+
+Goal: Build the minimum technical foundation for Sentinel.
+
+Status: Ready for execution
+
+Sprint objective
+
+At the end of Sprint 01 we should have an Android application that:
+
+- launches correctly,
+
+- has the complete navigation structure,
+
+- stores settings locally,
+
+- manages protection state,
+
+- requests the required permissions,
+
+- and is architecturally ready for screen monitoring.
+
+No AI detection is required in this sprint.
+
+This sprint is about infrastructure.
+
+---
+
+Definition of done
+
+Sprint 01 is complete when:
+
+- the app installs,
+
+- onboarding works,
+
+- permissions can be requested,
+
+- settings persist,
+
+- protection state is managed,
+
+- and the codebase follows the engineering standards.
+
+---
+
+Technical stack
+
+Language: Kotlin
+
+UI: Jetpack Compose
+
+Architecture: MVVM
+
+DI: Hilt
+
+Storage: Room
+
+Async: Coroutines
+
+Minimum SDK: Android 12
+
+---
+
+Repository setup
+
+Create the repository:
+
+sentinel/
+
+Initialize:
+
+- Git
+
+- .gitignore
+
+- README
+
+- docs/
+
+Create branches:
+
+main
+
+develop
+
+---
+
+Project structure
+
+app/
+
+core/
+
+data/
+
+services/
+
+ui/
+
+docs/
+
+tests/
+
+---
+
+Day 1
+
+Project initialization
+
+Tasks
+
+Create Android Studio project
+
+Configure Kotlin
+
+Enable Compose
+
+Configure Hilt
+
+Configure Room
+
+Set application theme
+
+Set package structure
+
+Add basic navigation
+
+Deliverables
+
+Application launches successfully.
+
+Navigation works between screens.
+
+---
+
+Day 2
+
+Onboarding flow
+
+Screens
+
+Welcome
+
+Privacy
+
+Permissions
+
+Protection setup
+
+Activation
+
+Requirements
+
+Compose only
+
+Responsive layout
+
+Dark theme
+
+Minimal design
+
+State survives rotation
+
+Deliverables
+
+Complete onboarding flow.
+
+---
+
+Day 3
+
+Settings and persistence
+
+Create
+
+ProtectionSettings entity
+
+SettingsRepository
+
+SettingsViewModel
+
+Room database
+
+Settings
+
+Protection level
+
+Cooldown duration
+
+Recovery task
+
+Lock duration
+
+Notifications
+
+Deliverables
+
+Settings persist across app restarts.
+
+---
+
+Day 4
+
+Protection state management
+
+Build
+
+ProtectionManager
+
+ProtectionState
+
+ProtectionEvent
+
+State machine
+
+States
+
+Disabled
+
+Enabled
+
+Cooldown
+
+PermissionRequired
+
+Deliverables
+
+Protection state is fully functional.
+
+---
+
+Day 5
+
+Permission framework
+
+Implement
+
+Accessibility permission
+
+Overlay permission
+
+Notification permission
+
+MediaProjection placeholder
+
+Create
+
+PermissionManager
+
+PermissionStatus
+
+Permission UI
+
+Deliverables
+
+Users can grant and revoke permissions.
+
+---
+
+Day 6
+
+Home screen
+
+Sections
+
+Protection status
+
+Time remaining
+
+Today’s interventions
+
+Current streak
+
+Quick actions
+
+Components
+
+Status card
+
+Stat cards
+
+Primary action button
+
+Settings shortcut
+
+Deliverables
+
+Home screen matches UI specification.
+
+---
+
+Day 7
+
+Refactor and testing
+
+Refactor
+
+Separate concerns
+
+Reduce class size
+
+Improve naming
+
+Add documentation
+
+Testing
+
+Settings persistence
+
+Protection state
+
+Permission handling
+
+Navigation
+
+Rotation
+
+Dark mode
+
+Deliverables
+
+Stable Sprint 01 build.
+
+---
+
+Required classes
+
+Core
+
+ProtectionManager
+
+PermissionManager
+
+CooldownManager (stub)
+
+Data
+
+ProtectionSettings
+
+SettingsRepository
+
+SettingsDao
+
+UI
+
+HomeViewModel
+
+SettingsViewModel
+
+OnboardingViewModel
+
+Navigation
+
+NavGraph
+
+Routes
+
+---
+
+Required tests
+
+Unit
+
+ProtectionManager
+
+SettingsRepository
+
+PermissionManager
+
+UI
+
+Navigation
+
+Onboarding
+
+Settings
+
+Home
+
+---
+
+Git commits
+
+Suggested sequence
+
+feat: initialize Android project
+
+feat: add Compose navigation
+
+feat: implement onboarding flow
+
+feat: add Room settings persistence
+
+feat: implement protection state manager
+
+feat: add permission management
+
+feat: build home screen
+
+test: add Sprint 01 test coverage
+
+docs: complete Sprint 01 documentation
+
+---
+
+Acceptance checklist
+
+Application launches
+
+Dark theme works
+
+Navigation works
+
+Onboarding completes
+
+Settings persist
+
+Protection toggles
+
+Permissions request correctly
+
+Code compiles cleanly
+
+Tests pass
+
+Documentation updated
+
+---
+
+AI coding prompts
+
+Prompt 1
+
+Build a Kotlin Android app using Jetpack Compose, Hilt, Room, and MVVM that follows the Sentinel repository structure defined in the documentation.
+
+Prompt 2
+
+Implement a ProtectionManager with a state machine supporting Disabled, Enabled, Cooldown, and PermissionRequired states.
+
+Prompt 3
+
+Create a Room database for ProtectionSettings with repository and ViewModel layers.
+
+Prompt 4
+
+Build a Compose onboarding flow with Welcome, Privacy, Permissions, Protection Setup, and Activation screens.
+
+Prompt 5
+
+Implement a PermissionManager that tracks Accessibility, Overlay, Notification, and MediaProjection permission states.
+
+Prompt 6
+
+Create a minimalist dark-themed home screen that displays protection status, lock time remaining, intervention count, and streak information.
+
+---
+
+Sprint retrospective questions
+
+Can a new developer understand the architecture?
+
+Is the codebase modular?
+
+Are privacy boundaries enforced?
+
+Is documentation sufficient?
+
+Can Sprint 02 begin without refactoring Sprint 01?
+
+If the answer to all five questions is yes,
+
+Sprint 01 is complete.
+
+Next sprint:
+
+Sprint 02: Screen monitoring and MediaProjection.
+
+Sentinel founder memo
+
+Version: 1.0
+
+Confidential
+
+Why this company exists
+
+I do not believe the biggest problem with smartphones is distraction.
+
+I believe the biggest problem is the growing gap between intention and behavior.
+
+People increasingly know what they want to do.
+
+Study.
+
+Sleep.
+
+Exercise.
+
+Build.
+
+Create.
+
+Pray.
+
+Read.
+
+Protect their relationships.
+
+Avoid pornography.
+
+Avoid doomscrolling.
+
+Avoid wasting hours online.
+
+The problem is that knowledge is not enough.
+
+The phone is optimized for the opposite.
+
+Every swipe, recommendation, autoplay sequence, notification, and infinite feed is designed to reduce friction.
+
+The result is that people repeatedly violate commitments they made to themselves.
+
+Sentinel exists to protect those commitments.
+
+The insight
+
+Most blockers fail because they try to control access.
+
+Sentinel tries to protect intention.
+
+That sounds subtle.
+
+It is not.
+
+Blocking a website is different from interrupting a behavioral spiral.
+
+A user rarely plans to spend three hours consuming explicit content.
+
+They usually enter a sequence.
+
+Boredom.
+
+Scrolling.
+
+Curiosity.
+
+Escalation.
+
+Compulsion.
+
+Regret.
+
+The opportunity is the escalation window.
+
+A one-second intervention at the right moment is worth more than a thousand blocked websites.
+
+The product
+
+The first product is simple.
+
+Sentinel watches the screen locally.
+
+When explicit content appears,
+
+it interrupts the session.
+
+The screen goes black.
+
+A cooldown begins.
+
+A recovery action starts.
+
+The user is separated from the impulse.
+
+That is the entire product.
+
+Everything else is secondary.
+
+Why privacy is the moat
+
+The obvious reaction is that screen monitoring is terrifying.
+
+That reaction is correct.
+
+Which is exactly why privacy must become the moat.
+
+Sentinel should be architected so that the company cannot see what users see.
+
+No screenshots.
+
+No uploads.
+
+No cloud inference.
+
+No screen history.
+
+The AI has eyes but no memory.
+
+That phrase should become the foundation of the company.
+
+Trust is not marketing.
+
+Trust is architecture.
+
+What we are really building
+
+The pornography use case is the wedge.
+
+The real company is much larger.
+
+We are building a behavioral operating system.
+
+A system that can eventually protect:
+
+sleep,
+
+deep work,
+
+exercise,
+
+financial discipline,
+
+relationships,
+
+and other commitments users voluntarily choose.
+
+The underlying engine is the same.
+
+Detect a behavioral pattern.
+
+Create friction.
+
+Restore intentionality.
+
+What we are not building
+
+We are not building spyware.
+
+We are not building parental surveillance software.
+
+We are not building a morality engine.
+
+We are not building an app that judges people.
+
+Sentinel does not decide what users should avoid.
+
+Users decide.
+
+Sentinel enforces their own decisions.
+
+The standard
+
+Every feature should pass one test.
+
+Will a user’s future self be grateful that this feature existed?
+
+If the answer is no,
+
+we should not build it.
+
+The long game
+
+I want Sentinel to become infrastructure.
+
+The same way antivirus software protects computers,
+
+Sentinel should protect human agency.
+
+Imagine a world where your devices help you become the person you intended to become.
+
+Not by controlling you.
+
+By protecting commitments you consciously made.
+
+That is a meaningful technology company.
+
+The founder rule
+
+Never optimize for engagement.
+
+Never optimize for addiction.
+
+Never optimize for data collection.
+
+Optimize for promises kept.
+
+The company wins when users need us less,
+
+not more.
+
+That is unusual.
+
+That is difficult.
+
+That is the point.
+
+The metric
+
+Revenue matters.
+
+Retention matters.
+
+Accuracy matters.
+
+But the real metric is simpler.
+
+How many times did Sentinel prevent a decision that the user would later regret?
+
+If we can increase that number at scale,
+
+we will have built something that genuinely improves lives.
+
+That is worth building.
+
+Sentinel founder memo
+
+Version: 1.0
+
+Confidential
+
+Why this company exists
+
+I do not believe the biggest problem with smartphones is distraction.
+
+I believe the biggest problem is the growing gap between intention and behavior.
+
+People increasingly know what they want to do.
+
+Study.
+
+Sleep.
+
+Exercise.
+
+Build.
+
+Create.
+
+Pray.
+
+Read.
+
+Protect their relationships.
+
+Avoid pornography.
+
+Avoid doomscrolling.
+
+Avoid wasting hours online.
+
+The problem is that knowledge is not enough.
+
+The phone is optimized for the opposite.
+
+Every swipe, recommendation, autoplay sequence, notification, and infinite feed is designed to reduce friction.
+
+The result is that people repeatedly violate commitments they made to themselves.
+
+Sentinel exists to protect those commitments.
+
+The insight
+
+Most blockers fail because they try to control access.
+
+Sentinel tries to protect intention.
+
+That sounds subtle.
+
+It is not.
+
+Blocking a website is different from interrupting a behavioral spiral.
+
+A user rarely plans to spend three hours consuming explicit content.
+
+They usually enter a sequence.
+
+Boredom.
+
+Scrolling.
+
+Curiosity.
+
+Escalation.
+
+Compulsion.
+
+Regret.
+
+The opportunity is the escalation window.
+
+A one-second intervention at the right moment is worth more than a thousand blocked websites.
+
+The product
+
+The first product is simple.
+
+Sentinel watches the screen locally.
+
+When explicit content appears,
+
+it interrupts the session.
+
+The screen goes black.
+
+A cooldown begins.
+
+A recovery action starts.
+
+The user is separated from the impulse.
+
+That is the entire product.
+
+Everything else is secondary.
+
+Why privacy is the moat
+
+The obvious reaction is that screen monitoring is terrifying.
+
+That reaction is correct.
+
+Which is exactly why privacy must become the moat.
+
+Sentinel should be architected so that the company cannot see what users see.
+
+No screenshots.
+
+No uploads.
+
+No cloud inference.
+
+No screen history.
+
+The AI has eyes but no memory.
+
+That phrase should become the foundation of the company.
+
+Trust is not marketing.
+
+Trust is architecture.
+
+What we are really building
+
+The pornography use case is the wedge.
+
+The real company is much larger.
+
+We are building a behavioral operating system.
+
+A system that can eventually protect:
+
+sleep,
+
+deep work,
+
+exercise,
+
+financial discipline,
+
+relationships,
+
+and other commitments users voluntarily choose.
+
+The underlying engine is the same.
+
+Detect a behavioral pattern.
+
+Create friction.
+
+Restore intentionality.
+
+What we are not building
+
+We are not building spyware.
+
+We are not building parental surveillance software.
+
+We are not building a morality engine.
+
+We are not building an app that judges people.
+
+Sentinel does not decide what users should avoid.
+
+Users decide.
+
+Sentinel enforces their own decisions.
+
+The standard
+
+Every feature should pass one test.
+
+Will a user’s future self be grateful that this feature existed?
+
+If the answer is no,
+
+we should not build it.
+
+The long game
+
+I want Sentinel to become infrastructure.
+
+The same way antivirus software protects computers,
+
+Sentinel should protect human agency.
+
+Imagine a world where your devices help you become the person you intended to become.
+
+Not by controlling you.
+
+By protecting commitments you consciously made.
+
+That is a meaningful technology company.
+
+The founder rule
+
+Never optimize for engagement.
+
+Never optimize for addiction.
+
+Never optimize for data collection.
+
+Optimize for promises kept.
+
+The company wins when users need us less,
+
+not more.
+
+That is unusual.
+
+That is difficult.
+
+That is the point.
+
+The metric
+
+Revenue matters.
+
+Retention matters.
+
+Accuracy matters.
+
+But the real metric is simpler.
+
+How many times did Sentinel prevent a decision that the user would later regret?
+
+If we can increase that number at scale,
+
+we will have built something that genuinely improves lives.
+
+That is worth building.
+
+ethical-boundaries.md
+
+Sentinel ethical boundaries
+
+Version: 1.0
+
+Status: Constitutional document
+
+Priority: Permanent
+
+Executive summary
+
+Sentinel is built to protect user autonomy.
+
+The same technologies that can help people maintain self-control can also be used for surveillance, coercion, manipulation, and abuse.
+
+This document defines the ethical boundaries that Sentinel will not cross.
+
+These are not marketing statements.
+
+These are product constraints.
+
+If a feature violates these principles, the feature should not be built.
+
+The purpose of Sentinel
+
+Sentinel exists to help users keep commitments they voluntarily make to themselves.
+
+The product is fundamentally about self-directed protection.
+
+Not external control.
+
+The primary ethical principle
+
+The user is the principal.
+
+Sentinel acts on behalf of the user’s explicitly chosen goals.
+
+Sentinel does not create goals for the user.
+
+What Sentinel will never become
+
+Secret monitoring software
+
+Sentinel will never be designed for covert surveillance.
+
+It will never secretly observe another person’s device.
+
+It will never hide its activity from the device owner.
+
+Protection must always be visible.
+
+Partner surveillance
+
+Sentinel will never provide tools for:
+
+monitoring a spouse,
+
+monitoring a partner,
+
+monitoring a friend,
+
+monitoring an employee,
+
+monitoring another adult without their explicit consent.
+
+This includes:
+
+screen monitoring,
+
+content reporting,
+
+activity tracking,
+
+remote observation,
+
+behavioral reporting.
+
+Screenshot sharing
+
+Sentinel will never automatically share screenshots with:
+
+partners,
+
+parents,
+
+employers,
+
+religious leaders,
+
+coaches,
+
+therapists,
+
+or Sentinel itself.
+
+The visual content of a user’s screen belongs to the user.
+
+Cloud screen analysis
+
+Sentinel will never require cloud processing of screen content for core protection.
+
+On-device analysis is a foundational principle.
+
+Cloud features may exist in the future only if they do not require uploading private screen content.
+
+Behavioral advertising
+
+Sentinel will never use behavioral data to target advertisements.
+
+No ad network integration.
+
+No attention optimization.
+
+No engagement maximization.
+
+The business model must remain aligned with user wellbeing.
+
+Addiction optimization
+
+Sentinel will never optimize for:
+
+daily app opens,
+
+screen time,
+
+engagement loops,
+
+compulsive streaks,
+
+or psychological dependency.
+
+A successful Sentinel user may use the app less over time.
+
+That is acceptable.
+
+Informed consent
+
+Users must understand:
+
+what Sentinel can see,
+
+what Sentinel cannot see,
+
+what Sentinel stores,
+
+what Sentinel never stores,
+
+how interventions work,
+
+how to disable protection,
+
+what data leaves the device.
+
+Permissions should never be obtained through deception.
+
+Reversible consent
+
+Users must be able to withdraw consent.
+
+Protection may include friction.
+
+It must not include imprisonment.
+
+Emergency override exists because autonomy remains the highest value.
+
+The autonomy test
+
+Before building a feature, ask:
+
+Does this increase the user’s ability to act according to their own values?
+
+If the answer is no,
+
+the feature should not be built.
+
+The coercion test
+
+Ask:
+
+Would this feature become harmful if used by an abusive partner, controlling parent, authoritarian employer, or coercive institution?
+
+If yes,
+
+the feature requires extreme scrutiny.
+
+Accountability features
+
+Future accountability features must follow these rules.
+
+Opt-in only
+
+Explicitly configured
+
+Easily understandable
+
+Metadata only
+
+Never screenshot based
+
+An accountability partner may know that an intervention occurred.
+
+They should not know what was on the screen.
+
+Children and parental control
+
+Sentinel is not designed primarily as parental surveillance software.
+
+Future family features must prioritize:
+
+transparency,
+
+consent,
+
+age appropriateness,
+
+and privacy.
+
+The architecture should not become generalized spyware.
+
+AI boundaries
+
+The AI should answer narrowly scoped questions.
+
+Examples
+
+Is explicit content visible?
+
+Has a protection rule been triggered?
+
+The AI should not infer:
+
+political beliefs,
+
+religious beliefs,
+
+sexual orientation,
+
+mental health diagnoses,
+
+relationship quality,
+
+or personal identity.
+
+Emotional boundaries
+
+Sentinel should never intentionally induce:
+
+shame,
+
+fear,
+
+dependency,
+
+guilt,
+
+or humiliation.
+
+Interventions should be calm and respectful.
+
+The goal is recovery.
+
+Data minimization
+
+Collect the minimum information necessary for protection.
+
+If a feature can be built without collecting additional data,
+
+it should be.
+
+Future usefulness is not sufficient justification for data collection.
+
+Transparency
+
+Users should be able to inspect:
+
+permissions,
+
+protection status,
+
+privacy status,
+
+stored data,
+
+intervention history,
+
+and network activity.
+
+Opaque systems do not deserve deep permissions.
+
+Open verification
+
+The privacy architecture should be independently verifiable.
+
+Where possible:
+
+open-source components,
+
+security audits,
+
+privacy audits,
+
+transparency reports,
+
+and reproducible claims.
+
+Trust should be earned through architecture,
+
+not promises.
+
+Founder responsibility
+
+The founding team has a special responsibility.
+
+Screen access creates asymmetric power.
+
+Power tends to expand.
+
+This document exists to resist that expansion.
+
+The hard questions
+
+Before any major feature launch, ask:
+
+Does this help users become more free?
+
+Does this respect their dignity?
+
+Would we want this feature on our own phones?
+
+Could this feature be abused?
+
+Can we achieve the same outcome with less data?
+
+What would the worst actor do with this capability?
+
+The constitutional amendment rule
+
+Changing this document should require:
+
+explicit documentation,
+
+written justification,
+
+founder approval,
+
+and public transparency.
+
+Ethical boundaries should be difficult to change.
+
+The final principle
+
+Sentinel exists to increase human agency.
+
+If Sentinel ever becomes a system that primarily increases the agency of someone other than the user,
+
+it has failed its mission.
+
+The product should always leave users with **more ownership over their lives,
+
+not less**.
+
+That is the boundary.
+
+That is the promise.
+
+That is the constitution.
+
+launch-beta.md
+
+Sentinel beta launch strategy
+
+Version: 1.0
+
+Status: Product validation plan
+
+Objective: Validate that Sentinel creates measurable behavioral improvement before public launch.
+
+Executive summary
+
+The beta is not a marketing event.
+
+The beta is a research program.
+
+The purpose is to answer one question:
+
+Does Sentinel meaningfully increase a user’s ability to keep commitments they made to themselves?
+
+Every decision during beta should prioritize learning over growth.
+
+Beta philosophy
+
+We are testing behavior, not features.
+
+The beta should produce evidence about:
+
+effectiveness,
+
+trust,
+
+retention,
+
+privacy perception,
+
+intervention quality,
+
+false positives,
+
+long-term usage.
+
+Success definition
+
+The beta succeeds if users voluntarily continue using Sentinel after the testing period because they believe it helps them maintain self-control.
+
+Beta stages
+
+Stage 1
+
+Founding Circle
+
+10 users
+
+Stage 2
+
+Trusted Beta
+
+25 users
+
+Stage 3
+
+Closed Beta
+
+100 users
+
+Stage 4
+
+Expansion Beta
+
+500 users
+
+Do not skip stages.
+
+Participant selection
+
+Ideal participant
+
+Android user
+
+Daily smartphone usage
+
+Strong motivation to reduce pornography
+
+Has previously tried blockers
+
+Willing to provide detailed feedback
+
+Privacy conscious
+
+Avoid
+
+Casual curiosity users
+
+People looking for parental controls
+
+People testing for entertainment
+
+Low-motivation users
+
+Recruitment channels
+
+Reddit
+
+NoFap communities
+
+Productivity communities
+
+Deep work communities
+
+Student communities
+
+Founder communities
+
+Faith-based communities
+
+Direct referrals
+
+The initial users should be highly engaged, not representative.
+
+Beta agreement
+
+Participants receive
+
+Free Pro access
+
+Direct founder communication
+
+Influence on product direction
+
+Early feature access
+
+Participants provide
+
+Weekly surveys
+
+Bug reports
+
+False positive reports
+
+Behavioral feedback
+
+Trust feedback
+
+Onboarding interview
+
+Before installation
+
+Collect
+
+Current blocker usage
+
+Relapse frequency
+
+High-risk times
+
+Trigger apps
+
+Motivation level
+
+Privacy concerns
+
+Goals
+
+This creates a baseline.
+
+Baseline period
+
+Duration
+
+7 days
+
+Sentinel records
+
+Intervention opportunities
+
+Screen monitoring performance
+
+Usage patterns
+
+No interventions
+
+Purpose
+
+Establish baseline behavior.
+
+Intervention period
+
+Duration
+
+30 days
+
+Interventions enabled
+
+Cooldowns active
+
+Recovery tasks active
+
+Lock periods optional
+
+Weekly check-in
+
+Questions
+
+How many interventions occurred?
+
+Were interventions accurate?
+
+Did Sentinel help?
+
+Did Sentinel feel invasive?
+
+Battery impact?
+
+False positives?
+
+False negatives?
+
+Would you continue using it?
+
+What frustrated you?
+
+Open text feedback is mandatory.
+
+Daily metrics
+
+Track
+
+Protection hours
+
+Interventions
+
+Cooldown completion
+
+Override attempts
+
+Disable attempts
+
+Permission revocations
+
+App opens
+
+Session length
+
+Crash events
+
+Behavioral metrics
+
+Primary metric
+
+Completed pornography sessions.
+
+Users self-report weekly.
+
+Secondary metrics
+
+Time to first relapse
+
+Sessions interrupted
+
+Urges survived
+
+Days protected
+
+Nighttime interventions
+
+Trust metrics
+
+Ask users to rate
+
+Privacy confidence
+
+Trust in local AI
+
+Comfort with screen monitoring
+
+Likelihood of recommending Sentinel
+
+Fear of surveillance
+
+Target
+
+Trust score above 8/10.
+
+False positive protocol
+
+Every false positive is classified.
+
+Severity levels
+
+Minor
+
+Suggestive content
+
+Medium
+
+Fitness or swimwear
+
+High
+
+Medical
+
+Personal photos
+
+Critical
+
+Family content
+
+Children
+
+A critical false positive triggers immediate review.
+
+False negative protocol
+
+Users can tap
+
+Sentinel missed this.
+
+Capture
+
+Confidence estimate
+
+App context
+
+Content category
+
+No screenshot uploaded by default.
+
+Founder response standard
+
+Every beta participant receives a response within
+
+24 hours.
+
+Trust is built through responsiveness.
+
+Community structure
+
+Private Discord or Signal group.
+
+Channels
+
+Announcements
+
+Bug reports
+
+False positives
+
+Feature requests
+
+Success stories
+
+General discussion
+
+Founders should be highly active.
+
+Release cadence
+
+Weekly beta updates.
+
+Every update includes
+
+What changed
+
+Why
+
+What was learned
+
+Known issues
+
+Privacy impact
+
+The beta dashboard
+
+Monitor daily
+
+Active users
+
+Interventions
+
+False positives
+
+False negatives
+
+Battery complaints
+
+Permission loss
+
+Crash rate
+
+Retention
+
+Trust score
+
+The dashboard is reviewed every morning.
+
+Red alert thresholds
+
+Pause beta expansion if
+
+False positives above 2%
+
+Battery complaints above 15%
+
+Trust score below 7
+
+Crash-free sessions below 98%
+
+Permission revocations above 20%
+
+Qualitative interviews
+
+Interview at least
+
+20 users.
+
+Topics
+
+First intervention experience
+
+Emotional response
+
+Trust
+
+Privacy
+
+Recovery tasks
+
+Lock periods
+
+Would they pay?
+
+The interviews matter more than feature requests.
+
+The one-hour interview
+
+Ask
+
+Walk me through the last intervention.
+
+Where were you?
+
+What were you feeling?
+
+What happened after the intervention?
+
+Did you resent Sentinel?
+
+Did you feel relieved?
+
+What would have happened without it?
+
+These interviews will shape V2.
+
+Retention analysis
+
+Measure
+
+Day 1
+
+Day 7
+
+Day 30
+
+Day 60
+
+Segment by
+
+Protection level
+
+Intervention count
+
+Recovery task
+
+Age group
+
+Student vs professional
+
+Pricing validation
+
+At day 30 ask
+
+Would you pay for Sentinel?
+
+Options
+
+No
+
+$4.99
+
+$9.99
+
+$14.99
+
+$19.99
+
+Then ask
+
+Why?
+
+The explanation is more valuable than the number.
+
+Product-market fit question
+
+Ask every participant
+
+How would you feel if Sentinel disappeared tomorrow?
+
+Responses
+
+Not disappointed
+
+Slightly disappointed
+
+Disappointed
+
+Very disappointed
+
+This is the strongest PMF indicator.
+
+Launch criteria
+
+Sentinel is ready for public launch when
+
+30-day retention above 40%
+
+Trust score above 8
+
+False positives below 1%
+
+Battery complaints below 10%
+
+Major privacy concerns resolved
+
+At least 50 users say Sentinel helped them avoid behavior they had previously intended to avoid
+
+Public launch strategy
+
+Do not launch with
+
+AI
+
+Machine learning
+
+Neural networks
+
+Vision models
+
+Lead with
+
+Protect your future self.
+
+Privacy-first.
+
+On-device.
+
+Real-time protection.
+
+The technology is the mechanism.
+
+Self-control is the value.
+
+The final beta question
+
+If you could no longer use Sentinel,
+
+what would you replace it with?
+
+The ideal answer is
+
+Nothing.
+
+Because nothing else protects me in the same way.
+
+That is product-market fit.
+
+engineering-standards.md
+
+Sentinel engineering standards
+
+Version: 1.0
+
+Status: Engineering constitution
+
+Executive summary
+
+This document defines the non-negotiable engineering standards for Sentinel.
+
+Sentinel is a security-sensitive application with AI, background services, and screen access.
+
+Code quality is not a productivity concern.
+
+Code quality is a trust concern.
+
+Every engineering decision must optimize for:
+
+privacy,
+
+reliability,
+
+simplicity,
+
+testability,
+
+maintainability.
+
+The product cannot ask users for extraordinary permissions while maintaining ordinary engineering standards.
+
+The engineering philosophy
+
+Privacy before convenience
+
+Never collect data because it might be useful later.
+
+Reliability before features
+
+A smaller feature set that always works is superior.
+
+Simplicity before cleverness
+
+Readable systems survive.
+
+Documentation before memory
+
+If it matters, write it down.
+
+Core principles
+
+Rule 1
+
+No screenshot persistence.
+
+This is absolute.
+
+No exceptions.
+
+No debug exceptions.
+
+No temporary exceptions.
+
+Rule 2
+
+On-device first.
+
+Cloud processing requires explicit architectural review.
+
+Rule 3
+
+Every feature must have a privacy explanation.
+
+Rule 4
+
+Every feature must have tests.
+
+Rule 5
+
+Every feature must fail safely.
+
+Architecture rules
+
+Single responsibility
+
+Classes should have one clear purpose.
+
+Example
+
+Good
+
+DetectionEngine
+
+OverlayManager
+
+CooldownManager
+
+Bad
+
+SentinelManagerThatDoesEverything
+
+Dependency direction
+
+UI
+
+↓
+
+Domain
+
+↓
+
+Data
+
+Never reverse the dependency flow.
+
+State management
+
+All application state should flow through explicit state objects.
+
+Avoid hidden mutable state.
+
+Kotlin standards
+
+Naming
+
+Classes
+
+PascalCase
+
+Functions
+
+camelCase
+
+Variables
+
+camelCase
+
+Constants
+
+UPPER_SNAKE_CASE
+
+Function size
+
+Target
+
+Less than 40 lines
+
+Maximum
+
+80 lines
+
+Refactor aggressively.
+
+Class size
+
+Target
+
+Less than 300 lines
+
+Split by responsibility.
+
+File organization
+
+One primary class per file.
+
+Null safety
+
+Prefer explicit nullable types.
+
+Avoid !!.
+
+Use
+
+let
+
+run
+
+requireNotNull
+
+early returns
+
+Null crashes are unacceptable in protection code.
+
+Coroutines
+
+Required
+
+Structured concurrency.
+
+Forbidden
+
+GlobalScope
+
+Preferred
+
+viewModelScope
+
+lifecycleScope
+
+serviceScope
+
+Every coroutine must have a clear owner.
+
+Error handling
+
+Never silently swallow exceptions.
+
+Required
+
+Log
+
+Recover
+
+Notify user if protection is affected
+
+Example
+
+Bad
+
+try {
+
+...
+
+} catch (e: Exception) {}
+
+Good
+
+try {
+
+...
+
+} catch (e: Exception) {
+
+logger.error(...)
+
+recover()
+
+}
+
+Logging standards
+
+Allowed
+
+Lifecycle events
+
+Performance metrics
+
+Error states
+
+Protection transitions
+
+Forbidden
+
+Screen contents
+
+Image data
+
+User messages
+
+URLs
+
+Personal identifiers
+
+Logs must be privacy-safe.
+
+AI standards
+
+Model versioning
+
+Every model must have
+
+version
+
+checksum
+
+training date
+
+evaluation metrics
+
+Threshold changes
+
+Require documented justification.
+
+Threshold modifications must be tested against the evaluation dataset.
+
+Inference
+
+Must run off the main thread.
+
+Performance standards
+
+UI
+
+16 ms frame budget
+
+Inference
+
+Less than 100 ms
+
+Overlay
+
+Less than 100 ms
+
+Memory
+
+Less than 200 MB
+
+Battery
+
+Less than 5% daily impact
+
+Performance regressions block release.
+
+Testing requirements
+
+Unit tests
+
+Business logic
+
+Threshold logic
+
+State machine
+
+Cooldown logic
+
+Integration tests
+
+Services
+
+Database
+
+Permissions
+
+Instrumentation tests
+
+Overlay
+
+MediaProjection
+
+Accessibility
+
+Performance tests
+
+Inference
+
+Battery
+
+Memory
+
+Privacy tests
+
+No screenshot persistence
+
+No network transmission
+
+No sensitive logs
+
+Test coverage
+
+Critical systems
+
+Greater than 90%
+
+UI
+
+Greater than 70%
+
+Overall
+
+Greater than 80%
+
+Coverage is not enough.
+
+Quality of tests matters.
+
+Privacy review checklist
+
+Every PR must answer
+
+Does this process screen content?
+
+Is any visual data stored?
+
+Is any visual data transmitted?
+
+Are logs privacy-safe?
+
+Can this feature be implemented with less data?
+
+If uncertain,
+
+collect less.
+
+Security review checklist
+
+Permissions justified
+
+Data encrypted
+
+Logs sanitized
+
+Exceptions handled
+
+Background services bounded
+
+Network minimized
+
+Dependencies audited
+
+Dependency policy
+
+Prefer stable libraries.
+
+Avoid abandoned libraries.
+
+Avoid unnecessary libraries.
+
+Every dependency increases attack surface.
+
+Git standards
+
+Branches
+
+feature/
+
+fix/
+
+refactor/
+
+docs/
+
+test/
+
+Commit messages
+
+feat:
+
+fix:
+
+refactor:
+
+docs:
+
+test:
+
+perf:
+
+security:
+
+Pull requests
+
+Must include
+
+What changed
+
+Why
+
+Privacy impact
+
+Performance impact
+
+Testing performed
+
+Code review standards
+
+Reviewers check
+
+Correctness
+
+Privacy
+
+Security
+
+Performance
+
+Architecture
+
+Readability
+
+Testing
+
+Documentation
+
+A feature is not approved until documentation is updated.
+
+Documentation standards
+
+Every major component requires
+
+Purpose
+
+Inputs
+
+Outputs
+
+Failure modes
+
+Privacy implications
+
+Performance considerations
+
+Future extension points
+
+AI-assisted coding policy
+
+AI-generated code is allowed.
+
+AI-generated code is never trusted automatically.
+
+Every AI-generated change must be
+
+Read
+
+Understood
+
+Tested
+
+Documented
+
+Privacy reviewed
+
+The engineer remains responsible.
+
+Release checklist
+
+Before every release
+
+All tests pass
+
+Privacy tests pass
+
+Battery benchmark acceptable
+
+Memory benchmark acceptable
+
+No critical crashes
+
+Documentation updated
+
+Model version recorded
+
+Permissions reviewed
+
+Security scan completed
+
+Red lines
+
+The following require founder approval
+
+Cloud image processing
+
+Screenshot storage
+
+Message analysis
+
+OCR
+
+Behavioral advertising
+
+Third-party analytics with screen access
+
+Additional sensitive permissions
+
+These are architectural decisions,
+
+not implementation details.
+
+The engineering oath
+
+Every engineer working on Sentinel should be able to answer yes to this question:
+
+“If I installed this app on my own phone,
+
+would I trust it with my screen?”
+
+If the answer is no,
+
+the feature is not ready.
+
+Trust is the product.
+
+The codebase exists to protect that trust.
+
+build-plan.md
+
+Sentinel MVP build plan
+
+Version: 1.0
+
+Status: Execution blueprint
+
+Target timeline: 8 weeks
+
+Development mode: AI-assisted solo founder
+
+Primary goal: Ship a private Android MVP that reliably interrupts explicit content sessions.
+
+Executive summary
+
+This document defines exactly how Sentinel will be built from zero.
+
+The objective is not to build every feature.
+
+The objective is to build a working, testable, privacy-first MVP as quickly as possible without compromising architecture.
+
+The build order is designed to reduce technical risk.
+
+Development philosophy
+
+Build the highest-risk components first.
+
+The highest risks are:
+
+Screen monitoring
+
+On-device AI detection
+
+Overlay intervention
+
+Battery impact
+
+Everything else is secondary.
+
+Technology stack
+
+Language
+
+Kotlin
+
+UI
+
+Jetpack Compose
+
+Architecture
+
+MVVM
+
+AI
+
+TensorFlow Lite
+
+Local storage
+
+Room
+
+Background services
+
+Foreground Service
+
+Accessibility Service
+
+Dependency injection
+
+Hilt
+
+Async
+
+Kotlin Coroutines
+
+Image processing
+
+Android Bitmap APIs
+
+Testing
+
+JUnit
+
+Android Instrumentation
+
+Repository structure
+
+sentinel/
+
+├── app/
+
+├── core/
+
+│ ├── ai/
+
+│ ├── privacy/
+
+│ ├── protection/
+
+│ └── utils/
+
+├── data/
+
+│ ├── database/
+
+│ ├── repository/
+
+│ └── models/
+
+├── services/
+
+│ ├── monitoring/
+
+│ ├── accessibility/
+
+│ ├── overlay/
+
+│ └── cooldown/
+
+├── ui/
+
+│ ├── onboarding/
+
+│ ├── home/
+
+│ ├── focus/
+
+│ ├── settings/
+
+│ └── intervention/
+
+├── docs/
+
+├── tests/
+
+└── README.md
+
+Milestone overview
+
+Week 1
+
+Foundation
+
+Week 2
+
+Screen monitoring
+
+Week 3
+
+AI detection
+
+Week 4
+
+Intervention engine
+
+Week 5
+
+Cooldown system
+
+Week 6
+
+Persistence and reliability
+
+Week 7
+
+Optimization
+
+Week 8
+
+Beta preparation
+
+Week 1
+
+Foundation
+
+Objective
+
+Create the project skeleton.
+
+Tasks
+
+Initialize Android project
+
+Configure Git
+
+Set up Hilt
+
+Set up Room
+
+Set up Compose
+
+Create navigation
+
+Create theme
+
+Create basic screens
+
+Deliverables
+
+App launches
+
+Navigation works
+
+Settings persist locally
+
+Week 2
+
+Screen monitoring
+
+Objective
+
+Capture screen frames reliably.
+
+Tasks
+
+Request MediaProjection
+
+Create VirtualDisplay
+
+Create ImageReader
+
+Convert Image to Bitmap
+
+Handle rotation
+
+Handle screen size changes
+
+Implement frame sampling
+
+Target
+
+1 FPS
+
+Deliverables
+
+Live frame capture working
+
+Frames visible in debug screen
+
+Week 3
+
+AI detection
+
+Objective
+
+Detect explicit content locally.
+
+Tasks
+
+Integrate TensorFlow Lite
+
+Load EfficientNet-Lite model
+
+Preprocess Bitmap
+
+Run inference
+
+Return confidence score
+
+Build DetectionEngine
+
+Create debug confidence overlay
+
+Deliverables
+
+Real-time confidence values
+
+Explicit images correctly detected
+
+Week 4
+
+Intervention engine
+
+Objective
+
+Interrupt the user immediately.
+
+Tasks
+
+Implement OverlayManager
+
+Display full-screen black overlay
+
+Add shield UI
+
+Add countdown timer
+
+Block interaction
+
+Add vibration
+
+Measure latency
+
+Target
+
+Less than 800 ms
+
+Deliverables
+
+Detection triggers intervention
+
+Overlay appears above all apps
+
+Week 5
+
+Cooldown system
+
+Objective
+
+Create the behavioral interruption loop.
+
+Tasks
+
+Build CooldownManager
+
+Persist timer
+
+Build recovery task screen
+
+Implement push-up task
+
+Implement breathing task
+
+Return to protection state
+
+Deliverables
+
+Complete intervention flow
+
+Week 6
+
+Persistence and reliability
+
+Objective
+
+Make Sentinel survive real-world usage.
+
+Tasks
+
+ProtectionManager
+
+Lock periods
+
+Boot receiver
+
+Service recovery
+
+Permission monitoring
+
+Database integration
+
+State restoration
+
+Deliverables
+
+Protection survives reboot
+
+Cooldown survives restart
+
+Week 7
+
+Optimization
+
+Objective
+
+Reduce battery and improve accuracy.
+
+Tasks
+
+Bitmap pooling
+
+Adaptive frame rate
+
+Inference optimization
+
+Threshold tuning
+
+False positive tuning
+
+Memory optimization
+
+Performance profiling
+
+Battery testing
+
+Deliverables
+
+Acceptable battery usage
+
+Stable memory
+
+Week 8
+
+Beta preparation
+
+Objective
+
+Prepare for external users.
+
+Tasks
+
+Privacy dashboard
+
+Permission explanations
+
+Error handling
+
+Crash reporting
+
+Beta feedback form
+
+Analytics
+
+Internal documentation
+
+Release build
+
+Deliverables
+
+Closed beta APK
+
+Development priorities
+
+Priority 1
+
+Detection
+
+Priority 2
+
+Intervention
+
+Priority 3
+
+Reliability
+
+Priority 4
+
+Battery
+
+Priority 5
+
+Analytics
+
+Daily workflow
+
+Morning
+
+Implement one feature.
+
+Afternoon
+
+Test on physical device.
+
+Evening
+
+Refactor and document.
+
+Every feature must end with documentation.
+
+Definition of done
+
+A task is complete only when:
+
+Code works.
+
+Code is documented.
+
+Tests pass.
+
+No privacy violations.
+
+Battery impact measured.
+
+Failure cases handled.
+
+Testing gates
+
+Gate 1
+
+Screen capture
+
+Gate 2
+
+AI inference
+
+Gate 3
+
+Overlay
+
+Gate 4
+
+Cooldown
+
+Gate 5
+
+Persistence
+
+Gate 6
+
+Battery
+
+Gate 7
+
+Beta
+
+Do not proceed until the previous gate passes.
+
+Git workflow
+
+main
+
+Stable
+
+develop
+
+Integration
+
+feature/monitoring
+
+feature/ai
+
+feature/overlay
+
+feature/cooldown
+
+feature/settings
+
+Commit messages
+
+feat:
+
+fix:
+
+refactor:
+
+docs:
+
+test:
+
+AI-assisted development workflow
+
+For each feature:
+
+Generate implementation plan.
+
+Generate Kotlin code.
+
+Generate tests.
+
+Review architecture.
+
+Run on device.
+
+Measure performance.
+
+Document results.
+
+The documentation must always remain ahead of the codebase.
+
+Hardware requirements
+
+Primary test device
+
+Mid-range Android
+
+Secondary
+
+Budget Android
+
+Tertiary
+
+Flagship Android
+
+Do not optimize only for flagship devices.
+
+Beta criteria
+
+Sentinel is ready for beta when:
+
+Detection works
+
+Intervention works
+
+Cooldown works
+
+Protection survives reboot
+
+Battery impact is acceptable
+
+No screenshots are stored
+
+Privacy architecture verified
+
+Crash rate is low
+
+Final milestone
+
+A user installs Sentinel,
+
+enables protection,
+
+encounters explicit content,
+
+is interrupted in under one second,
+
+completes a recovery task,
+
+and successfully avoids returning to explicit content during the cooldown.
+
+That is the MVP.
+
+Everything after that is optimization.
+
+business.md
+
+Sentinel business strategy
+
+Version: 1.0
+
+Status: Strategic business document
+
+Executive summary
+
+Sentinel is not a content blocker.
+
+Sentinel is a behavioral protection platform.
+
+The company is built around a simple value proposition:
+
+Help people reliably keep promises they make to themselves.
+
+This positions Sentinel in a category that sits between:
+
+productivity software,
+
+digital wellbeing,
+
+mental health support,
+
+behavioral technology,
+
+and commitment devices.
+
+The long-term opportunity is significantly larger than pornography blocking.
+
+The category
+
+Sentinel creates a new category:
+
+Behavioral protection software.
+
+Current categories:
+
+Website blockers
+
+Screen time apps
+
+Habit trackers
+
+Accountability apps
+
+Meditation apps
+
+Sentinel combines elements of all of them while solving a different problem.
+
+The problem is not access.
+
+The problem is loss of intentionality.
+
+The customer
+
+Primary customer
+
+Adults actively trying to stop consuming pornography.
+
+Characteristics:
+
+Highly motivated
+
+Already tried blockers
+
+Frustrated with bypassing
+
+Willing to pay for effectiveness
+
+Privacy conscious
+
+Secondary customer
+
+Students and professionals with severe digital distraction.
+
+Tertiary customer
+
+People practicing:
+
+Digital minimalism
+
+Deep work
+
+Dopamine reduction
+
+Religious discipline
+
+Athletic discipline
+
+Financial discipline
+
+Market size
+
+Initial market
+
+Pornography recovery tools.
+
+Expanded market
+
+Digital distraction management.
+
+Ultimate market
+
+Behavioral self-regulation.
+
+Potential categories:
+
+Focus
+
+Sleep
+
+Social media
+
+Shopping
+
+Gambling
+
+Gaming
+
+Substance-related digital triggers
+
+The addressable market becomes anyone who wants stronger self-control.
+
+Positioning
+
+Not
+
+A porn blocker.
+
+Not
+
+Parental control software.
+
+Not
+
+A productivity app.
+
+Positioning statement
+
+The AI guardian that protects the commitments you make to yourself.
+
+Pricing philosophy
+
+The free version must be genuinely useful.
+
+The paid version must provide deeper protection, not artificial limitations.
+
+Free plan
+
+Core protection.
+
+Includes:
+
+Screen monitoring
+
+Basic explicit detection
+
+10-minute cooldown
+
+One recovery task
+
+Basic streaks
+
+Basic analytics
+
+This allows users to experience the core value.
+
+Sentinel Pro
+
+Monthly subscription.
+
+Includes:
+
+Advanced AI detection
+
+Adaptive interventions
+
+Predictive protection
+
+Custom recovery protocols
+
+Unlimited lock periods
+
+Advanced analytics
+
+Behavioral insights
+
+Cross-device sync
+
+Desktop apps
+
+Wearable integration
+
+Priority model updates
+
+Privacy verification tools
+
+The subscription is paying for better protection, not basic functionality.
+
+Suggested pricing
+
+Monthly
+
+$9.99
+
+Annual
+
+$79.99
+
+The annual plan should be heavily emphasized.
+
+Why subscription
+
+Sentinel requires:
+
+Model updates
+
+Android compatibility
+
+Battery optimization
+
+Security audits
+
+Privacy audits
+
+Cross-device infrastructure
+
+Behavioral research
+
+Continuous improvement
+
+This is not a one-time purchase product.
+
+Trust-first monetization
+
+Sentinel should explicitly commit to:
+
+No advertising
+
+No data sales
+
+No screen-content monetization
+
+No behavioral advertising
+
+The business model should align with user interests.
+
+Users pay directly.
+
+The company serves users.
+
+The trust advantage
+
+A subscription model creates a stronger trust relationship than an advertising model.
+
+Advertising creates incentives to increase screen time.
+
+Sentinel’s mission is to reduce destructive screen time.
+
+The incentives must be aligned.
+
+Launch strategy
+
+Phase 1
+
+Android beta.
+
+Target users:
+
+People actively trying to quit pornography.
+
+Channels:
+
+Reddit
+
+NoFap communities
+
+Product Hunt
+
+X
+
+YouTube creators
+
+Student communities
+
+Religious communities
+
+Deep work communities
+
+Phase 2
+
+Referral growth.
+
+Users invite accountability partners.
+
+Phase 3
+
+Creator partnerships.
+
+Productivity creators
+
+Mental health creators
+
+Recovery creators
+
+Faith-based creators
+
+Athlete creators
+
+Founder creators
+
+Brand strategy
+
+The brand should feel:
+
+Premium
+
+Private
+
+Technical
+
+Calm
+
+Trustworthy
+
+Avoid:
+
+Religious branding
+
+Moralistic branding
+
+Political branding
+
+Shame-based messaging
+
+The moat
+
+Weak moat
+
+NSFW detection.
+
+Strong moat
+
+Behavioral intervention engine.
+
+Stronger moat
+
+Behavioral data network.
+
+Strongest moat
+
+Trust.
+
+If users trust Sentinel enough to grant screen permissions,
+
+that trust becomes extremely difficult to replicate.
+
+Competitive advantages
+
+Privacy
+
+Local AI.
+
+Intervention
+
+Real-time interruption.
+
+Anti-bypass
+
+Commitment enforcement.
+
+Personalization
+
+Behavioral intelligence.
+
+Cross-platform
+
+Unified protection.
+
+Key metrics
+
+Acquisition
+
+Cost per install
+
+Permission completion rate
+
+Activation rate
+
+Engagement
+
+Daily active users
+
+Protection hours
+
+Interventions
+
+Recovery completion
+
+Retention
+
+7-day
+
+30-day
+
+90-day
+
+Annual retention
+
+Business
+
+Free-to-paid conversion
+
+Monthly recurring revenue
+
+Annual recurring revenue
+
+Churn
+
+Lifetime value
+
+Customer acquisition cost
+
+The most important metric
+
+Promises kept.
+
+Eventually Sentinel should estimate:
+
+How many high-risk sessions were interrupted?
+
+How many goals were protected?
+
+How many relapse events were prevented?
+
+This becomes the company’s defining metric.
+
+Enterprise opportunity
+
+Future possibilities:
+
+Universities
+
+Addiction clinics
+
+Therapists
+
+Coaching programs
+
+Religious organizations
+
+Corporate wellness
+
+Military training
+
+Athletic organizations
+
+These are secondary opportunities.
+
+Consumer remains the primary market.
+
+International strategy
+
+The product is naturally global.
+
+Requirements:
+
+Localization
+
+Regional privacy compliance
+
+On-device AI
+
+Offline functionality
+
+Cultural neutrality
+
+The core problem exists in nearly every country.
+
+Long-term expansion
+
+Sentinel eventually becomes a platform.
+
+Third-party intervention modules.
+
+Goal integrations.
+
+Health integrations.
+
+Education integrations.
+
+Financial discipline integrations.
+
+Developers could build protection protocols on top of the Sentinel engine.
+
+The company we are building
+
+The long-term company is not in the pornography industry.
+
+It is in the human agency industry.
+
+The mission is to increase the number of times people act according to their values instead of their impulses.
+
+That is a much larger mission.
+
+The business success metric
+
+Sentinel succeeds when users continue paying for the product because they believe one thing:
+
+“I trust this app to protect me from decisions I make during moments when I am not my best self.”
+
+That trust is the business.
+
+That trust is the moat.
+
+That trust is the company.
+
+roadmap.md
+
+Sentinel product roadmap
+
+Version: 1.0
+
+Status: Strategic roadmap
+
+Time horizon: 5+ years
+
+Executive summary
+
+Sentinel begins as a pornography interruption app.
+
+It evolves into a behavioral operating system.
+
+The roadmap is intentionally staged.
+
+Each phase proves one major capability before introducing the next.
+
+The sequence is:
+
+Reactive protection
+
+↓
+
+Reliable protection
+
+↓
+
+Intelligent protection
+
+↓
+
+Predictive protection
+
+↓
+
+Behavioral operating system
+
+The goal is not to build many features.
+
+The goal is to build an increasingly trusted layer between human intention and digital temptation.
+
+Phase 1
+
+MVP
+
+Mission
+
+Prove that real-time AI intervention can interrupt pornography consumption.
+
+Core capabilities
+
+On-device screen monitoring
+
+Explicit content detection
+
+Black-screen intervention
+
+Cooldown timer
+
+Recovery task
+
+Lock periods
+
+Basic analytics
+
+Success metric
+
+Users report that Sentinel prevented completed pornography sessions.
+
+Timeline
+
+4 to 8 weeks
+
+Moat created
+
+Real-time intervention
+
+Phase 2
+
+Reliable protection
+
+Mission
+
+Make Sentinel dependable enough for daily use.
+
+New capabilities
+
+Improved NSFW classifier
+
+Lower false positives
+
+Faster inference
+
+Better battery optimization
+
+Background reliability
+
+Crash recovery
+
+Permission recovery
+
+Boot persistence
+
+Adaptive frame rate
+
+UX improvements
+
+Better onboarding
+
+Privacy dashboard
+
+Intervention customization
+
+Recovery task selection
+
+Success metric
+
+30-day retention above 40%.
+
+Moat created
+
+Reliability
+
+Phase 3
+
+Anti-bypass system
+
+Mission
+
+Protect users from impulsive self-sabotage.
+
+New capabilities
+
+Delayed disable
+
+Delayed uninstall
+
+Settings lock
+
+Protection contracts
+
+Emergency override protocol
+
+Multi-step deactivation
+
+Tamper detection
+
+Example
+
+User attempts to disable protection.
+
+Sentinel begins a 24-hour waiting period.
+
+The impulsive decision is separated from execution.
+
+Success metric
+
+Significant reduction in disable events during high-risk periods.
+
+Moat created
+
+Commitment enforcement
+
+Phase 4
+
+Behavioral intelligence
+
+Mission
+
+Understand behavioral patterns.
+
+New capabilities
+
+Time-of-day analysis
+
+App sequence analysis
+
+Session duration analysis
+
+Intervention effectiveness
+
+Trigger analytics
+
+Risk scoring
+
+Personalized reports
+
+Example insight
+
+Most interventions occur between 11:30 PM and 1:00 AM after 20+ minutes on X.
+
+Dashboard
+
+High-risk hours
+
+Trigger apps
+
+Protection effectiveness
+
+Weekly trends
+
+Success metric
+
+Earlier interventions reduce total intervention count.
+
+Moat created
+
+Behavioral understanding
+
+Phase 5
+
+Predictive intervention
+
+Mission
+
+Intervene before the user reaches the point of compulsion.
+
+New capabilities
+
+Urge prediction
+
+Escalation detection
+
+Pre-trigger intervention
+
+Adaptive cooldowns
+
+Dynamic thresholds
+
+Personalized intervention timing
+
+Example
+
+The AI detects:
+
+Late night
+
+Repeated app switching
+
+Extended scrolling
+
+Previous relapse pattern
+
+Sentinel intervenes before explicit content appears.
+
+Notification
+
+This pattern has previously led to a relapse.
+
+Activate Focus Mode?
+
+Success metric
+
+Reduction in explicit detections through preventive interventions.
+
+Moat created
+
+Prediction
+
+Phase 6
+
+Cross-platform protection
+
+Mission
+
+Protect users across their digital environment.
+
+Platforms
+
+Android
+
+Windows
+
+macOS
+
+Browser
+
+Future Linux
+
+Shared features
+
+Unified protection state
+
+Cross-device lock periods
+
+Shared intervention history
+
+Encrypted synchronization
+
+Example
+
+A lock started on the phone applies to the laptop browser.
+
+Success metric
+
+Multi-device daily usage.
+
+Moat created
+
+Ecosystem
+
+Phase 7
+
+Accountability network
+
+Mission
+
+Allow users to voluntarily add external accountability.
+
+Principles
+
+Opt-in
+
+Privacy preserving
+
+Minimal disclosure
+
+Features
+
+Trusted contacts
+
+Weekly reports
+
+Intervention notifications
+
+Focus partner
+
+Group commitments
+
+Privacy rule
+
+Never share screenshots.
+
+Never share viewed content.
+
+Only share event metadata.
+
+Example
+
+Intervention occurred at 11:42 PM.
+
+Success metric
+
+Improved long-term retention.
+
+Moat created
+
+Social reinforcement
+
+Phase 8
+
+Wearable integration
+
+Mission
+
+Move interventions into the physical world.
+
+Devices
+
+Wear OS
+
+Galaxy Watch
+
+Future Apple Watch
+
+Features
+
+Haptic intervention
+
+Breathing guidance
+
+Walk detection
+
+Heart-rate aware cooldowns
+
+Stress detection
+
+Phone lock confirmation
+
+Example
+
+An intervention triggers a breathing exercise on the watch while the phone remains locked.
+
+Success metric
+
+Higher recovery task completion.
+
+Moat created
+
+Embodied intervention
+
+Phase 9
+
+Goal-aware protection
+
+Mission
+
+Protect any user-defined commitment.
+
+User goals
+
+Study
+
+Sleep
+
+Exercise
+
+Reading
+
+Deep work
+
+Meditation
+
+Financial discipline
+
+Relationships
+
+Protection rules
+
+No social media after 9 PM.
+
+Block YouTube until 2 hours of study.
+
+Lock shopping apps during budgeting week.
+
+Require exercise before entertainment apps.
+
+The engine becomes rule based.
+
+Success metric
+
+Goal completion improvement.
+
+Moat created
+
+Generalized commitment engine
+
+Phase 10
+
+Adaptive behavioral firewall
+
+Mission
+
+Protect users from destructive behavioral loops.
+
+Protected behaviors
+
+Pornography
+
+Doomscrolling
+
+Gambling
+
+Compulsive shopping
+
+Binge watching
+
+Gaming addiction
+
+Late-night phone use
+
+AI capabilities
+
+Context awareness
+
+Behavior modeling
+
+Intervention optimization
+
+Personalized friction
+
+Long-term learning
+
+Example
+
+Sentinel recognizes that the user is not viewing explicit content but has entered a behavioral pattern that historically leads there.
+
+It intervenes at the pattern level.
+
+Success metric
+
+Reduction in high-risk behavioral episodes.
+
+Moat created
+
+Behavioral modeling
+
+Phase 11
+
+Sentinel OS layer
+
+Mission
+
+Become a trusted operating layer above the operating system.
+
+Capabilities
+
+System-wide protection
+
+AI permission management
+
+Goal-aware device behavior
+
+Cross-device synchronization
+
+Context-aware automation
+
+Behavioral identity
+
+Examples
+
+The phone delays unlocking during a high-risk window.
+
+The browser enters Focus Mode automatically.
+
+Notifications are filtered based on cognitive state.
+
+Entertainment apps become unavailable after sleep hours.
+
+The device begins cooperating with the user’s long-term goals.
+
+Success metric
+
+Sentinel becomes the default behavior management layer.
+
+Moat created
+
+Platform integration
+
+The final boss
+
+The self-control operating system
+
+In the final form,
+
+Sentinel understands three things.
+
+Intentions
+
+What the user wants.
+
+Vulnerabilities
+
+When the user is likely to abandon those intentions.
+
+Interventions
+
+What actually helps that specific user regain control.
+
+The system becomes deeply personalized without becoming invasive.
+
+The intelligence loop
+
+Goals
+
+↓
+
+Behavior
+
+↓
+
+Risk prediction
+
+↓
+
+Intervention
+
+↓
+
+Outcome
+
+↓
+
+Personalization
+
+Sentinel continuously learns which interventions are effective.
+
+Not through surveillance.
+
+Through consent-based behavioral outcomes.
+
+The philosophy
+
+The operating system protects the device.
+
+Sentinel protects the person using the device.
+
+The ultimate metric
+
+The number of times a user’s future self is grateful that their present self installed Sentinel.
+
+That is the product.
+
+That is the company.
+
+That is the mission.
+
+Feedback from users when training the NSFW
+
+testing.md
+
+Sentinel testing and validation strategy
+
+Version: 1.0
+
+Status: Validation framework
+
+Objective: Prove that Sentinel reliably interrupts compulsive behavior while maintaining user trust, privacy, and device performance.
+
+Executive summary
+
+Sentinel is a behavioral intervention product.
+
+Traditional QA is necessary but insufficient.
+
+The product must be validated across four dimensions:
+
+Technical reliability
+
+AI accuracy
+
+User trust
+
+Behavioral effectiveness
+
+A build that never crashes but does not reduce relapse is not a successful build.
+
+Validation philosophy
+
+We are testing a closed-loop behavioral system.
+
+Detection
+
+↓
+
+Intervention
+
+↓
+
+Cooldown
+
+↓
+
+Recovery action
+
+↓
+
+Behavioral outcome
+
+Every stage must be measured independently.
+
+Success criteria
+
+Technical success
+
+The app functions correctly.
+
+AI success
+
+The classifier detects explicit content accurately.
+
+UX success
+
+Users do not feel violated or punished.
+
+Behavioral success
+
+Users reduce unwanted consumption.
+
+Behavioral success is the ultimate metric.
+
+Testing phases
+
+Phase 0
+
+Internal testing
+
+Team only.
+
+Objective:
+
+Stability.
+
+Phase 1
+
+Trusted beta
+
+10 to 20 users.
+
+Objective:
+
+Core functionality.
+
+Phase 2
+
+Closed beta
+
+50 to 100 users.
+
+Objective:
+
+Behavioral validation.
+
+Phase 3
+
+Extended beta
+
+200 to 500 users.
+
+Objective:
+
+Retention and trust.
+
+Technical testing
+
+Service stability
+
+Tests
+
+Protection survives app restart
+
+Protection survives process death
+
+Protection survives reboot
+
+Cooldown survives reboot
+
+Overlay recovers correctly
+
+Target
+
+99% success.
+
+Permission recovery
+
+Revoke Accessibility
+
+Revoke Overlay
+
+Revoke MediaProjection
+
+Restore permissions
+
+Verify monitoring resumes.
+
+Long-duration testing
+
+Continuous monitoring
+
+24 hours
+
+48 hours
+
+72 hours
+
+7 days
+
+Metrics
+
+Memory usage
+
+Battery usage
+
+CPU usage
+
+Crash count
+
+Service restarts
+
+AI testing
+
+Detection benchmark
+
+Create a controlled evaluation dataset.
+
+Categories
+
+Explicit pornography
+
+Explicit video
+
+Anime pornography
+
+Suggestive content
+
+Swimwear
+
+Fitness
+
+Medical
+
+Art
+
+Beach
+
+Low light
+
+Blurred
+
+Cropped
+
+Small explicit region
+
+Metrics
+
+Precision
+
+Recall
+
+F1
+
+False positive rate
+
+False negative rate
+
+Latency
+
+MVP targets
+
+Precision
+
+98%
+
+Recall
+
+90%
+
+False positives
+
+Less than 1%
+
+Latency
+
+Less than 800 ms
+
+False positive testing
+
+This is the highest-priority AI test.
+
+Test set
+
+Medical textbook
+
+Anatomy app
+
+Breastfeeding
+
+Gym photos
+
+Sportswear
+
+Swimming
+
+Art museum
+
+Fashion
+
+Makeup tutorials
+
+Dance videos
+
+Expected result
+
+No intervention.
+
+Every false positive must be reviewed manually during beta.
+
+False negative testing
+
+Test scenarios
+
+X feed
+
+Reddit feed
+
+Telegram
+
+Image gallery
+
+Downloaded video
+
+Browser image
+
+Embedded media
+
+Expected result
+
+Intervention.
+
+Latency testing
+
+Measure
+
+Frame capture
+
+Preprocessing
+
+Inference
+
+Threshold
+
+Overlay display
+
+Total latency
+
+Target
+
+Frame capture
+
+Less than 100 ms
+
+Inference
+
+Less than 100 ms
+
+Overlay
+
+Less than 100 ms
+
+Total
+
+Less than 800 ms
+
+Battery testing
+
+Devices
+
+Budget Android
+
+Mid-range Android
+
+Flagship Android
+
+Scenarios
+
+Idle
+
+Scrolling
+
+Video
+
+Gaming
+
+Charging
+
+Screen off
+
+Target
+
+Less than 5% additional battery per day.
+
+Memory testing
+
+Continuous operation
+
+24 hours
+
+Target
+
+Less than 200 MB
+
+No memory leaks.
+
+Bitmap recycling verified.
+
+UX testing
+
+Emotional response interviews
+
+Ask users
+
+How did the intervention feel?
+
+Did it feel invasive?
+
+Did it feel judgmental?
+
+Did it feel helpful?
+
+Would you trust this app with long-term protection?
+
+Desired language
+
+Users should say
+
+Protected
+
+Supported
+
+Calm
+
+Reliable
+
+Undesired language
+
+Controlled
+
+Punished
+
+Watched
+
+Ashamed
+
+Annoyed
+
+Trust testing
+
+Critical question
+
+Do users believe screenshots leave the device?
+
+Test
+
+Explain architecture
+
+Show privacy dashboard
+
+Observe trust before and after
+
+Target
+
+Greater than 80% trust rating.
+
+Behavioral testing
+
+This is the most important experiment.
+
+Baseline week
+
+Users install Sentinel.
+
+Monitoring only.
+
+No interventions.
+
+Collect
+
+Session count
+
+Session duration
+
+Time of day
+
+Self-reported urges
+
+Intervention week
+
+Enable interventions.
+
+Collect
+
+Interventions
+
+Cooldown completion
+
+Return attempts
+
+Self-reported relapses
+
+Primary outcome
+
+Reduction in completed explicit sessions.
+
+The interruption experiment
+
+Measure
+
+Detection
+
+↓
+
+Intervention
+
+↓
+
+Did the user return within 10 minutes?
+
+This is the key behavioral metric.
+
+Cooldown optimization
+
+Test groups
+
+5 min
+
+10 min
+
+15 min
+
+20 min
+
+Measure
+
+Return rate
+
+User frustration
+
+Retention
+
+Hypothesis
+
+10 minutes is the best tradeoff.
+
+Recovery task testing
+
+Compare
+
+Push-ups
+
+Breathing
+
+Walk
+
+Journal
+
+Metrics
+
+Completion rate
+
+Return rate
+
+User preference
+
+Retention
+
+Hypothesis
+
+Physical movement produces the strongest interruption.
+
+Lock period testing
+
+Compare
+
+2h
+
+8h
+
+24h
+
+7d
+
+Metrics
+
+Disable attempts
+
+Override usage
+
+Retention
+
+Protection satisfaction
+
+Anti-bypass testing
+
+Attempt
+
+Disable permissions
+
+Force stop app
+
+Restart phone
+
+Clear recent apps
+
+Battery optimization
+
+Overlay conflicts
+
+Expected result
+
+Protection recovers or clearly notifies the user.
+
+Adversarial testing
+
+Intentionally attempt to bypass Sentinel.
+
+Methods
+
+Rapid scrolling
+
+Picture-in-picture
+
+Split screen
+
+Brightness changes
+
+Video seeking
+
+Anime
+
+Cropped images
+
+Small thumbnails
+
+Overlay attacks
+
+The goal is to break the system.
+
+Privacy verification
+
+Independent test
+
+Monitor network traffic.
+
+Verify
+
+No screenshot uploads
+
+No image uploads
+
+No unexpected endpoints
+
+No background transmission
+
+Tools
+
+Charles Proxy
+
+mitmproxy
+
+Android network profiler
+
+Security testing
+
+Penetration tests
+
+Database extraction
+
+Log inspection
+
+Memory inspection
+
+Model extraction
+
+Permission abuse
+
+Overlay abuse
+
+Crash testing
+
+Simulate
+
+Low memory
+
+Rotation
+
+Rapid app switching
+
+Incoming call
+
+Notification flood
+
+Background restriction
+
+Doze mode
+
+Battery saver
+
+Beta program
+
+Participants
+
+Target
+
+50 users.
+
+Requirements
+
+Android device
+
+Strong motivation
+
+Daily phone usage
+
+Willingness to provide feedback
+
+Duration
+
+30 days.
+
+Weekly surveys
+
+Interventions helpful?
+
+False positives?
+
+False negatives?
+
+Battery acceptable?
+
+Trust level?
+
+Would you continue using Sentinel?
+
+Behavioral dashboard
+
+Track
+
+Interventions
+
+Cooldown completion
+
+Return attempts
+
+Override usage
+
+Protection hours
+
+Streak
+
+Daily active use
+
+7-day retention
+
+30-day retention
+
+Failure thresholds
+
+Immediate review if
+
+False positives
+
+Greater than 3%
+
+Battery impact
+
+Greater than 8%
+
+Latency
+
+Greater than 1.5 s
+
+Crashes
+
+Greater than 1%
+
+Permission revocation
+
+Greater than 15%
+
+Trust rating
+
+Less than 70%
+
+The one metric that matters
+
+At the end of beta,
+
+ask every user:
+
+“Did Sentinel help you avoid content you had previously decided not to consume?”
+
+If the answer is consistently yes,
+
+the product works.
+
+Everything else is optimization.
+
+Definition of validation success
+
+Sentinel is validated when it can demonstrate,
+
+with measured evidence,
+
+that real-time AI interventions reduce unwanted explicit content consumption while preserving user trust, privacy, and device usability.
+
+The product should not merely block content.
+
+It should measurably increase the number of promises users keep to themselves.
+
+Read CODEX_BUILD_BIBLE.md and SPRINT_01.md. Implement Sprint 01 only. Generate the complete Android project with Kotlin, Jetpack Compose, Hilt, Room, and MVVM. Make sure it compiles.
+
+That will create:
+
+ui-ux.md
+
+Sentinel UI/UX specification
+
+Version: 1.0
+
+Status: Product design specification
+
+Design philosophy: Calm authority
+
+The emotional goal
+
+Sentinel should make users feel protected, not punished.
+
+Every interaction should communicate:
+
+clarity,
+
+safety,
+
+confidence,
+
+respect,
+
+intentionality.
+
+The product should never feel:
+
+childish,
+
+aggressive,
+
+religious,
+
+guilt-inducing,
+
+manipulative,
+
+noisy.
+
+The personality
+
+If Sentinel were a person, it would be:
+
+calm under pressure,
+
+disciplined,
+
+discreet,
+
+competent,
+
+emotionally neutral,
+
+impossible to negotiate with during a lock period.
+
+Think of a professional security system.
+
+It does not argue.
+
+It simply protects.
+
+Core design principles
+
+Minimalism
+
+Reduce cognitive load.
+
+One primary action per screen.
+
+Breathing room
+
+Generous spacing.
+
+Large typography.
+
+Minimal visual clutter.
+
+Dark-first interface
+
+Sentinel should primarily use a dark theme.
+
+Reasons:
+
+lower nighttime stimulation,
+
+reduced visual intensity,
+
+stronger intervention contrast,
+
+premium aesthetic.
+
+Motion with purpose
+
+Animations should communicate state transitions.
+
+Never use decorative motion.
+
+Color system
+
+Primary background
+
+Near-black.
+
+Secondary background
+
+Dark charcoal.
+
+Primary text
+
+White.
+
+Secondary text
+
+Soft gray.
+
+Accent
+
+Deep blue.
+
+Success
+
+Muted green.
+
+Warning
+
+Amber.
+
+Critical intervention
+
+Black.
+
+Red should be used extremely sparingly.
+
+Typography
+
+Use a modern sans-serif font.
+
+Hierarchy
+
+Large title
+
+Medium title
+
+Body
+
+Caption
+
+The countdown timer should be visually dominant.
+
+Iconography
+
+Primary symbol
+
+Shield.
+
+Secondary symbols
+
+Lock
+
+Timer
+
+Moon
+
+Target
+
+Check
+
+Activity
+
+Icons should be outlined, not filled.
+
+Navigation
+
+Bottom navigation.
+
+Tabs
+
+Home
+
+Focus
+
+History
+
+Settings
+
+No more than four tabs.
+
+Onboarding experience
+
+Screen 1
+
+A single sentence.
+
+Protect the commitments you make to yourself.
+
+Illustration
+
+Abstract shield.
+
+Button
+
+Continue.
+
+Screen 2
+
+Privacy.
+
+Your screen is analyzed locally.
+
+Nothing is uploaded.
+
+Nothing is stored.
+
+Button
+
+I understand.
+
+Screen 3
+
+Permissions.
+
+Each permission has a one-sentence explanation.
+
+Screen 4
+
+Protection setup.
+
+Protection level.
+
+Cooldown duration.
+
+Recovery task.
+
+Screen 5
+
+Activation.
+
+Protection is now active.
+
+The entire onboarding should take less than two minutes.
+
+Home screen
+
+The home screen should feel calm and uncluttered.
+
+Layout
+
+Top section
+
+Protection status.
+
+Middle section
+
+Time remaining.
+
+Bottom section
+
+Statistics.
+
+Example
+
+Protection
+
+Active
+
+Lock ends
+
+Friday 8:00 PM
+
+Streak
+
+11 days
+
+Interventions today
+
+2
+
+Time protected
+
+46 hours
+
+The home screen should not encourage obsessive checking.
+
+Protection card
+
+Large rounded rectangle.
+
+States
+
+Active
+
+Paused
+
+Cooldown
+
+Permission required
+
+The active state should feel reassuring.
+
+Focus screen
+
+Purpose
+
+Configure commitment periods.
+
+Options
+
+2 hours
+
+8 hours
+
+24 hours
+
+3 days
+
+7 days
+
+Custom
+
+A visual timeline should show the lock duration.
+
+History screen
+
+This is not a shame screen.
+
+It is a reflection screen.
+
+Display
+
+Intervention count
+
+Cooldown completion
+
+Recovery tasks
+
+Protection hours
+
+No explicit content information.
+
+No triggering details.
+
+Settings
+
+Sections
+
+Protection
+
+Privacy
+
+Notifications
+
+Recovery
+
+Advanced
+
+The privacy section should be unusually detailed.
+
+Intervention experience
+
+This is the most important interaction.
+
+Trigger
+
+Explicit content detected.
+
+Transition
+
+Immediate fade to black.
+
+Duration
+
+150 to 250 milliseconds.
+
+The transition should feel decisive.
+
+Intervention screen
+
+Background
+
+Pure black.
+
+Center
+
+Shield icon.
+
+Title
+
+Take back control.
+
+Body
+
+Explicit content was detected.
+
+You asked Sentinel to protect this commitment.
+
+Large countdown
+
+10:00
+
+Recovery task card
+
+20 push-ups
+
+Begin
+
+The screen should feel completely different from the app that was interrupted.
+
+Countdown behavior
+
+The timer should be extremely clear.
+
+Large typography.
+
+Subtle animation.
+
+No progress bar.
+
+No distracting effects.
+
+The passage of time should feel meaningful.
+
+Recovery task flow
+
+Push-ups
+
+Large count target.
+
+Button
+
+I completed this.
+
+Optional future integration
+
+Phone motion detection.
+
+Breathing
+
+Animated breathing circle.
+
+2-minute timer.
+
+Haptic pacing.
+
+Walk
+
+Step counter.
+
+Progress ring.
+
+Journal
+
+Single prompt.
+
+Text area.
+
+Done.
+
+Completion screen
+
+Title
+
+Well done.
+
+Body
+
+You protected a commitment you made to yourself.
+
+Button
+
+Return to focus.
+
+Never say
+
+“You resisted temptation.”
+
+Never say
+
+“You failed.”
+
+Lock activation
+
+When a user starts a lock period
+
+Show a confirmation sheet.
+
+Example
+
+7-day protection
+
+This lock cannot be disabled immediately.
+
+Emergency override requires a waiting period.
+
+Start protection
+
+This reinforces intentionality.
+
+Emergency override
+
+The design should create friction.
+
+Layout
+
+Warning icon.
+
+Headline
+
+Pause protection?
+
+Body
+
+This will temporarily remove the protection you requested.
+
+60-second countdown.
+
+Primary button
+
+Wait.
+
+Secondary button
+
+Pause protection.
+
+The countdown should not be skippable.
+
+Notification design
+
+Notifications should be quiet.
+
+Examples
+
+Protection active
+
+Cooldown complete
+
+Permission required
+
+Daily protection summary
+
+Never include explicit language.
+
+Haptics
+
+Intervention
+
+One firm vibration.
+
+Cooldown complete
+
+Two soft vibrations.
+
+Protection activated
+
+Single soft vibration.
+
+Haptics should reinforce state changes.
+
+Accessibility
+
+Support
+
+Large text
+
+Screen readers
+
+High contrast
+
+Reduced motion
+
+Color blindness
+
+The intervention screen must remain usable with accessibility features enabled.
+
+Anti-addictive UX
+
+Sentinel should not become another app users compulsively open.
+
+Avoid
+
+Infinite scrolling
+
+Social feeds
+
+Leaderboards
+
+Public streaks
+
+Achievements
+
+Gamification
+
+The goal is fewer app opens, not more.
+
+Trust through design
+
+The UI should constantly reinforce privacy.
+
+Examples
+
+On-device AI
+
+Nothing uploaded
+
+Local processing
+
+Privacy verified
+
+These should appear naturally throughout the experience.
+
+Animation language
+
+Activation
+
+Soft fade.
+
+Intervention
+
+Fast fade to black.
+
+Cooldown
+
+Gentle opacity pulse.
+
+Completion
+
+Subtle upward motion.
+
+Error
+
+Minimal shake.
+
+Motion should reduce anxiety, not increase it.
+
+The one-screen test
+
+Imagine a user at 1:30 AM.
+
+They open X.
+
+Sentinel intervenes.
+
+They see one screen.
+
+That screen must be capable of changing behavior.
+
+Everything unnecessary should be removed.
+
+The screen should communicate only three things.
+
+You are safe.
+
+The urge will pass.
+
+Your future self asked for this protection.
+
+The UX success metric
+
+The interface is successful when users describe Sentinel as:
+
+“I felt like it stepped in for me when I couldn’t.”
+
+Not
+
+“It blocked me.”
+
+The difference between those two sentences is the difference between a blocker and a guardian.
+
+Read the documentation in this repository, especially master-prd.md, IMPLEMENTATION_SPEC.md, PROJECT_SCAFFOLD.md, and CODEX_BUILD_BIBLE.md. Create the complete Android project skeleton using Kotlin, Jetpack Compose, Hilt, Room, and MVVM. Implement only Sprint 01. Do not add features outside the documentation. Generate production-quality code with tests and documentation.
+
+privacy-security.md
+
+Sentinel privacy and security architecture
+
+Version: 1.0
+
+Status: Critical design document
+
+Priority: Highest
+
+Executive summary
+
+Sentinel requires one of the most sensitive permissions available on a smartphone: the ability to observe screen content.
+
+This creates a trust problem that is more important than model accuracy, feature count, or growth.
+
+The privacy architecture must therefore be designed around a single objective:
+
+Sentinel must not be capable of becoming surveillance software.
+
+The system should be architected so that the company, developers, and servers cannot view a user’s screen, recover historical screen content, or reconstruct private activity.
+
+Privacy is not a policy.
+
+Privacy is an architectural constraint.
+
+Threat model
+
+Sentinel must protect users against four classes of risk.
+
+External attackers
+
+Hackers attempting to obtain screen content.
+
+Internal abuse
+
+Employees or developers accessing user data.
+
+Government or legal requests
+
+Requests for stored screen content.
+
+Future company changes
+
+Business incentives that could encourage data collection.
+
+The architecture should minimize all four.
+
+The core privacy principle
+
+Eyes without memory.
+
+Sentinel may observe the current screen frame for the purpose of classification.
+
+It must not retain the frame.
+
+The frame exists only long enough to produce a confidence score.
+
+Then it is destroyed.
+
+Data flow
+
+Screen frame
+
+↓
+
+RAM
+
+↓
+
+TensorFlow Lite inference
+
+↓
+
+Confidence score
+
+↓
+
+Frame deleted
+
+No disk write.
+
+No cache.
+
+No upload.
+
+No backup.
+
+No cloud storage.
+
+The privacy guarantee
+
+Sentinel should be able to truthfully say:
+
+We do not store screenshots.
+
+We do not upload screenshots.
+
+We do not record screen activity.
+
+We do not build a browsing history.
+
+We do not know what content you viewed.
+
+We do not know which explicit images triggered interventions.
+
+We cannot recover your screen history.
+
+This should be technically true.
+
+On-device processing
+
+All AI inference occurs locally.
+
+Requirements
+
+No cloud inference.
+
+No remote API calls.
+
+No image transmission.
+
+No background synchronization of visual data.
+
+Internet access is unnecessary for the MVP.
+
+The app should function completely offline.
+
+Data classification
+
+Never collected
+
+Screenshots
+
+Screen recordings
+
+Photos
+
+Videos
+
+Messages
+
+Browser contents
+
+URLs
+
+Search queries
+
+Keystrokes
+
+Clipboard contents
+
+Contacts
+
+Location
+
+Microphone audio
+
+Camera data
+
+Stored locally
+
+Protection settings
+
+Cooldown duration
+
+Intervention timestamps
+
+Recovery task completion
+
+Streak count
+
+Lock period
+
+Override events
+
+These data remain on the device.
+
+Screenshot handling
+
+This is the most critical implementation rule.
+
+Allowed
+
+Store frame in RAM.
+
+Run inference.
+
+Delete frame immediately.
+
+Forbidden
+
+Save frame to storage.
+
+Write frame to cache.
+
+Compress frame.
+
+Log frame metadata.
+
+Transmit frame.
+
+Include frame in crash reports.
+
+Include frame in analytics.
+
+The engineering team should treat screenshot persistence as a security incident.
+
+Memory lifecycle
+
+Frame captured
+
+↓
+
+Bitmap created
+
+↓
+
+Tensor created
+
+↓
+
+Inference complete
+
+↓
+
+Bitmap recycled
+
+↓
+
+Tensor released
+
+↓
+
+Memory eligible for garbage collection
+
+No reference should survive beyond inference.
+
+Logging policy
+
+Allowed
+
+Service started
+
+Service stopped
+
+Model loaded
+
+Intervention triggered
+
+Confidence score
+
+Timer started
+
+Timer completed
+
+Errors
+
+Forbidden
+
+Image contents
+
+Extracted text
+
+App screenshots
+
+Screen thumbnails
+
+URLs
+
+Search terms
+
+Personal identifiers
+
+Logs must never contain user content.
+
+Analytics architecture
+
+MVP
+
+Local analytics only.
+
+Future telemetry
+
+If anonymous analytics are added, they must satisfy:
+
+No screenshots
+
+No text
+
+No URLs
+
+No app content
+
+No user identity
+
+Example
+
+Intervention count
+
+Cooldown completion rate
+
+Model latency
+
+Battery usage
+
+False positive reports
+
+All analytics should be opt-in.
+
+Encryption
+
+Local database
+
+Use SQLCipher or encrypted Room.
+
+Encryption key stored in Android Keystore.
+
+Preferences
+
+EncryptedSharedPreferences.
+
+Sensitive state
+
+Cooldown state
+
+Lock periods
+
+Intervention history
+
+Encrypted at rest.
+
+Android Keystore
+
+Use hardware-backed Keystore when available.
+
+Store
+
+Database key
+
+Authentication tokens (future)
+
+Integrity keys
+
+Never store encryption keys in application code.
+
+Network architecture
+
+MVP network permissions
+
+None
+
+If future updates require networking
+
+TLS 1.3
+
+Certificate pinning
+
+Minimal endpoints
+
+No image upload endpoints
+
+No screen data endpoints
+
+The backend should be architecturally incapable of receiving screenshots.
+
+Open-source strategy
+
+A major trust advantage would be making the detection pipeline open source.
+
+Benefits
+
+Independent audits
+
+Research validation
+
+Community trust
+
+Security transparency
+
+Users can verify that screenshots are not uploaded.
+
+The model weights may remain proprietary if necessary.
+
+The privacy architecture should not.
+
+Independent audits
+
+Before large-scale launch
+
+Privacy audit
+
+Security audit
+
+Android permission audit
+
+Memory handling audit
+
+Network traffic audit
+
+Audit reports should be publicly available.
+
+Permission transparency
+
+The app should explain every permission.
+
+Screen monitoring
+
+Purpose
+
+Detect explicit content locally.
+
+Accessibility
+
+Purpose
+
+Display interventions and enforce lock periods.
+
+Overlay
+
+Purpose
+
+Block explicit content immediately.
+
+Notifications
+
+Purpose
+
+Protection status and cooldown completion.
+
+No vague permission explanations.
+
+User verification mode
+
+Future feature
+
+A technical verification screen showing
+
+Cloud processing: Disabled
+
+Screenshot storage: Disabled
+
+Network transmission: None
+
+Model location: On device
+
+Last network activity
+
+Users should be able to inspect the privacy state themselves.
+
+Crash reporting
+
+Standard crash reporting tools may capture sensitive information.
+
+Requirements
+
+Disable screenshot collection.
+
+Disable view hierarchy capture.
+
+Disable automatic attachment uploads.
+
+Sanitize stack traces.
+
+No user content in crash reports.
+
+Supply chain security
+
+Model files
+
+Signed
+
+Application
+
+Signed
+
+Update channel
+
+Verified
+
+Dependency scanning
+
+Required
+
+Reproducible builds
+
+Preferred
+
+Abuse prevention
+
+Sentinel could theoretically be modified into surveillance software.
+
+Mitigations
+
+Open-source privacy layer
+
+No screenshot APIs beyond inference
+
+No cloud image pipeline
+
+Independent audits
+
+Transparency reports
+
+Minimal permissions
+
+Public architecture documentation
+
+Transparency report
+
+Sentinel should publish a recurring report including
+
+Government requests
+
+Data requests
+
+Security incidents
+
+Privacy incidents
+
+Audit results
+
+App updates affecting permissions
+
+Even if all values are zero.
+
+The privacy test
+
+Ask the following question.
+
+If Sentinel’s servers were completely compromised,
+
+what private screen content could an attacker obtain?
+
+The answer should be:
+
+None.
+
+Not because the servers are secure.
+
+Because the servers never possessed the data.
+
+Future features
+
+Accountability mode
+
+If users choose to share intervention events,
+
+only event metadata is shared.
+
+Example
+
+“Intervention occurred at 11:42 PM.”
+
+Not
+
+The screenshot
+
+The app content
+
+The image
+
+The video
+
+Visual data sharing should never be the default.
+
+The legal advantage
+
+A company that does not possess user screen content cannot leak it,
+
+sell it,
+
+analyze it,
+
+or surrender it.
+
+This dramatically reduces legal, ethical, and reputational risk.
+
+The trust standard
+
+Users should eventually think of Sentinel the way they think of a password manager.
+
+They grant extraordinary access because the architecture makes abuse extraordinarily difficult.
+
+The privacy success metric
+
+The privacy architecture is successful when a technically sophisticated security researcher can inspect the application and conclude:
+
+“This app can see the screen,
+
+but it cannot remember it,
+
+and neither can the company behind it.”
+
+Sentinel documentation index
+
+Version: 1.0
+
+Status: Canonical repository index
+
+Vision
+
+- README.md
+
+- FOUNDER_MEMO.md
+
+- vision.md
+
+- problem.md
+
+Product
+
+- master-prd.md
+
+- mvp-spec.md
+
+- roadmap.md
+
+- business.md
+
+Engineering
+
+- android-architecture.md
+
+- ai-system.md
+
+- implementation-spec.md
+
+- project-scaffold.md
+
+- codex-build-bible.md
+
+- engineering-standards.md
+
+Privacy and ethics
+
+- privacy-security.md
+
+- ethical-boundaries.md
+
+- android-permissions.md
+
+Design
+
+- ui-ux.md
+
+- design-system.md
+
+Validation
+
+- testing.md
+
+- model-evaluation.md
+
+- launch-beta.md
+
+- risk-register.md
+
+Execution
+
+- build-plan.md
+
+- sprint_01.md
+
+Build order
+
+1. Project scaffold
+
+2. Sprint 01
+
+3. Sprint 02 (screen monitoring)
+
+4. Sprint 03 (AI detection)
+
+5. Sprint 04 (intervention engine)
+
+6. Sprint 05 (cooldown and recovery)
+
+7. Sprint 06 (testing and optimization)
+
+North star
+
+Sentinel exists to help users keep promises they make to themselves.
+
+Every engineering, design, and business decision should increase the probability that a user’s future self is grateful that their present self installed Sentinel.
+
+privacy-security.md
+
+Sentinel privacy and security architecture
+
+Version: 1.0
+
+Status: Critical design document
+
+Priority: Highest
+
+Executive summary
+
+Sentinel requires one of the most sensitive permissions available on a smartphone: the ability to observe screen content.
+
+This creates a trust problem that is more important than model accuracy, feature count, or growth.
+
+The privacy architecture must therefore be designed around a single objective:
+
+Sentinel must not be capable of becoming surveillance software.
+
+The system should be architected so that the company, developers, and servers cannot view a user’s screen, recover historical screen content, or reconstruct private activity.
+
+Privacy is not a policy.
+
+Privacy is an architectural constraint.
+
+Threat model
+
+Sentinel must protect users against four classes of risk.
+
+External attackers
+
+Hackers attempting to obtain screen content.
+
+Internal abuse
+
+Employees or developers accessing user data.
+
+Government or legal requests
+
+Requests for stored screen content.
+
+Future company changes
+
+Business incentives that could encourage data collection.
+
+The architecture should minimize all four.
+
+The core privacy principle
+
+Eyes without memory.
+
+Sentinel may observe the current screen frame for the purpose of classification.
+
+It must not retain the frame.
+
+The frame exists only long enough to produce a confidence score.
+
+Then it is destroyed.
+
+Data flow
+
+Screen frame
+
+↓
+
+RAM
+
+↓
+
+TensorFlow Lite inference
+
+↓
+
+Confidence score
+
+↓
+
+Frame deleted
+
+No disk write.
+
+No cache.
+
+No upload.
+
+No backup.
+
+No cloud storage.
+
+The privacy guarantee
+
+Sentinel should be able to truthfully say:
+
+We do not store screenshots.
+
+We do not upload screenshots.
+
+We do not record screen activity.
+
+We do not build a browsing history.
+
+We do not know what content you viewed.
+
+We do not know which explicit images triggered interventions.
+
+We cannot recover your screen history.
+
+This should be technically true.
+
+On-device processing
+
+All AI inference occurs locally.
+
+Requirements
+
+No cloud inference.
+
+No remote API calls.
+
+No image transmission.
+
+No background synchronization of visual data.
+
+Internet access is unnecessary for the MVP.
+
+The app should function completely offline.
+
+Data classification
+
+Never collected
+
+Screenshots
+
+Screen recordings
+
+Photos
+
+Videos
+
+Messages
+
+Browser contents
+
+URLs
+
+Search queries
+
+Keystrokes
+
+Clipboard contents
+
+Contacts
+
+Location
+
+Microphone audio
+
+Camera data
+
+Stored locally
+
+Protection settings
+
+Cooldown duration
+
+Intervention timestamps
+
+Recovery task completion
+
+Streak count
+
+Lock period
+
+Override events
+
+These data remain on the device.
+
+Screenshot handling
+
+This is the most critical implementation rule.
+
+Allowed
+
+Store frame in RAM.
+
+Run inference.
+
+Delete frame immediately.
+
+Forbidden
+
+Save frame to storage.
+
+Write frame to cache.
+
+Compress frame.
+
+Log frame metadata.
+
+Transmit frame.
+
+Include frame in crash reports.
+
+Include frame in analytics.
+
+The engineering team should treat screenshot persistence as a security incident.
+
+Memory lifecycle
+
+Frame captured
+
+↓
+
+Bitmap created
+
+↓
+
+Tensor created
+
+↓
+
+Inference complete
+
+↓
+
+Bitmap recycled
+
+↓
+
+Tensor released
+
+↓
+
+Memory eligible for garbage collection
+
+No reference should survive beyond inference.
+
+Logging policy
+
+Allowed
+
+Service started
+
+Service stopped
+
+Model loaded
+
+Intervention triggered
+
+Confidence score
+
+Timer started
+
+Timer completed
+
+Errors
+
+Forbidden
+
+Image contents
+
+Extracted text
+
+App screenshots
+
+Screen thumbnails
+
+URLs
+
+Search terms
+
+Personal identifiers
+
+Logs must never contain user content.
+
+Analytics architecture
+
+MVP
+
+Local analytics only.
+
+Future telemetry
+
+If anonymous analytics are added, they must satisfy:
+
+No screenshots
+
+No text
+
+No URLs
+
+No app content
+
+No user identity
+
+Example
+
+Intervention count
+
+Cooldown completion rate
+
+Model latency
+
+Battery usage
+
+False positive reports
+
+All analytics should be opt-in.
+
+Encryption
+
+Local database
+
+Use SQLCipher or encrypted Room.
+
+Encryption key stored in Android Keystore.
+
+Preferences
+
+EncryptedSharedPreferences.
+
+Sensitive state
+
+Cooldown state
+
+Lock periods
+
+Intervention history
+
+Encrypted at rest.
+
+Android Keystore
+
+Use hardware-backed Keystore when available.
+
+Store
+
+Database key
+
+Authentication tokens (future)
+
+Integrity keys
+
+Never store encryption keys in application code.
+
+Network architecture
+
+MVP network permissions
+
+None
+
+If future updates require networking
+
+TLS 1.3
+
+Certificate pinning
+
+Minimal endpoints
+
+No image upload endpoints
+
+No screen data endpoints
+
+The backend should be architecturally incapable of receiving screenshots.
+
+Open-source strategy
+
+A major trust advantage would be making the detection pipeline open source.
+
+Benefits
+
+Independent audits
+
+Research validation
+
+Community trust
+
+Security transparency
+
+Users can verify that screenshots are not uploaded.
+
+The model weights may remain proprietary if necessary.
+
+The privacy architecture should not.
+
+Independent audits
+
+Before large-scale launch
+
+Privacy audit
+
+Security audit
+
+Android permission audit
+
+Memory handling audit
+
+Network traffic audit
+
+Audit reports should be publicly available.
+
+Permission transparency
+
+The app should explain every permission.
+
+Screen monitoring
+
+Purpose
+
+Detect explicit content locally.
+
+Accessibility
+
+Purpose
+
+Display interventions and enforce lock periods.
+
+Overlay
+
+Purpose
+
+Block explicit content immediately.
+
+Notifications
+
+Purpose
+
+Protection status and cooldown completion.
+
+No vague permission explanations.
+
+User verification mode
+
+Future feature
+
+A technical verification screen showing
+
+Cloud processing: Disabled
+
+Screenshot storage: Disabled
+
+Network transmission: None
+
+Model location: On device
+
+Last network activity
+
+Users should be able to inspect the privacy state themselves.
+
+Crash reporting
+
+Standard crash reporting tools may capture sensitive information.
+
+Requirements
+
+Disable screenshot collection.
+
+Disable view hierarchy capture.
+
+Disable automatic attachment uploads.
+
+Sanitize stack traces.
+
+No user content in crash reports.
+
+Supply chain security
+
+Model files
+
+Signed
+
+Application
+
+Signed
+
+Update channel
+
+Verified
+
+Dependency scanning
+
+Required
+
+Reproducible builds
+
+Preferred
+
+Abuse prevention
+
+Sentinel could theoretically be modified into surveillance software.
+
+Mitigations
+
+Open-source privacy layer
+
+No screenshot APIs beyond inference
+
+No cloud image pipeline
+
+Independent audits
+
+Transparency reports
+
+Minimal permissions
+
+Public architecture documentation
+
+Transparency report
+
+Sentinel should publish a recurring report including
+
+Government requests
+
+Data requests
+
+Security incidents
+
+Privacy incidents
+
+Audit results
+
+App updates affecting permissions
+
+Even if all values are zero.
+
+The privacy test
+
+Ask the following question.
+
+If Sentinel’s servers were completely compromised,
+
+what private screen content could an attacker obtain?
+
+The answer should be:
+
+None.
+
+Not because the servers are secure.
+
+Because the servers never possessed the data.
+
+Future features
+
+Accountability mode
+
+If users choose to share intervention events,
+
+only event metadata is shared.
+
+Example
+
+“Intervention occurred at 11:42 PM.”
+
+Not
+
+The screenshot
+
+The app content
+
+The image
+
+The video
+
+Visual data sharing should never be the default.
+
+The legal advantage
+
+A company that does not possess user screen content cannot leak it,
+
+sell it,
+
+analyze it,
+
+or surrender it.
+
+This dramatically reduces legal, ethical, and reputational risk.
+
+The trust standard
+
+Users should eventually think of Sentinel the way they think of a password manager.
+
+They grant extraordinary access because the architecture makes abuse extraordinarily difficult.
+
+The privacy success metric
+
+The privacy architecture is successful when a technically sophisticated security researcher can inspect the application and conclude:
+
+“This app can see the screen,
+
+but it cannot remember it,
+
+and neither can the company behind it.”
+
+CODEX_BUILD_BIBLE.md
+
+Sentinel build bible
+
+Version: 1.0
+
+Status: Canonical implementation authority
+
+Audience: AI coding agents and engineers
+
+Purpose
+
+This document is the highest authority for implementation.
+
+The objective is to allow an AI coding agent to build Sentinel with minimal ambiguity and without making architectural decisions independently.
+
+The agent should generate code exactly according to this specification.
+
+Build philosophy
+
+Generate one module at a time.
+
+Compile after every module.
+
+Test after every module.
+
+Document after every module.
+
+Never generate the entire application in one pass.
+
+Repository order
+
+Generate files in this exact sequence.
+
+Phase 1
+
+Project foundation
+
+Gradle
+
+Settings
+
+Application
+
+Theme
+
+Navigation
+
+Phase 2
+
+Data layer
+
+Entities
+
+DAOs
+
+Database
+
+Repositories
+
+Phase 3
+
+State layer
+
+ProtectionManager
+
+PermissionManager
+
+CooldownManager
+
+State models
+
+Phase 4
+
+UI foundation
+
+Components
+
+Onboarding
+
+Home
+
+Settings
+
+Focus
+
+History
+
+Phase 5
+
+Android services
+
+Foreground service
+
+Accessibility
+
+Notifications
+
+Boot receiver
+
+Phase 6
+
+Monitoring
+
+MediaProjection
+
+Frame capture
+
+Sampling
+
+Processing
+
+Phase 7
+
+AI
+
+TensorFlow Lite
+
+Detection engine
+
+Threshold logic
+
+Phase 8
+
+Intervention
+
+Overlay
+
+Cooldown
+
+Recovery tasks
+
+Phase 9
+
+Testing
+
+Unit
+
+Integration
+
+Instrumentation
+
+Performance
+
+File generation rules
+
+Generate one file at a time.
+
+Each file must compile independently.
+
+Each file must contain KDoc.
+
+No TODO comments.
+
+No placeholder implementations unless explicitly marked.
+
+Code quality rules
+
+Maximum function length
+
+40 lines
+
+Maximum class length
+
+300 lines
+
+One public responsibility per class.
+
+Prefer composition over inheritance.
+
+Use immutable state.
+
+Forbidden patterns
+
+GlobalScope
+
+Singletons without DI
+
+Mutable global state
+
+Reflection
+
+Hidden side effects
+
+UI business logic
+
+Direct service access from UI
+
+Required patterns
+
+StateFlow
+
+Coroutines
+
+Hilt
+
+Repository pattern
+
+Sealed classes
+
+Data classes
+
+Dependency inversion
+
+Package map
+
+com.sentinel.app
+
+SentinelApplication
+
+MainActivity
+
+AppModule
+
+com.sentinel.core.protection
+
+ProtectionManager
+
+ProtectionState
+
+ProtectionEvent
+
+LockPeriod
+
+ProtectionLevel
+
+com.sentinel.core.permissions
+
+PermissionManager
+
+PermissionState
+
+PermissionType
+
+com.sentinel.core.ai
+
+DetectionEngine
+
+ModelManager
+
+TensorFlowLiteEngine
+
+DetectionResult
+
+DetectionCategory
+
+com.sentinel.core.cooldown
+
+CooldownManager
+
+RecoveryTask
+
+RecoveryTaskType
+
+CooldownState
+
+com.sentinel.core.monitoring
+
+MonitoringController
+
+FrameSampler
+
+FrameProcessor
+
+com.sentinel.core.overlay
+
+OverlayController
+
+OverlayState
+
+com.sentinel.data.database
+
+SentinelDatabase
+
+DatabaseModule
+
+com.sentinel.data.entities
+
+ProtectionSettingsEntity
+
+InterventionHistoryEntity
+
+CooldownStateEntity
+
+com.sentinel.data.dao
+
+ProtectionSettingsDao
+
+InterventionHistoryDao
+
+CooldownStateDao
+
+com.sentinel.data.repository
+
+SettingsRepository
+
+HistoryRepository
+
+ProtectionRepository
+
+com.sentinel.services.monitoring
+
+MonitoringService
+
+ScreenCaptureManager
+
+com.sentinel.services.accessibility
+
+SentinelAccessibilityService
+
+ForegroundAppTracker
+
+com.sentinel.services.overlay
+
+OverlayService
+
+com.sentinel.services.notification
+
+NotificationController
+
+com.sentinel.services.boot
+
+BootReceiver
+
+StartupRestorer
+
+State machine
+
+Disabled
+
+↓
+
+PermissionRequired
+
+↓
+
+Enabled
+
+↓
+
+Monitoring
+
+↓
+
+Detected
+
+↓
+
+Intervening
+
+↓
+
+Cooldown
+
+↓
+
+Recovery
+
+↓
+
+Monitoring
+
+State transitions must be explicit.
+
+No implicit state changes.
+
+ProtectionManager contract
+
+Functions
+
+enableProtection()
+
+disableProtection()
+
+startLock()
+
+endLock()
+
+triggerIntervention()
+
+completeRecovery()
+
+observeState()
+
+Rules
+
+Single source of truth.
+
+Thread safe.
+
+StateFlow based.
+
+Persistent.
+
+PermissionManager contract
+
+Expose
+
+Accessibility
+
+Overlay
+
+Notifications
+
+MediaProjection
+
+Functions
+
+refresh()
+
+request()
+
+observe()
+
+DetectionEngine contract
+
+Input
+
+Bitmap
+
+Output
+
+DetectionResult
+
+Target inference
+
+Less than 100 ms
+
+No disk writes.
+
+No caching.
+
+Overlay contract
+
+Must
+
+Cover entire screen.
+
+Block interaction.
+
+Display countdown.
+
+Display recovery task.
+
+Cannot be dismissed during cooldown.
+
+Database contract
+
+ProtectionSettings
+
+Exactly one row.
+
+InterventionHistory
+
+Append only.
+
+CooldownState
+
+Exactly one active cooldown.
+
+Navigation contract
+
+Start destination
+
+Welcome on first launch.
+
+Home otherwise.
+
+Intervention route
+
+Modal.
+
+Non-dismissible.
+
+UI contract
+
+Dark theme only.
+
+Large typography.
+
+Minimal hierarchy.
+
+One primary action per screen.
+
+No gamification.
+
+AI contract
+
+Threshold
+
+0.90
+
+Confirmation
+
+Two consecutive frames
+
+Sampling
+
+Adaptive
+
+Inference
+
+Background thread
+
+Processing
+
+Local only
+
+Privacy contract
+
+Never store screenshots.
+
+Never upload screenshots.
+
+Never log screenshots.
+
+Never perform cloud inference.
+
+Never collect URLs.
+
+Never collect messages.
+
+Never perform OCR.
+
+Logging contract
+
+Allowed
+
+State transitions
+
+Errors
+
+Performance
+
+Permissions
+
+Forbidden
+
+Images
+
+Text
+
+URLs
+
+App contents
+
+Personal identifiers
+
+Testing contract
+
+Every public class requires unit tests.
+
+Every service requires integration tests.
+
+Every screen requires UI tests.
+
+Every release requires battery tests.
+
+Every release requires privacy tests.
+
+Performance contract
+
+Cold start
+
+Less than 1.5 s
+
+Inference
+
+Less than 100 ms
+
+Overlay
+
+Less than 100 ms
+
+Total intervention
+
+Less than 800 ms
+
+Battery
+
+Less than 5% daily
+
+Memory
+
+Less than 200 MB
+
+AI agent instructions
+
+When generating code
+
+Do not invent features.
+
+Do not change architecture.
+
+Do not add analytics.
+
+Do not add networking.
+
+Do not add cloud services.
+
+Do not simplify privacy protections.
+
+Generate production-quality Kotlin.
+
+Include imports.
+
+Include KDoc.
+
+Include error handling.
+
+Include tests.
+
+Completion checklist
+
+A module is complete only if
+
+Compiles
+
+Tests pass
+
+KDoc present
+
+Architecture respected
+
+Privacy respected
+
+Performance acceptable
+
+Documentation updated
+
+The final instruction
+
+Build Sentinel as if the user has entrusted the application with their most vulnerable moments.
+
+Every line of code should be written to deserve that trust.
+
+ai-system.md
+
+Sentinel AI system architecture
+
+Version: 1.0
+
+Status: AI engineering specification
+
+Primary objective: Real-time explicit content detection with privacy-first on-device inference
+
+Executive summary
+
+The Sentinel AI system is responsible for detecting explicit sexual content on a user’s screen in real time and triggering behavioral interventions with extremely low latency.
+
+The AI system is not a general-purpose vision model.
+
+It is a specialized safety classifier optimized for:
+
+speed,
+
+privacy,
+
+battery efficiency,
+
+low false positives,
+
+on-device execution.
+
+The defining principle of the AI system is:
+
+All visual analysis happens locally on the device.
+
+No screenshots are uploaded.
+
+No screenshots are stored.
+
+No cloud inference is performed.
+
+Design philosophy
+
+Most AI products optimize for intelligence.
+
+Sentinel optimizes for trust.
+
+A slightly less accurate model that users trust is more valuable than a highly accurate model that feels invasive.
+
+Therefore the AI system is designed around three priorities.
+
+Priority 1
+
+Privacy
+
+Priority 2
+
+Reliability
+
+Priority 3
+
+Accuracy
+
+The AI responsibility boundary
+
+The AI only answers one question.
+
+“Is explicit sexual content currently visible on the screen?”
+
+The AI does not:
+
+identify people,
+
+recognize faces,
+
+read messages,
+
+interpret conversations,
+
+analyze personal photos,
+
+infer user identity,
+
+generate descriptions,
+
+store observations.
+
+The output is simply a probability estimate.
+
+System overview
+
+Screen frame
+
+↓
+
+Preprocessing
+
+↓
+
+Vision classifier
+
+↓
+
+Confidence calibration
+
+↓
+
+Decision engine
+
+↓
+
+Intervention engine
+
+V1 model
+
+Recommended architecture
+
+EfficientNet-Lite
+
+Reasons
+
+Small model size
+
+Fast inference
+
+Excellent mobile performance
+
+TensorFlow Lite support
+
+Proven deployment history
+
+Target model size
+
+10 to 20 MB
+
+Target inference
+
+Less than 100 ms
+
+Input pipeline
+
+Raw screenshot
+
+↓
+
+Resize
+
+↓
+
+Center crop if necessary
+
+↓
+
+RGB conversion
+
+↓
+
+Normalization
+
+↓
+
+224 × 224 tensor
+
+↓
+
+Model inference
+
+Frame sampling
+
+The AI does not analyze video continuously.
+
+Instead it samples frames.
+
+Default
+
+1 FPS
+
+Adaptive
+
+2 FPS during active scrolling
+
+0 FPS during cooldown
+
+0 FPS when screen off
+
+This dramatically reduces battery usage.
+
+Output structure
+
+The model outputs probabilities.
+
+Example
+
+Safe
+
+0.04
+
+Suggestive
+
+0.18
+
+Explicit
+
+0.94
+
+The decision engine only receives the explicit confidence score.
+
+Confidence thresholds
+
+Safe
+
+0.00 to 0.60
+
+No action.
+
+Uncertain
+
+0.60 to 0.90
+
+No intervention in V1.
+
+Explicit
+
+0.90+
+
+Immediate intervention.
+
+The conservative threshold is intentional.
+
+Why false positives matter more
+
+A missed detection is undesirable.
+
+A false positive destroys trust.
+
+Imagine Sentinel blocking:
+
+medical education,
+
+anatomy diagrams,
+
+breastfeeding,
+
+swimwear,
+
+fitness content,
+
+artistic photography.
+
+Users would uninstall immediately.
+
+Therefore V1 prioritizes precision.
+
+Detection categories
+
+Explicit
+
+Pornographic images
+
+Explicit videos
+
+Visible genitalia
+
+Sexual acts
+
+High-confidence NSFW content
+
+Suggestive
+
+Lingerie
+
+Swimwear
+
+Provocative poses
+
+Partial nudity
+
+Sexualized imagery
+
+No automatic blocking in V1.
+
+Safe
+
+Everything else.
+
+Temporal confirmation
+
+To reduce false positives, interventions require temporal confirmation.
+
+Frame 1
+
+Explicit
+
+↓
+
+Frame 2
+
+Explicit
+
+↓
+
+Intervention
+
+This avoids blocking due to a single corrupted frame.
+
+Target confirmation window
+
+300 to 600 ms
+
+Video handling
+
+Videos are treated as sampled images.
+
+The classifier evaluates periodic frames.
+
+Repeated explicit detections trigger intervention.
+
+Advantages
+
+Simple
+
+Fast
+
+Battery efficient
+
+Future versions may include motion-aware detection.
+
+Text handling
+
+V1 ignores text completely.
+
+No OCR.
+
+No message reading.
+
+No browser analysis.
+
+This is both a privacy decision and a complexity decision.
+
+Local inference
+
+All inference occurs through TensorFlow Lite.
+
+Model loading
+
+On app startup
+
+Inference
+
+Background thread
+
+Memory mapped model
+
+Yes
+
+GPU acceleration
+
+Optional
+
+CPU fallback
+
+Required
+
+The app must function offline.
+
+Memory lifecycle
+
+Critical privacy rule
+
+Frames must be destroyed immediately after inference.
+
+Frame
+
+↓
+
+Inference
+
+↓
+
+Probability
+
+↓
+
+Frame deleted
+
+No disk writes.
+
+No caching.
+
+No persistence.
+
+The “eyes without memory” architecture
+
+This is the defining technical principle.
+
+The AI has access only to the current frame.
+
+It has no historical memory of:
+
+previous frames,
+
+previous apps,
+
+previous websites,
+
+previous conversations,
+
+previous images.
+
+Only aggregated intervention statistics are retained.
+
+Model calibration
+
+Raw neural network outputs are often poorly calibrated.
+
+We apply confidence calibration.
+
+Model score
+
+↓
+
+Calibration layer
+
+↓
+
+Calibrated probability
+
+This improves threshold reliability.
+
+False positive reporting
+
+Users can report:
+
+Blocked incorrectly
+
+Missed explicit content
+
+This feedback is stored locally.
+
+Optional anonymous sharing may be added later.
+
+Dataset strategy
+
+V1 uses an existing NSFW dataset.
+
+Future versions require a custom dataset.
+
+Required categories
+
+Pornographic content
+
+Social media screenshots
+
+X
+
+Reddit
+
+Telegram
+
+Instagram
+
+TikTok
+
+Image galleries
+
+Video thumbnails
+
+Anime
+
+Hentai
+
+Low-resolution images
+
+Dark images
+
+Cropped explicit content
+
+Medical content
+
+Fitness content
+
+Swimwear
+
+Art
+
+The model must learn screen content, not internet images.
+
+Fine-tuning strategy
+
+Base model
+
+↓
+
+NSFW pretraining
+
+↓
+
+Sentinel dataset
+
+↓
+
+Calibration
+
+↓
+
+Mobile optimization
+
+The custom dataset becomes a major long-term asset.
+
+Edge cases
+
+Anime
+
+High priority.
+
+Many existing NSFW models perform poorly on animated content.
+
+Memes
+
+Medium priority.
+
+Blurred explicit content
+
+Medium priority.
+
+Small explicit regions
+
+High priority.
+
+Picture-in-picture
+
+Future support.
+
+Split screen
+
+Future support.
+
+Model optimization
+
+Techniques
+
+Quantization
+
+Pruning
+
+Operator fusion
+
+TensorFlow Lite optimization
+
+Target
+
+Inference under 100 ms on mid-range Android devices.
+
+Battery optimization
+
+AI is one of the largest battery risks.
+
+Strategies
+
+Low FPS
+
+Adaptive sampling
+
+Suspend when static
+
+Suspend during cooldown
+
+Efficient model
+
+CPU optimization
+
+Inference batching is unnecessary.
+
+Security
+
+The model file should be protected against trivial extraction.
+
+However, model secrecy is not the primary defense.
+
+The product moat is the intervention system.
+
+Future AI roadmap
+
+V2
+
+Better explicit detection
+
+V3
+
+Context-aware detection
+
+Examples
+
+Explicit image in browser
+
+Explicit image in social feed
+
+Explicit video
+
+Repeated scrolling behavior
+
+V4
+
+Behavioral prediction
+
+The AI recognizes patterns such as
+
+time of day,
+
+app sequence,
+
+session duration,
+
+previous interventions,
+
+fatigue signals.
+
+V5
+
+Personalized intervention
+
+Examples
+
+Longer cooldowns
+
+Different recovery tasks
+
+Earlier interventions
+
+Adaptive thresholds
+
+V6
+
+Multimodal behavioral intelligence
+
+The AI combines
+
+visual signals,
+
+device usage patterns,
+
+user goals,
+
+historical intervention outcomes.
+
+The objective shifts from content detection to behavior protection.
+
+The final AI architecture
+
+Screen understanding
+
+Behavior modeling
+
+Intervention optimization
+
+Privacy-preserving personalization
+
+The AI no longer simply detects pornography.
+
+It protects the user from patterns that repeatedly lead to outcomes the user has consciously chosen to avoid.
+
+Evaluation metrics
+
+Precision
+
+Target
+
+Greater than 98%
+
+Recall
+
+Target
+
+Greater than 90%
+
+Intervention latency
+
+Target
+
+Less than 800 ms
+
+False positive rate
+
+Target
+
+Less than 1%
+
+Battery impact
+
+Target
+
+Less than 5% daily
+
+The AI success metric
+
+The AI system is successful when users stop thinking about the model entirely.
+
+They should experience Sentinel as a guardian that appears exactly when needed,
+
+rarely interrupts incorrectly,
+
+never exposes their private data,
+
+and quietly helps them keep promises they made to themselves.
+
+PROJECT_SCAFFOLD.md
+
+Sentinel Android project scaffold
+
+Version: 1.0
+
+Status: Repository generation specification
+
+Objective: Generate a production-ready Android project structure with all core modules, packages, classes, and build configuration prepared for Sprint 01.
+
+Repository structure
+
+sentinel/
+
+├── app/
+
+├── core/
+
+│   ├── ai/
+
+│   ├── protection/
+
+│   ├── privacy/
+
+│   ├── cooldown/
+
+│   ├── permissions/
+
+│   ├── monitoring/
+
+│   ├── overlay/
+
+│   ├── analytics/
+
+│   └── utils/
+
+├── data/
+
+│   ├── database/
+
+│   ├── dao/
+
+│   ├── entities/
+
+│   ├── repository/
+
+│   └── datastore/
+
+├── services/
+
+│   ├── monitoring/
+
+│   ├── accessibility/
+
+│   ├── overlay/
+
+│   ├── notification/
+
+│   └── boot/
+
+├── ui/
+
+│   ├── onboarding/
+
+│   ├── home/
+
+│   ├── focus/
+
+│   ├── history/
+
+│   ├── settings/
+
+│   ├── intervention/
+
+│   ├── components/
+
+│   ├── theme/
+
+│   └── navigation/
+
+├── tests/
+
+├── docs/
+
+├── scripts/
+
+└── .github/
+
+Android configuration
+
+Package
+
+com.sentinel.app
+
+Compile SDK
+
+36
+
+Minimum SDK
+
+31
+
+Target SDK
+
+36
+
+Language
+
+Kotlin
+
+Build system
+
+Gradle Kotlin DSL
+
+Dependencies
+
+Jetpack Compose
+
+Material 3
+
+Navigation Compose
+
+Hilt
+
+Room
+
+Coroutines
+
+Lifecycle
+
+DataStore
+
+TensorFlow Lite
+
+WorkManager
+
+JUnit
+
+AndroidX Test
+
+Application entry
+
+SentinelApplication
+
+Responsibilities
+
+Initialize Hilt
+
+Initialize repositories
+
+Initialize ProtectionManager
+
+Initialize logging
+
+Navigation
+
+Routes
+
+welcome
+
+privacy
+
+permissions
+
+setup
+
+activation
+
+home
+
+focus
+
+history
+
+settings
+
+intervention
+
+Root navigation
+
+If first launch
+
+Onboarding
+
+Else
+
+Home
+
+Theme
+
+Colors
+
+SentinelBlack
+
+SentinelSurface
+
+SentinelBlue
+
+SentinelGreen
+
+SentinelGray
+
+Typography
+
+Inter
+
+Spacing system
+
+8dp base
+
+Core interfaces
+
+ProtectionManager
+
+PermissionManager
+
+MonitoringController
+
+DetectionEngine
+
+OverlayController
+
+CooldownController
+
+SettingsRepository
+
+HistoryRepository
+
+All concrete implementations depend on interfaces.
+
+Data layer
+
+Entities
+
+ProtectionSettingsEntity
+
+InterventionHistoryEntity
+
+CooldownStateEntity
+
+DAOs
+
+ProtectionSettingsDao
+
+InterventionHistoryDao
+
+CooldownStateDao
+
+Repositories
+
+SettingsRepositoryImpl
+
+HistoryRepositoryImpl
+
+ProtectionRepositoryImpl
+
+Protection module
+
+Classes
+
+ProtectionManager
+
+ProtectionState
+
+ProtectionEvent
+
+LockPeriod
+
+ProtectionLevel
+
+ProtectionManager exposes
+
+StateFlow<ProtectionState>
+
+Permission module
+
+Classes
+
+PermissionManager
+
+PermissionState
+
+PermissionType
+
+PermissionResult
+
+Supported permissions
+
+Accessibility
+
+Overlay
+
+Notifications
+
+MediaProjection
+
+Monitoring module
+
+Classes
+
+MonitoringController
+
+ScreenFrameProvider
+
+FrameSampler
+
+FrameProcessor
+
+MonitoringService
+
+Frame sampling
+
+0.5 FPS idle
+
+1 FPS normal
+
+2 FPS active
+
+0 FPS cooldown
+
+AI module
+
+Classes
+
+DetectionEngine
+
+TensorFlowLiteEngine
+
+ImagePreprocessor
+
+DetectionResult
+
+DetectionCategory
+
+ModelManager
+
+DetectionCategory
+
+Safe
+
+Uncertain
+
+Explicit
+
+Overlay module
+
+Classes
+
+OverlayController
+
+InterventionOverlay
+
+OverlayWindow
+
+OverlayState
+
+Cooldown module
+
+Classes
+
+CooldownController
+
+CooldownTimer
+
+RecoveryTask
+
+RecoveryTaskType
+
+CooldownState
+
+RecoveryTaskType
+
+PushUps
+
+Breathing
+
+Walk
+
+Journal
+
+Accessibility module
+
+Classes
+
+SentinelAccessibilityService
+
+AccessibilityEventHandler
+
+ForegroundAppTracker
+
+Notification module
+
+Classes
+
+NotificationController
+
+NotificationFactory
+
+ProtectionNotification
+
+CooldownNotification
+
+Boot module
+
+Classes
+
+BootReceiver
+
+StartupRestorer
+
+UI screens
+
+WelcomeScreen
+
+PrivacyScreen
+
+PermissionsScreen
+
+SetupScreen
+
+ActivationScreen
+
+HomeScreen
+
+FocusScreen
+
+HistoryScreen
+
+SettingsScreen
+
+InterventionScreen
+
+Shared UI components
+
+PrimaryButton
+
+SecondaryButton
+
+ProtectionCard
+
+StatCard
+
+CountdownTimer
+
+RecoveryTaskCard
+
+SettingsRow
+
+PermissionRow
+
+StatusPill
+
+SectionHeader
+
+ViewModels
+
+WelcomeViewModel
+
+PrivacyViewModel
+
+PermissionsViewModel
+
+SetupViewModel
+
+ActivationViewModel
+
+HomeViewModel
+
+FocusViewModel
+
+HistoryViewModel
+
+SettingsViewModel
+
+InterventionViewModel
+
+State models
+
+WelcomeUiState
+
+PrivacyUiState
+
+PermissionsUiState
+
+SetupUiState
+
+HomeUiState
+
+FocusUiState
+
+HistoryUiState
+
+SettingsUiState
+
+InterventionUiState
+
+Database schema
+
+ProtectionSettingsEntity
+
+id
+
+protectionLevel
+
+cooldownMinutes
+
+recoveryTask
+
+lockDurationMinutes
+
+notificationsEnabled
+
+createdAt
+
+updatedAt
+
+InterventionHistoryEntity
+
+id
+
+timestamp
+
+confidence
+
+foregroundApp
+
+recoveryTask
+
+completed
+
+overrideUsed
+
+durationSeconds
+
+CooldownStateEntity
+
+id
+
+startTime
+
+endTime
+
+active
+
+taskCompleted
+
+Gradle modules
+
+:app
+
+:core
+
+:data
+
+:services
+
+:ui
+
+Build variants
+
+debug
+
+release
+
+Debug features
+
+Fake detection engine
+
+Mock monitoring
+
+Verbose logging
+
+Performance overlay
+
+Release features
+
+Real AI
+
+Minimal logging
+
+ProGuard
+
+R8
+
+Logging
+
+Use Timber.
+
+Tags
+
+Protection
+
+Monitoring
+
+AI
+
+Overlay
+
+Cooldown
+
+Permissions
+
+Never log
+
+Image data
+
+Screen content
+
+Text content
+
+URLs
+
+Testing structure
+
+Unit
+
+core/
+
+data/
+
+ViewModels
+
+Integration
+
+repositories/
+
+database/
+
+services/
+
+Instrumentation
+
+ui/
+
+overlay/
+
+permissions/
+
+monitoring/
+
+CI workflow
+
+On every pull request
+
+Build
+
+Unit tests
+
+Lint
+
+Static analysis
+
+Documentation check
+
+Initial generation order
+
+Generate Gradle configuration
+
+Generate application class
+
+Generate theme
+
+Generate navigation
+
+Generate data layer
+
+Generate repositories
+
+Generate ProtectionManager
+
+Generate ViewModels
+
+Generate onboarding screens
+
+Generate home screen
+
+Generate tests
+
+First successful build
+
+The first build is considered successful when
+
+The app compiles.
+
+Navigation works.
+
+Onboarding completes.
+
+Settings persist.
+
+Protection state changes correctly.
+
+The architecture matches this scaffold.
+
+This scaffold is the canonical project structure for Sentinel MVP.
+
+android-architecture.md
+
+Sentinel Android architecture
+
+Version: 1.0
+
+Status: Engineering specification
+
+Target platform: Android 12+
+
+Primary language: Kotlin
+
+ML runtime: TensorFlow Lite
+
+Architecture pattern: MVVM + foreground services
+
+Architecture overview
+
+Sentinel is composed of five major subsystems.
+
+User Interface
+
+↓
+
+Protection Controller
+
+↓
+
+Screen Monitoring Service
+
+↓
+
+AI Detection Engine
+
+↓
+
+Intervention Engine
+
+The UI configures protection.
+
+The Protection Controller manages state.
+
+The Screen Monitoring Service captures frames.
+
+The AI Detection Engine classifies content.
+
+The Intervention Engine interrupts behavior.
+
+High-level architecture
+
++-------------------------+
+
+| UI Layer |
+
+| Home |
+
+| Onboarding |
+
+| Settings |
+
++-----------+-------------+
+
+|
+
+v
+
++-------------------------+
+
+| Protection Controller |
+
+| State machine |
+
+| Lock periods |
+
+| Permission checks |
+
++-----------+-------------+
+
+|
+
+v
+
++-------------------------+
+
+| Screen Monitoring |
+
+| MediaProjection |
+
+| Frame sampling |
+
+| Foreground service |
+
++-----------+-------------+
+
+|
+
+v
+
++-------------------------+
+
+| AI Detection Engine |
+
+| TensorFlow Lite |
+
+| NSFW classifier |
+
+| Confidence scoring |
+
++-----------+-------------+
+
+|
+
+v
+
++-------------------------+
+
+| Intervention Engine |
+
+| Overlay |
+
+| Timer |
+
+| Recovery task |
+
++-------------------------+
+
+Core modules
+
+UI module
+
+Responsibilities
+
+Onboarding
+
+Settings
+
+Protection status
+
+Analytics
+
+Cooldown screen
+
+Recovery tasks
+
+This layer contains no AI logic.
+
+Protection Controller
+
+Responsibilities
+
+Protection state
+
+Lock period management
+
+Permission validation
+
+Service lifecycle
+
+Emergency override
+
+This is the central orchestrator.
+
+Suggested class
+
+ProtectionManager
+
+State
+
+ProtectionState
+
+Methods
+
+enableProtection()
+
+disableProtection()
+
+startLock()
+
+endLock()
+
+triggerIntervention()
+
+Background services
+
+SentinelForegroundService
+
+Purpose
+
+Keep protection active while monitoring is enabled.
+
+Responsibilities
+
+Maintain MediaProjection session
+
+Coordinate frame capture
+
+Schedule AI inference
+
+Handle battery optimization
+
+Display persistent notification
+
+The service should remain lightweight.
+
+AccessibilityMonitorService
+
+Purpose
+
+Observe foreground app changes.
+
+Responsibilities
+
+Detect current app
+
+Detect app transitions
+
+Assist intervention timing
+
+Support overlay behavior
+
+Accessibility should not perform AI inference.
+
+Screen monitoring pipeline
+
+MediaProjection
+
+↓
+
+VirtualDisplay
+
+↓
+
+ImageReader
+
+↓
+
+Bitmap conversion
+
+↓
+
+Resize
+
+↓
+
+Tensor input
+
+↓
+
+Inference
+
+Frame rate
+
+MVP
+
+1 FPS
+
+Adaptive behavior
+
+Screen idle
+
+0.5 FPS
+
+Active scrolling
+
+2 FPS
+
+Cooldown
+
+0 FPS
+
+Screen off
+
+0 FPS
+
+Charging
+
+2 FPS
+
+Frame rate adaptation is important for battery life.
+
+Image processing
+
+Raw frame
+
+↓
+
+Crop if necessary
+
+↓
+
+Resize to model input
+
+↓
+
+Normalize pixels
+
+↓
+
+RGB tensor
+
+↓
+
+TensorFlow Lite
+
+Target input size
+
+224 × 224
+
+Color space
+
+RGB
+
+Normalization
+
+0 to 1
+
+AI engine
+
+NSFWClassifier
+
+Responsibilities
+
+Load model
+
+Run inference
+
+Return confidence
+
+Handle model errors
+
+Interface
+
+class DetectionResult(
+
+val confidence: Float,
+
+val category: DetectionCategory
+
+)
+
+enum DetectionCategory {
+
+SAFE,
+
+UNCERTAIN,
+
+EXPLICIT
+
+}
+
+Thresholds
+
+Safe
+
+0.00 to 0.60
+
+Uncertain
+
+0.60 to 0.90
+
+Explicit
+
+0.90+
+
+Only Explicit triggers intervention in V1.
+
+Intervention engine
+
+OverlayManager
+
+Responsibilities
+
+Display full-screen overlay
+
+Block touch interaction
+
+Animate fade
+
+Display countdown
+
+Launch recovery flow
+
+Implementation
+
+WindowManager
+
+TYPE_APPLICATION_OVERLAY
+
+FLAG_FULLSCREEN
+
+FLAG_LAYOUT_IN_SCREEN
+
+The overlay must appear above all apps.
+
+CooldownManager
+
+Responsibilities
+
+Start timer
+
+Persist timer
+
+Survive process death
+
+Resume after reboot
+
+The timer should be stored in Room.
+
+State machine
+
+IDLE
+
+↓
+
+ARMED
+
+↓
+
+MONITORING
+
+↓
+
+DETECTED
+
+↓
+
+INTERVENING
+
+↓
+
+COOLDOWN
+
+↓
+
+RECOVERY
+
+↓
+
+MONITORING
+
+State definitions
+
+IDLE
+
+Protection disabled.
+
+ARMED
+
+Permissions granted.
+
+Preparing monitoring.
+
+MONITORING
+
+Normal operation.
+
+Frames analyzed.
+
+DETECTED
+
+Explicit content detected.
+
+Awaiting intervention.
+
+INTERVENING
+
+Overlay active.
+
+App blocked.
+
+COOLDOWN
+
+Timer running.
+
+RECOVERY
+
+User completing task.
+
+Data layer
+
+Room database
+
+Tables
+
+ProtectionSettings
+
+InterventionHistory
+
+CooldownState
+
+UserStats
+
+ProtectionSettings
+
+cooldownMinutes
+
+protectionLevel
+
+recoveryTask
+
+lockEndTime
+
+InterventionHistory
+
+timestamp
+
+confidence
+
+foregroundApp
+
+overrideUsed
+
+taskCompleted
+
+No screenshots stored.
+
+Threading model
+
+UI thread
+
+Interface
+
+Main thread
+
+Protection state
+
+Background thread
+
+Frame processing
+
+ML thread
+
+TensorFlow inference
+
+IO thread
+
+Database
+
+Never perform inference on the main thread.
+
+Memory management
+
+Avoid allocating Bitmaps repeatedly.
+
+Use bitmap pooling.
+
+Reuse tensors.
+
+Close ImageReader images immediately.
+
+Target memory
+
+Less than 200 MB.
+
+Battery optimization
+
+Strategies
+
+Low frame rate
+
+Suspend when screen off
+
+Suspend during cooldown
+
+Foreground service
+
+Efficient model
+
+No network requests
+
+Throttle during low battery
+
+Target
+
+Less than 5% daily impact.
+
+Boot behavior
+
+On device restart
+
+Receive BOOT_COMPLETED
+
+↓
+
+Validate permissions
+
+↓
+
+Restore protection state
+
+↓
+
+Restart foreground service
+
+↓
+
+Resume monitoring
+
+Protection should survive reboot.
+
+Crash recovery
+
+If service crashes
+
+Restart service
+
+Restore MediaProjection
+
+Restore cooldown
+
+Restore overlay if active
+
+All critical state must be persisted.
+
+Security model
+
+No internet permission required for MVP.
+
+All inference local.
+
+No screenshot storage.
+
+Encrypted local database.
+
+Minimal logging.
+
+Disable debug logs in production.
+
+Logging
+
+Allowed
+
+Service started
+
+Service stopped
+
+Intervention triggered
+
+Timer started
+
+Timer completed
+
+Errors
+
+Forbidden
+
+Screenshot metadata
+
+Image contents
+
+Text extracted from screen
+
+Browsing activity
+
+URLs
+
+Performance targets
+
+Frame processing
+
+Less than 150 ms
+
+Model inference
+
+Less than 100 ms
+
+Overlay display
+
+Less than 100 ms
+
+Total intervention latency
+
+Less than 800 ms
+
+Testing architecture
+
+Unit tests
+
+ProtectionManager
+
+CooldownManager
+
+Threshold logic
+
+State machine
+
+Instrumentation tests
+
+Overlay
+
+Permissions
+
+Service lifecycle
+
+Database
+
+Performance tests
+
+Battery
+
+Memory
+
+Latency
+
+Inference speed
+
+Long-running stability
+
+Failure modes
+
+MediaProjection revoked
+
+Stop monitoring
+
+Notify user
+
+Accessibility revoked
+
+Limited protection
+
+Notify user
+
+Model load failure
+
+Disable monitoring
+
+Show error
+
+Overlay permission revoked
+
+Cannot intervene
+
+Show critical warning
+
+MVP implementation order
+
+Onboarding
+
+Permissions
+
+Foreground service
+
+MediaProjection
+
+Frame capture
+
+TensorFlow Lite inference
+
+Overlay
+
+Cooldown
+
+Recovery tasks
+
+Persistence
+
+Boot recovery
+
+Battery optimization
+
+Definition of architectural success
+
+The architecture is successful when Sentinel can run continuously for days,
+
+survive app restarts,
+
+survive device reboots,
+
+consume minimal battery,
+
+process screen frames locally,
+
+and trigger an intervention in under one second without storing any user screen content.
+
+IMPLEMENTATION_SPEC.md
+
+Sentinel implementation specification
+
+Version: 1.0
+
+Status: Canonical engineering implementation document
+
+Target platform: Android 12+
+
+Language: Kotlin
+
+UI: Jetpack Compose
+
+Architecture: MVVM + Clean Architecture
+
+Dependency Injection: Hilt
+
+Database: Room
+
+AI Runtime: TensorFlow Lite
+
+Primary objective: Build a production-grade Android MVP with privacy-first real-time intervention.
+
+---
+
+Purpose
+
+This document removes ambiguity from implementation.
+
+An engineering team or AI coding agent should be able to build Sentinel directly from this specification without making major product or architectural decisions.
+
+When this document conflicts with other documentation, this document takes precedence for implementation details.
+
+---
+
+MVP implementation scope
+
+The application must implement:
+
+Onboarding
+
+Permission management
+
+Protection state management
+
+Settings persistence
+
+Foreground service infrastructure
+
+MediaProjection integration
+
+TensorFlow Lite inference
+
+Overlay intervention
+
+Cooldown system
+
+Recovery tasks
+
+Intervention history
+
+Privacy dashboard
+
+The application must not implement:
+
+Cloud sync
+
+Accountability partners
+
+Desktop support
+
+Predictive AI
+
+Behavior modeling
+
+---
+
+Architecture
+
+The application follows strict Clean Architecture.
+
+UI
+
+↓
+
+ViewModel
+
+↓
+
+Use Case
+
+↓
+
+Repository
+
+↓
+
+Data Source
+
+UI may never directly access services.
+
+Services may never directly modify UI state.
+
+All state flows through ViewModels and repositories.
+
+---
+
+Application modules
+
+app
+
+Application entry point
+
+Dependency injection
+
+Navigation
+
+Theme
+
+core
+
+Business logic
+
+Protection engine
+
+AI engine
+
+Privacy utilities
+
+Timing utilities
+
+State management
+
+data
+
+Room database
+
+Repositories
+
+Data models
+
+Persistence
+
+services
+
+Monitoring
+
+Accessibility
+
+Overlay
+
+Cooldown
+
+Notifications
+
+Boot receiver
+
+ui
+
+Compose screens
+
+Components
+
+Navigation
+
+Animations
+
+ViewModels
+
+---
+
+Package structure
+
+com.sentinel.app
+
+com.sentinel.core.ai
+
+com.sentinel.core.protection
+
+com.sentinel.core.privacy
+
+com.sentinel.data.database
+
+com.sentinel.data.models
+
+com.sentinel.data.repository
+
+com.sentinel.services.monitoring
+
+com.sentinel.services.accessibility
+
+com.sentinel.services.overlay
+
+com.sentinel.services.cooldown
+
+com.sentinel.ui.onboarding
+
+com.sentinel.ui.home
+
+com.sentinel.ui.focus
+
+com.sentinel.ui.history
+
+com.sentinel.ui.settings
+
+com.sentinel.ui.intervention
+
+---
+
+Application state
+
+Global state is managed by ProtectionManager.
+
+ProtectionState
+
+Disabled
+
+Enabled
+
+Monitoring
+
+Intervening
+
+Cooldown
+
+PermissionRequired
+
+Error
+
+Only ProtectionManager may change protection state.
+
+All UI observes StateFlow<ProtectionState>.
+
+---
+
+Navigation graph
+
+Route: welcome
+
+Route: privacy
+
+Route: permissions
+
+Route: setup
+
+Route: activation
+
+Route: home
+
+Route: focus
+
+Route: history
+
+Route: settings
+
+Route: intervention
+
+Navigation rules
+
+On first launch
+
+Welcome
+
+After activation
+
+Home
+
+During intervention
+
+Intervention screen becomes modal and cannot be dismissed.
+
+---
+
+Onboarding implementation
+
+Welcome
+
+Components
+
+Logo
+
+Title
+
+Subtitle
+
+Continue button
+
+Action
+
+Navigate to privacy.
+
+Privacy
+
+Components
+
+Privacy icon
+
+Explanation text
+
+Guarantee list
+
+Continue button
+
+Guarantees
+
+On-device AI
+
+No screenshot storage
+
+No uploads
+
+Offline capable
+
+Action
+
+Navigate to permissions.
+
+Permissions
+
+Display
+
+Accessibility
+
+Overlay
+
+Notifications
+
+Screen monitoring
+
+Each permission card shows
+
+Status
+
+Description
+
+Enable button
+
+The Continue button is disabled until required permissions are granted.
+
+Setup
+
+Controls
+
+Protection level
+
+Cooldown duration
+
+Recovery task
+
+Lock duration
+
+Values
+
+Protection
+
+Balanced
+
+Strict
+
+Nuclear
+
+Cooldown
+
+5
+
+10
+
+15
+
+20
+
+Recovery
+
+Push-ups
+
+Breathing
+
+Walk
+
+Journal
+
+Activation
+
+Components
+
+Success icon
+
+Protection summary
+
+Activate button
+
+Action
+
+Enable protection
+
+Save settings
+
+Navigate to home
+
+---
+
+Home screen
+
+Layout
+
+Top app bar
+
+Protection card
+
+Stats grid
+
+Quick actions
+
+Bottom navigation
+
+Protection card
+
+Displays
+
+Current state
+
+Lock end time
+
+Primary action
+
+Primary button
+
+Enable
+
+Disable
+
+Resume
+
+depending on state
+
+Stats grid
+
+Interventions today
+
+Current streak
+
+Protection hours
+
+Recovery completion
+
+---
+
+Focus screen
+
+Purpose
+
+Create commitment periods.
+
+Components
+
+Duration selector
+
+Start button
+
+Information panel
+
+Durations
+
+2h
+
+8h
+
+24h
+
+3d
+
+7d
+
+Custom
+
+Starting a lock immediately updates ProtectionManager.
+
+---
+
+History screen
+
+Displays
+
+Intervention timeline
+
+Recovery completion
+
+Daily protection
+
+Weekly summary
+
+History never includes screenshot information.
+
+---
+
+Settings screen
+
+Sections
+
+Protection
+
+Privacy
+
+Notifications
+
+Recovery
+
+Advanced
+
+Privacy section displays
+
+Cloud processing: Disabled
+
+Screenshot storage: Disabled
+
+Last network activity
+
+Model version
+
+---
+
+Database schema
+
+Entity
+
+ProtectionSettings
+
+Fields
+
+id
+
+protectionLevel
+
+cooldownMinutes
+
+recoveryTask
+
+lockDurationMinutes
+
+notificationsEnabled
+
+createdAt
+
+updatedAt
+
+Entity
+
+InterventionHistory
+
+Fields
+
+id
+
+timestamp
+
+confidence
+
+foregroundApp
+
+recoveryTask
+
+completed
+
+overrideUsed
+
+duration
+
+Entity
+
+CooldownState
+
+Fields
+
+id
+
+startTime
+
+endTime
+
+active
+
+taskCompleted
+
+All timestamps use UTC.
+
+---
+
+Repositories
+
+SettingsRepository
+
+Functions
+
+getSettings()
+
+saveSettings()
+
+observeSettings()
+
+HistoryRepository
+
+Functions
+
+insertIntervention()
+
+getHistory()
+
+observeHistory()
+
+ProtectionRepository
+
+Functions
+
+observeProtectionState()
+
+setProtectionState()
+
+startCooldown()
+
+endCooldown()
+
+---
+
+ViewModels
+
+OnboardingViewModel
+
+State
+
+currentStep
+
+permissionStatus
+
+settings
+
+Functions
+
+grantPermission()
+
+updateSettings()
+
+completeOnboarding()
+
+HomeViewModel
+
+State
+
+protectionState
+
+stats
+
+lockTime
+
+Functions
+
+toggleProtection()
+
+refresh()
+
+FocusViewModel
+
+State
+
+selectedDuration
+
+Functions
+
+startLock()
+
+HistoryViewModel
+
+State
+
+history
+
+summary
+
+SettingsViewModel
+
+State
+
+settings
+
+Functions
+
+updateCooldown()
+
+updateRecoveryTask()
+
+updateProtectionLevel()
+
+---
+
+ProtectionManager
+
+Responsibilities
+
+Own protection state
+
+Start monitoring
+
+Stop monitoring
+
+Trigger interventions
+
+Manage lock periods
+
+Coordinate services
+
+Public API
+
+enableProtection()
+
+disableProtection()
+
+startLock()
+
+endLock()
+
+triggerIntervention()
+
+observeState()
+
+ProtectionManager is a singleton.
+
+---
+
+PermissionManager
+
+Tracks
+
+Accessibility
+
+Overlay
+
+Notifications
+
+MediaProjection
+
+Functions
+
+checkPermissions()
+
+requestAccessibility()
+
+requestOverlay()
+
+requestNotifications()
+
+requestMediaProjection()
+
+observePermissionState()
+
+---
+
+MonitoringService
+
+Foreground service
+
+Responsibilities
+
+Maintain MediaProjection
+
+Capture frames
+
+Throttle sampling
+
+Forward frames to AI
+
+Stop during cooldown
+
+Sampling
+
+Idle
+
+0.5 FPS
+
+Normal
+
+1 FPS
+
+Scrolling
+
+2 FPS
+
+Cooldown
+
+0 FPS
+
+Screen off
+
+0 FPS
+
+---
+
+DetectionEngine
+
+Input
+
+Bitmap
+
+Output
+
+DetectionResult
+
+Fields
+
+confidence
+
+category
+
+processingTime
+
+Category
+
+Safe
+
+Uncertain
+
+Explicit
+
+Threshold
+
+Explicit if confidence ≥ 0.90.
+
+Inference thread
+
+Dedicated background dispatcher.
+
+---
+
+OverlayManager
+
+Displays
+
+Full-screen intervention overlay
+
+Countdown
+
+Recovery task
+
+Completion state
+
+Overlay must use TYPE_APPLICATION_OVERLAY.
+
+Overlay is non-dismissible during cooldown.
+
+---
+
+CooldownManager
+
+Functions
+
+startCooldown()
+
+observeRemainingTime()
+
+completeTask()
+
+finishCooldown()
+
+Cooldown survives
+
+App restart
+
+Service restart
+
+Device reboot
+
+---
+
+Recovery tasks
+
+Push-ups
+
+Display
+
+Target count
+
+Completion button
+
+Future sensor integration
+
+Breathing
+
+Animated circle
+
+4-2-4 cycle
+
+2-minute timer
+
+Walk
+
+Step counter
+
+Progress display
+
+Journal
+
+Prompt
+
+Text input
+
+Completion button
+
+V1 uses self-reported completion.
+
+---
+
+Intervention flow
+
+Frame detected
+
+↓
+
+Confidence ≥ 0.90
+
+↓
+
+Second confirmation frame
+
+↓
+
+ProtectionManager.triggerIntervention()
+
+↓
+
+OverlayManager.show()
+
+↓
+
+CooldownManager.start()
+
+↓
+
+Recovery task
+
+↓
+
+Cooldown complete
+
+↓
+
+Overlay dismissed
+
+↓
+
+Monitoring resumes
+
+Target latency
+
+Less than 800 ms.
+
+---
+
+Error handling
+
+MediaProjection revoked
+
+Stop monitoring
+
+Notify user
+
+Update protection state
+
+Accessibility revoked
+
+Enter PermissionRequired state
+
+Overlay failure
+
+Show notification
+
+Log error
+
+Model load failure
+
+Disable monitoring
+
+Show error screen
+
+---
+
+Performance requirements
+
+Cold start
+
+Less than 1.5 s
+
+Frame processing
+
+Less than 150 ms
+
+Inference
+
+Less than 100 ms
+
+Overlay display
+
+Less than 100 ms
+
+Memory
+
+Less than 200 MB
+
+Battery
+
+Less than 5% daily
+
+---
+
+Logging policy
+
+Allowed
+
+State transitions
+
+Errors
+
+Performance metrics
+
+Permission changes
+
+Forbidden
+
+Screenshots
+
+Image contents
+
+Extracted text
+
+URLs
+
+Personal data
+
+---
+
+Testing requirements
+
+Unit
+
+ProtectionManager
+
+CooldownManager
+
+DetectionEngine
+
+Repositories
+
+ViewModels
+
+Instrumentation
+
+Overlay
+
+Permissions
+
+MediaProjection
+
+Navigation
+
+Performance
+
+Inference latency
+
+Battery
+
+Memory
+
+Long-running stability
+
+---
+
+Acceptance criteria
+
+The implementation is complete when
+
+The app launches.
+
+Onboarding completes.
+
+Permissions are granted.
+
+Protection can be enabled.
+
+Settings persist.
+
+Monitoring infrastructure starts.
+
+Detection triggers intervention.
+
+Overlay appears within one second.
+
+Cooldown functions correctly.
+
+Recovery task completes.
+
+Monitoring resumes.
+
+No screenshots are stored.
+
+No screenshots are uploaded.
+
+Battery impact remains acceptable.
+
+This document is the implementation contract for Sentinel MVP.
+
+mvp-spec.md
+
+Sentinel MVP specification
+
+Version: 1.0
+
+Status: Build specification
+
+Target platform: Android
+
+Development priority: Highest
+
+MVP objective
+
+Build the smallest possible product that proves the core hypothesis:
+
+Real-time AI intervention can prevent users from consuming explicit content they intended to avoid.
+
+The MVP is successful if users consistently report that Sentinel interrupted a pornography session before completion.
+
+Non-goals
+
+The MVP is not:
+
+a productivity suite,
+
+a habit tracker,
+
+a meditation app,
+
+a parental control app,
+
+a social network,
+
+an accountability platform.
+
+Every feature must support the single objective of behavior interruption.
+
+Primary user
+
+A user who wants to quit pornography and is willing to give the app strong permissions in exchange for strong protection.
+
+User promise
+
+“When explicit content appears on my phone, Sentinel will intervene before I continue.”
+
+Core experience
+
+Setup
+
+User installs the app.
+
+User grants permissions.
+
+User selects protection settings.
+
+Protection becomes active.
+
+Intervention
+
+User encounters explicit content.
+
+Sentinel detects it.
+
+The screen is immediately obscured.
+
+The user enters a cooldown state.
+
+The user completes a recovery action.
+
+Access is restored after the cooldown.
+
+Success criteria
+
+Primary metric
+
+Interrupted explicit content sessions.
+
+Definition:
+
+An intervention occurs and the user does not return to explicit content within the next 10 minutes.
+
+Secondary metrics
+
+Intervention latency
+
+False positive rate
+
+False negative rate
+
+Daily active users
+
+7-day retention
+
+Average cooldown completion rate
+
+Permission retention
+
+Functional requirements
+
+FR-1 Screen monitoring
+
+Sentinel monitors visible screen content while protection is active.
+
+Requirements:
+
+monitor foreground app,
+
+analyze screen frames locally,
+
+operate continuously,
+
+minimize battery usage.
+
+Target frame rate:
+
+1 frame per second initially.
+
+Future target:
+
+2 to 4 FPS.
+
+FR-2 Explicit content detection
+
+The AI classifier outputs:
+
+Safe
+
+Possibly explicit
+
+Explicit
+
+Only Explicit triggers immediate intervention in V1.
+
+FR-3 Immediate intervention
+
+When explicit content is detected:
+
+Display full-screen black overlay.
+
+Vibrate device.
+
+Pause interaction.
+
+Start cooldown timer.
+
+Prevent access to the triggering app during cooldown.
+
+Latency target:
+
+Less than 800 milliseconds.
+
+FR-4 Cooldown timer
+
+Default:
+
+10 minutes.
+
+Configurable:
+
+5 minutes
+
+10 minutes
+
+15 minutes
+
+20 minutes
+
+The timer cannot be skipped.
+
+FR-5 Recovery task
+
+The user must complete one recovery action.
+
+V1 options:
+
+20 push-ups
+
+2-minute breathing exercise
+
+5-minute walk
+
+Journal prompt
+
+The task should be selectable during onboarding.
+
+FR-6 Lock periods
+
+Users choose a protection duration.
+
+Options:
+
+2 hours
+
+8 hours
+
+24 hours
+
+3 days
+
+7 days
+
+During the lock period:
+
+Protection cannot be casually disabled.
+
+FR-7 Emergency override
+
+One emergency override is allowed.
+
+Requirements:
+
+60-second countdown
+
+Clear warning
+
+Intervention history records the override
+
+No immediate reactivation
+
+This prevents panic situations while preserving friction.
+
+Permissions
+
+Accessibility Service
+
+Purpose:
+
+Detect foreground app
+
+Display overlays
+
+Prevent rapid app switching
+
+Required.
+
+MediaProjection
+
+Purpose:
+
+Capture screen frames for local analysis.
+
+Required.
+
+Overlay permission
+
+Purpose:
+
+Display intervention screen above other apps.
+
+Required.
+
+Notification permission
+
+Purpose:
+
+Protection status
+
+Cooldown completion
+
+System reminders
+
+Required.
+
+Onboarding flow
+
+Screen 1
+
+Welcome
+
+Headline:
+
+Protect the commitments you make to yourself.
+
+Button:
+
+Continue
+
+Screen 2
+
+Privacy explanation
+
+Text:
+
+Sentinel analyzes screen content locally on your device.
+
+No screenshots are stored.
+
+No screenshots leave your phone.
+
+Button:
+
+I understand
+
+Screen 3
+
+Permissions
+
+Accessibility
+
+Screen monitoring
+
+Overlay
+
+Notifications
+
+Button:
+
+Enable protection
+
+Screen 4
+
+Choose protection level
+
+Balanced
+
+Strict
+
+Nuclear
+
+Screen 5
+
+Choose cooldown
+
+5
+
+10
+
+15
+
+20 minutes
+
+Screen 6
+
+Choose recovery task
+
+Push-ups
+
+Breathing
+
+Walk
+
+Journal
+
+Screen 7
+
+Protection activated
+
+Home screen
+
+The home screen should be extremely simple.
+
+Display:
+
+Current protection status
+
+Time remaining in lock period
+
+Today’s interventions
+
+Current streak
+
+Quick settings
+
+Example:
+
+Protection: Active
+
+Lock ends: Friday 8:00 PM
+
+Interventions today: 2
+
+Streak: 11 days
+
+Intervention screen
+
+This is the most important screen in the product.
+
+Design principles:
+
+Minimal
+
+Calm
+
+Nonjudgmental
+
+Full-screen
+
+No distracting UI
+
+Layout:
+
+Black background
+
+Shield icon
+
+Title:
+
+Take back control
+
+Body:
+
+Explicit content was detected.
+
+You asked Sentinel to protect this commitment.
+
+Large countdown timer
+
+Recovery task section
+
+Progress indicator
+
+No skip button
+
+Detection pipeline
+
+Screen frame
+
+↓
+
+Preprocessing
+
+↓
+
+NSFW classifier
+
+↓
+
+Confidence score
+
+↓
+
+Threshold evaluation
+
+↓
+
+Intervention engine
+
+Initial threshold
+
+0.90 confidence.
+
+This intentionally favors false negatives over false positives during early testing.
+
+False positive policy
+
+A false positive is extremely expensive.
+
+Examples:
+
+Medical images
+
+Anatomy diagrams
+
+Art
+
+Swimwear
+
+Fitness content
+
+The MVP should avoid aggressive blocking.
+
+If confidence is below threshold:
+
+Do nothing.
+
+Battery target
+
+Maximum additional battery consumption:
+
+5% per day.
+
+Strategies:
+
+1 FPS capture
+
+Suspend monitoring when screen is off
+
+Suspend during charging optimization
+
+Efficient TensorFlow Lite inference
+
+No cloud communication
+
+Data storage
+
+Stored locally:
+
+Intervention timestamps
+
+Recovery task completion
+
+Streak count
+
+Settings
+
+Lock periods
+
+Never stored:
+
+Screenshots
+
+Screen recordings
+
+Browsing history
+
+Image content
+
+Classifier inputs
+
+Analytics
+
+Local analytics only in V1.
+
+Metrics:
+
+Interventions
+
+False positive reports
+
+Cooldown completions
+
+Overrides
+
+Streaks
+
+Optional anonymous telemetry can be added later.
+
+Anti-bypass V1
+
+When protection is active:
+
+Require confirmation to disable
+
+30-second delay before disabling
+
+Warning message
+
+Intervention history preserved
+
+Full uninstall protection is deferred to V2.
+
+Edge cases
+
+Video playback
+
+Sample frames periodically.
+
+Split screen
+
+Analyze the full composite frame.
+
+Rotation
+
+Normalize before inference.
+
+Low battery
+
+Continue protection.
+
+Reduce frame rate if necessary.
+
+Phone call
+
+Pause overlays during active calls.
+
+Emergency services
+
+Always allow emergency calling.
+
+Error handling
+
+AI unavailable
+
+Fail safely.
+
+Display:
+
+Protection temporarily unavailable.
+
+Attempt automatic recovery.
+
+Permission revoked
+
+Immediately notify user.
+
+Protection becomes inactive.
+
+Display persistent warning.
+
+Performance targets
+
+Detection latency:
+
+Less than 800 ms
+
+App startup:
+
+Less than 1.5 s
+
+Memory usage:
+
+Less than 200 MB
+
+CPU usage:
+
+Less than 10% average
+
+Crash-free sessions:
+
+Greater than 99%
+
+Testing checklist
+
+Detect explicit image
+
+Detect explicit video
+
+Ignore medical image
+
+Ignore fitness photo
+
+Ignore beach photo
+
+Intervention appears
+
+Cooldown starts
+
+Timer completes
+
+Recovery task works
+
+App resumes
+
+Permissions survive reboot
+
+Battery acceptable
+
+No screenshot storage
+
+MVP definition of done
+
+The MVP is complete when:
+
+A user can install Sentinel,
+
+enable protection,
+
+encounter explicit content,
+
+be interrupted within one second,
+
+complete a recovery task,
+
+and successfully avoid returning to explicit content during the cooldown period.
+
+Nothing else is required for V1.
+
+Sentinel implementation kickoff
+
+Status: Sprint 01 begins
+
+This document marks the transition from documentation to implementation.
+
+Immediate objective
+
+Create a working Android application with the complete project architecture, onboarding flow, permission framework, and protection state management.
+
+Repository initialization
+
+Create the repository:
+
+sentinel/
+
+Initialize:
+
+- Git
+
+- Android Studio project
+
+- Kotlin
+
+- Jetpack Compose
+
+- Hilt
+
+- Room
+
+- Coroutines
+
+Initial directory structure
+
+sentinel/
+
+├── app/
+
+├── core/
+
+│   ├── ai/
+
+│   ├── protection/
+
+│   ├── privacy/
+
+│   └── utils/
+
+├── data/
+
+│   ├── database/
+
+│   ├── repository/
+
+│   └── models/
+
+├── services/
+
+│   ├── monitoring/
+
+│   ├── accessibility/
+
+│   ├── overlay/
+
+│   └── cooldown/
+
+├── ui/
+
+│   ├── onboarding/
+
+│   ├── home/
+
+│   ├── focus/
+
+│   ├── history/
+
+│   ├── settings/
+
+│   └── intervention/
+
+├── docs/
+
+├── tests/
+
+└── .github/
+
+First build target
+
+The app should launch and display the onboarding flow.
+
+Screens:
+
+1. Welcome
+
+2. Privacy
+
+3. Permissions
+
+4. Protection setup
+
+5. Activation
+
+No AI yet.
+
+No screen monitoring yet.
+
+The goal is architectural correctness.
+
+Initial classes
+
+ProtectionManager
+
+PermissionManager
+
+SettingsRepository
+
+HomeViewModel
+
+OnboardingViewModel
+
+SettingsViewModel
+
+Initial database
+
+ProtectionSettings
+
+Fields:
+
+protectionLevel
+
+cooldownMinutes
+
+recoveryTask
+
+lockDuration
+
+notificationsEnabled
+
+Success criteria
+
+The first commit is successful when:
+
+- the app launches,
+
+- onboarding works,
+
+- settings persist,
+
+- protection can be toggled,
+
+- and the architecture matches the documentation.
+
+The implementation phase begins now.
+
+problem.md
+
+The problem Sentinel solves
+
+Version: 0.1
+
+Status: Product foundation
+
+Executive summary
+
+People do not usually fail because they lack awareness.
+
+They fail because they lose control during short periods of emotional activation.
+
+Existing blockers focus on access control.
+
+Sentinel focuses on behavior interruption.
+
+That is the core distinction.
+
+The modern attention environment
+
+Smartphones have become environments of continuous behavioral stimulation.
+
+Infinite scrolling
+
+Algorithmic recommendations
+
+Autoplay
+
+Short-form video
+
+Push notifications
+
+Instant access to explicit content
+
+Instant access to gambling
+
+Instant access to shopping
+
+Instant access to distraction
+
+The device is optimized for immediate engagement.
+
+The user is trying to optimize for long-term goals.
+
+These incentives are fundamentally misaligned.
+
+The failure of willpower
+
+Most digital wellbeing products are built on a flawed assumption:
+
+“If users really want to stop, they will stop.”
+
+Behavioral psychology suggests the opposite.
+
+Willpower is:
+
+state dependent,
+
+fatigue dependent,
+
+emotion dependent,
+
+context dependent.
+
+A decision made at 8 AM is not the same decision made at 1 AM.
+
+The relapse loop
+
+A simplified relapse loop looks like this.
+
+Trigger
+
+↓
+
+Attention
+
+↓
+
+Curiosity
+
+↓
+
+Search
+
+↓
+
+Escalation
+
+↓
+
+Consumption
+
+↓
+
+Regret
+
+Most blockers only affect Search.
+
+Sentinel targets Escalation.
+
+Why existing blockers fail
+
+Website blockers
+
+Examples:
+
+BlockSite
+
+Freedom
+
+Cold Turkey
+
+browser extensions
+
+Strengths:
+
+easy to configure,
+
+effective for known websites.
+
+Weaknesses:
+
+browser dependent,
+
+easy to disable,
+
+ineffective inside apps,
+
+ineffective for downloaded content,
+
+ineffective for screenshots,
+
+ineffective for social media feeds.
+
+App blockers
+
+Examples:
+
+Screen Time
+
+Digital Wellbeing
+
+Opal
+
+Strengths:
+
+app limits,
+
+scheduling,
+
+focus modes.
+
+Weaknesses:
+
+all-or-nothing,
+
+can be overridden,
+
+cannot distinguish productive and destructive use inside the same app,
+
+do not understand screen content.
+
+Example:
+
+A user opens X for news.
+
+An explicit image appears.
+
+The app blocker sees “X.”
+
+Sentinel sees explicit content.
+
+Content filters
+
+Examples:
+
+SafeSearch
+
+DNS filtering
+
+parental controls
+
+Strengths:
+
+useful for children,
+
+useful for browsers.
+
+Weaknesses:
+
+platform limited,
+
+easily bypassed,
+
+ineffective for encrypted apps,
+
+ineffective for local media.
+
+The critical insight
+
+The user does not actually care whether a website is blocked.
+
+The user cares whether they consume content they intended to avoid.
+
+This shifts the product from network control to behavioral control.
+
+The interruption hypothesis
+
+Sentinel is based on a simple hypothesis.
+
+If a compulsive behavior is interrupted early enough,
+
+and the interruption lasts long enough,
+
+the probability of completing the behavior decreases significantly.
+
+This hypothesis is supported by research on:
+
+urge surfing,
+
+implementation intentions,
+
+response inhibition,
+
+environmental friction,
+
+habit interruption.
+
+The role of friction
+
+Friction is one of the most underrated behavioral tools.
+
+Examples:
+
+Deleting a saved password
+
+Adding a confirmation step
+
+Requiring physical movement
+
+Waiting periods
+
+Cooldown timers
+
+Delayed access
+
+Sentinel intentionally increases friction during moments of vulnerability.
+
+The 10-minute principle
+
+Many urges have a sharp decay curve.
+
+The user often believes:
+
+“I need to do this now.”
+
+Ten minutes later,
+
+the urge is substantially weaker.
+
+Sentinel does not attempt to eliminate desire.
+
+It attempts to outlast peak intensity.
+
+The emotional sequence
+
+A typical user journey:
+
+“I’m just checking something.”
+
+↓
+
+Scrolling
+
+↓
+
+Mild arousal
+
+↓
+
+More scrolling
+
+↓
+
+Focused searching
+
+↓
+
+Loss of intentionality
+
+↓
+
+Compulsion
+
+The transition from curiosity to compulsion is often surprisingly fast.
+
+Sentinel is designed to interrupt that transition.
+
+Why shame fails
+
+Many recovery products unintentionally increase shame.
+
+Shame often produces:
+
+secrecy,
+
+avoidance,
+
+self-criticism,
+
+hopelessness,
+
+additional compulsive behavior.
+
+Sentinel should never frame intervention as failure.
+
+The correct framing is:
+
+“You activated a protection rule.”
+
+This preserves agency.
+
+The market gap
+
+There are thousands of productivity apps.
+
+There are hundreds of porn blockers.
+
+There are very few real-time AI intervention systems.
+
+The gap is not filtering.
+
+The gap is intelligent interruption.
+
+The user segments
+
+Primary users
+
+People actively trying to quit pornography.
+
+Secondary users
+
+People with severe social media compulsions.
+
+Tertiary users
+
+Students
+
+Founders
+
+Professionals
+
+Athletes
+
+People with ADHD-related distraction
+
+People practicing digital minimalism
+
+The deeper problem
+
+Pornography is not the final market.
+
+Loss of self-control is.
+
+The same architecture can eventually address:
+
+doomscrolling,
+
+gambling,
+
+shopping,
+
+gaming,
+
+binge watching,
+
+late-night phone use.
+
+The underlying engine is identical.
+
+Detect behavior.
+
+Interrupt behavior.
+
+Create recovery space.
+
+The moat
+
+Sentinel’s moat is not the classifier.
+
+Image classifiers are increasingly commoditized.
+
+The moat is the intervention system.
+
+Specifically:
+
+low-latency detection,
+
+privacy-first architecture,
+
+anti-bypass mechanisms,
+
+behavioral timing,
+
+personalized friction,
+
+trust.
+
+The product thesis
+
+People do not need another blocker.
+
+They need a system that can protect decisions made during moments of clarity from the person they become during moments of weakness.
+
+Sentinel is that system.
+
+The definition of success
+
+A successful intervention is not:
+
+“Content was blocked.”
+
+A successful intervention is:
+
+“The user did not do the thing they had previously decided not to do.”
+
+That is the metric that matters.
+
+Everything else is implementation.
+
+design-system.md
+
+Sentinel design system
+
+Version: 1.0
+
+Status: UI foundation
+
+Design philosophy: Calm authority
+
+Purpose
+
+This document defines the complete visual and interaction language for Sentinel.
+
+The design system exists to ensure that every screen communicates the same emotional message:
+
+You are being protected, not controlled.
+
+Sentinel should feel calm, private, and trustworthy.
+
+Design principles
+
+Calm
+
+The interface should reduce emotional intensity.
+
+Intentional
+
+Every element should have a purpose.
+
+Quiet
+
+Minimal notifications.
+
+Minimal visual noise.
+
+Private
+
+The interface should reinforce confidentiality.
+
+Decisive
+
+Interventions should feel immediate and unambiguous.
+
+Visual identity
+
+Sentinel is a security product for human attention.
+
+The visual language should borrow from:
+
+high-end operating systems,
+
+privacy tools,
+
+banking apps,
+
+and meditation interfaces.
+
+Avoid the aesthetic of:
+
+parental control software,
+
+religious apps,
+
+self-help apps,
+
+or gaming apps.
+
+Color palette
+
+Background
+
+Primary
+
+#050505
+
+Secondary
+
+#111111
+
+Elevated
+
+#1A1A1A
+
+Text
+
+Primary
+
+#FFFFFF
+
+Secondary
+
+#C7C7C7
+
+Muted
+
+#8E8E93
+
+Accent
+
+Primary blue
+
+#4A7DFF
+
+Soft blue
+
+#6B93FF
+
+Success
+
+#32D583
+
+Warning
+
+#F5B942
+
+Error
+
+#FF5A5F
+
+Intervention
+
+Pure black
+
+#000000
+
+Typography
+
+Primary font
+
+Inter
+
+Fallback
+
+System sans-serif
+
+Scale
+
+Display
+
+48
+
+Heading XL
+
+32
+
+Heading L
+
+24
+
+Heading M
+
+20
+
+Body L
+
+18
+
+Body
+
+16
+
+Body S
+
+14
+
+Caption
+
+12
+
+The countdown timer uses Display.
+
+Spacing system
+
+Base unit
+
+8dp
+
+Scale
+
+4
+
+8
+
+12
+
+16
+
+24
+
+32
+
+48
+
+64
+
+96
+
+Never use arbitrary spacing.
+
+Radius system
+
+Small
+
+12dp
+
+Medium
+
+20dp
+
+Large
+
+28dp
+
+Full
+
+999dp
+
+Primary cards use 28dp.
+
+Shadows
+
+Minimal.
+
+Sentinel uses elevation through contrast, not heavy shadows.
+
+Icons
+
+Style
+
+Outline
+
+Stroke width
+
+2px
+
+Corner radius
+
+Rounded
+
+Primary icons
+
+Shield
+
+Lock
+
+Clock
+
+Moon
+
+Target
+
+Activity
+
+Check
+
+Settings
+
+Buttons
+
+Primary button
+
+Height
+
+56dp
+
+Radius
+
+20dp
+
+Background
+
+Blue
+
+Text
+
+White
+
+Secondary button
+
+Height
+
+56dp
+
+Radius
+
+20dp
+
+Background
+
+Dark surface
+
+Border
+
+1dp
+
+Ghost button
+
+Transparent
+
+Used for low-emphasis actions.
+
+Cards
+
+Primary card
+
+Background
+
+#111111
+
+Radius
+
+28dp
+
+Padding
+
+24dp
+
+Border
+
+1dp subtle
+
+Cards should feel like floating surfaces.
+
+Home screen layout
+
+Top padding
+
+32dp
+
+Horizontal padding
+
+24dp
+
+Section spacing
+
+24dp
+
+Card spacing
+
+16dp
+
+Status card
+
+Large hero component.
+
+Contents
+
+Protection status
+
+Lock end time
+
+Primary action
+
+Height
+
+180dp
+
+Stat cards
+
+Grid
+
+2 columns
+
+Metrics
+
+Interventions
+
+Streak
+
+Protection hours
+
+Recovery rate
+
+Height
+
+120dp
+
+Navigation
+
+Bottom navigation
+
+Height
+
+72dp
+
+Tabs
+
+Home
+
+Focus
+
+History
+
+Settings
+
+Labels always visible.
+
+Onboarding
+
+Five screens.
+
+Maximum text
+
+Three short paragraphs.
+
+One primary action per screen.
+
+Illustrations
+
+Abstract.
+
+Never use explicit imagery.
+
+Permission screens
+
+Structure
+
+Icon
+
+Title
+
+One-sentence explanation
+
+Privacy note
+
+Primary button
+
+Example
+
+Screen monitoring
+
+Sentinel analyzes screen content locally on your device.
+
+Nothing is uploaded.
+
+Intervention screen
+
+This is the signature experience.
+
+Background
+
+Black
+
+Content centered
+
+Shield icon
+
+64dp
+
+Title
+
+Take back control
+
+32pt
+
+Body
+
+Explicit content was detected.
+
+You asked Sentinel to protect this commitment.
+
+Countdown
+
+Large display font
+
+Recovery card
+
+Below timer
+
+No navigation
+
+No secondary actions
+
+Countdown
+
+Typography
+
+48pt
+
+Monospaced numbers
+
+Subtle opacity pulse every second.
+
+No circular progress ring.
+
+Recovery task card
+
+Background
+
+Dark surface
+
+Radius
+
+24dp
+
+Padding
+
+24dp
+
+Contents
+
+Task title
+
+Description
+
+Primary button
+
+Breathing interface
+
+Animated circle.
+
+Expand
+
+4 seconds
+
+Hold
+
+2 seconds
+
+Contract
+
+4 seconds
+
+Haptic at transitions.
+
+Walk interface
+
+Large step count.
+
+Circular progress indicator.
+
+GPS not required.
+
+Use phone sensors where possible.
+
+Journal interface
+
+Single prompt.
+
+Large text area.
+
+No analytics.
+
+No AI analysis.
+
+Motion system
+
+Activation
+
+Fade
+
+200 ms
+
+Navigation
+
+Slide
+
+250 ms
+
+Intervention
+
+Fast fade to black
+
+180 ms
+
+Cooldown
+
+Gentle pulse
+
+2 s loop
+
+Completion
+
+Fade and rise
+
+250 ms
+
+Motion should never increase arousal.
+
+Haptics
+
+Intervention
+
+One firm vibration.
+
+Button press
+
+Soft tap.
+
+Cooldown complete
+
+Two gentle pulses.
+
+Protection activated
+
+Single soft pulse.
+
+Accessibility
+
+Minimum touch target
+
+48dp
+
+Contrast ratio
+
+WCAG AA minimum
+
+Dynamic type
+
+Supported
+
+Screen readers
+
+Fully supported
+
+Reduced motion
+
+Supported
+
+Color blindness
+
+Not color dependent
+
+Privacy indicators
+
+Throughout the app, display
+
+On-device AI
+
+No uploads
+
+No screenshot storage
+
+Local processing
+
+These should appear as small trust indicators.
+
+Component inventory
+
+Buttons
+
+Cards
+
+Stat cards
+
+Status pill
+
+Countdown
+
+Recovery card
+
+Settings row
+
+Permission row
+
+Navigation item
+
+Progress indicator
+
+Modal sheet
+
+Confirmation dialog
+
+Confirmation dialogs
+
+Used for
+
+Starting a lock
+
+Disabling protection
+
+Emergency override
+
+Resetting data
+
+Tone
+
+Calm
+
+Clear
+
+Irreversible actions explicitly labeled.
+
+Empty states
+
+History
+
+No interventions yet.
+
+Your protection history will appear here.
+
+Focus
+
+No active lock.
+
+Start a protection period to strengthen your commitment.
+
+Notification style
+
+Minimal.
+
+Examples
+
+Protection active
+
+Cooldown complete
+
+Permission required
+
+Avoid urgency language.
+
+Branding
+
+Logo
+
+Shield with subtle internal gap.
+
+Wordmark
+
+Sentinel
+
+Spacing
+
+Generous
+
+Brand should feel premium and understated.
+
+Design quality standard
+
+Every screen should pass the five-second test.
+
+A user should understand
+
+What state they are in.
+
+What Sentinel is doing.
+
+What action is available.
+
+Why the action exists.
+
+Whether their privacy is protected.
+
+The visual north star
+
+Imagine the interface at 1:30 AM during an intervention.
+
+The screen should lower emotional intensity,
+
+restore a sense of control,
+
+and remind the user that they made this decision in a moment of clarity.
+
+The interface is not merely presenting information.
+
+It is participating in behavior change.
+
+That responsibility should be visible in every pixel.
+
+vision.md
+
+Sentinel Vision
+
+Version: 0.1
+
+Status: Founding Vision Document
+
+The Idea
+
+Sentinel exists because human beings are often forced to rely on willpower in environments specifically designed to defeat willpower.
+
+Modern smartphones are extraordinary machines for capturing attention. Infinite feeds, algorithmic recommendations, autoplay, notifications, and instant access create a system where the easiest action is rarely the most important one.
+
+Most productivity tools assume that people fail because they lack discipline.
+
+We believe people often fail because they lack friction.
+
+Sentinel is a friction engine.
+
+The Fundamental Insight
+
+There are two versions of every user.
+
+The Rational Self
+
+The person who:
+
+wants to study,
+
+wants to exercise,
+
+wants to sleep,
+
+wants to avoid pornography,
+
+wants to build a meaningful life,
+
+installs blockers,
+
+creates goals,
+
+makes commitments.
+
+The Impulsive Self
+
+The person who appears during:
+
+loneliness,
+
+boredom,
+
+stress,
+
+fatigue,
+
+anxiety,
+
+late-night scrolling,
+
+emotional discomfort.
+
+These two selves make different decisions.
+
+The tragedy is that the impulsive self often has full administrative control over the device.
+
+Sentinel changes that.
+
+The Commitment Device
+
+Economists and behavioral scientists have long studied commitment devices.
+
+A commitment device is a mechanism that restricts future behavior in order to protect long-term goals.
+
+Examples:
+
+locking money away,
+
+deleting social media,
+
+giving someone else the password,
+
+setting irreversible deadlines.
+
+Sentinel is a digital commitment device.
+
+The user voluntarily gives Sentinel permission to protect decisions made during moments of clarity.
+
+The Critical Window
+
+Most compulsive behaviors contain a narrow window during which intervention is highly effective.
+
+The sequence often looks like:
+
+Trigger
+
+↓
+
+Attention
+
+↓
+
+Exploration
+
+↓
+
+Escalation
+
+↓
+
+Compulsion
+
+↓
+
+Regret
+
+Traditional blockers intervene at the beginning.
+
+Sentinel intervenes during exploration and escalation, when the behavior is becoming self-reinforcing.
+
+This is the window where a 30-second interruption can change the outcome.
+
+Why Pornography First
+
+Pornography is the initial use case for three reasons.
+
+High Frequency
+
+Many users encounter triggering content daily.
+
+Cross-Platform
+
+Explicit content appears in browsers, social media, messaging apps, image galleries, and embedded media.
+
+Strong Impulse Dynamics
+
+Pornography consumption often involves rapid transitions from intention to behavior.
+
+This makes it an ideal environment for testing real-time intervention.
+
+The Product Is Not Moral
+
+Sentinel is not a moral authority.
+
+Sentinel does not decide what users should avoid.
+
+The user decides.
+
+Sentinel enforces the user’s own commitments.
+
+This distinction is critical.
+
+The product should never shame the user.
+
+It should assist the user.
+
+The Psychological Model
+
+Sentinel is built on five assumptions.
+
+1. Impulses Are Temporary
+
+The intensity of an urge usually decreases with time.
+
+2. Friction Changes Behavior
+
+Even small delays can significantly reduce impulsive actions.
+
+3. State Matters More Than Character
+
+People make different decisions when tired, stressed, or emotionally activated.
+
+4. Recovery Is Better Than Punishment
+
+Interruptions should help users regain control, not induce guilt.
+
+5. Trust Is Essential
+
+Users will only grant deep device permissions if Sentinel earns extraordinary trust.
+
+The Trust Equation
+
+Trust is more important than AI accuracy.
+
+A 99% accurate model that feels invasive will fail.
+
+An 85% accurate model that feels private and respectful can succeed.
+
+Trust is created through:
+
+transparency,
+
+local processing,
+
+user control,
+
+predictable behavior,
+
+explainable interventions,
+
+minimal data collection.
+
+Eyes Without Memory
+
+The defining privacy principle is:
+
+Sentinel has eyes but no memory.
+
+This means:
+
+screen frames are analyzed locally,
+
+frames are immediately discarded,
+
+no screenshots are stored,
+
+no screenshots are uploaded,
+
+no cloud analysis,
+
+no remote model inference,
+
+no behavioral surveillance.
+
+The AI observes the present moment only.
+
+The Emotional Experience
+
+Sentinel should not feel like parental control software.
+
+It should feel like a calm, competent guardian.
+
+When an intervention occurs, the emotional tone should be:
+
+calm,
+
+respectful,
+
+confident,
+
+nonjudgmental.
+
+Never:
+
+angry,
+
+disappointed,
+
+manipulative,
+
+guilt-inducing.
+
+The interface should communicate:
+
+“You asked me to protect this commitment.”
+
+From Blocker to Guardian
+
+A blocker says:
+
+“You cannot access this.”
+
+A guardian says:
+
+“I know what you’re trying to protect.”
+
+That difference changes the entire product.
+
+The Long-Term Vision
+
+Sentinel eventually becomes an operating layer above the operating system.
+
+It understands goals, commitments, and vulnerabilities.
+
+Examples:
+
+protect sleep,
+
+protect deep work,
+
+protect relationships,
+
+protect sobriety,
+
+protect financial discipline,
+
+protect physical health.
+
+The AI becomes increasingly personalized.
+
+Not through surveillance.
+
+Through consent-based behavioral understanding.
+
+Predictive Protection
+
+The final evolution is not reactive blocking.
+
+It is predictive protection.
+
+Sentinel recognizes patterns such as:
+
+time of day,
+
+app sequences,
+
+scrolling duration,
+
+emotional indicators,
+
+previous intervention history.
+
+It intervenes before the impulse reaches peak intensity.
+
+Example:
+
+“You’ve been scrolling for 27 minutes. This pattern has led to a relapse 8 times in the past month. Activate Focus Mode?”
+
+This is fundamentally different from a website blocker.
+
+The Final Form
+
+The final version of Sentinel is a behavioral firewall.
+
+Just as antivirus software protects devices from malicious software,
+
+Sentinel protects human attention from destructive behavioral loops.
+
+The operating system protects the phone.
+
+Sentinel protects the person using the phone.
+
+The Standard
+
+Every feature must pass this test:
+
+Does this help the user become more aligned with the life they consciously want to live?
+
+If the answer is no,
+
+we do not build it.
+
+model-evaluation.md
+
+Sentinel model evaluation framework
+
+Version: 1.0
+
+Status: AI validation specification
+
+Priority: Critical
+
+Executive summary
+
+The purpose of this document is to define how Sentinel’s explicit-content detection model is evaluated, improved, and validated over time.
+
+The goal is not to maximize benchmark accuracy.
+
+The goal is to maximize user trust.
+
+A model that occasionally misses explicit content is frustrating.
+
+A model that incorrectly blocks personal photos, medical content, or normal social media destroys confidence.
+
+Therefore Sentinel is optimized for precision-first protection.
+
+The evaluation philosophy
+
+The model must answer one question reliably:
+
+Is explicit sexual content currently visible on the screen?
+
+Evaluation is based on real-world screen content, not generic internet images.
+
+Primary objective
+
+Minimize false positives while maintaining high recall on explicit content.
+
+Success criteria
+
+Precision: greater than 98%
+
+Recall: greater than 90%
+
+False positive rate: less than 1%
+
+Intervention latency: less than 800 ms
+
+Dataset strategy
+
+The dataset must represent what users actually see on their phones.
+
+Category A
+
+Explicit pornography
+
+Photographic
+
+Professional
+
+Amateur
+
+Close-up
+
+Full-body
+
+Different lighting conditions
+
+Category B
+
+Explicit video frames
+
+Streaming
+
+Downloaded
+
+Embedded
+
+Short-form video
+
+Category C
+
+Social media explicit content
+
+X
+
+Reddit
+
+Telegram
+
+Instagram
+
+TikTok
+
+Blurred previews
+
+Compressed images
+
+Thumbnails
+
+Category D
+
+Animated explicit content
+
+Anime
+
+Hentai
+
+Manga panels
+
+Stylized art
+
+This is a dedicated evaluation category.
+
+Category E
+
+Suggestive content
+
+Lingerie
+
+Swimwear
+
+Fitness
+
+Dancing
+
+Fashion
+
+Partial nudity
+
+These should generally not trigger intervention in V1.
+
+Category F
+
+Medical content
+
+Anatomy diagrams
+
+Medical textbooks
+
+Educational videos
+
+Clinical photography
+
+Surgery
+
+Breastfeeding
+
+These must never trigger intervention.
+
+Category G
+
+Personal content
+
+Family photos
+
+Children
+
+Beach vacations
+
+Sports
+
+Gym selfies
+
+Social events
+
+This category is extremely important.
+
+Category H
+
+Art
+
+Classical paintings
+
+Sculpture
+
+Museum photography
+
+Figure drawing
+
+Historical works
+
+Dataset composition
+
+Recommended initial evaluation set
+
+Explicit: 10,000
+
+Suggestive: 5,000
+
+Medical: 3,000
+
+Personal: 5,000
+
+Art: 2,000
+
+Anime: 5,000
+
+Social media: 10,000
+
+Total: 40,000 images
+
+The dataset should be balanced toward high-risk false positives.
+
+Evaluation protocol
+
+Every model release is evaluated on the same benchmark.
+
+Stage 1
+
+Inference
+
+Stage 2
+
+Confidence calibration
+
+Stage 3
+
+Threshold analysis
+
+Stage 4
+
+Error analysis
+
+Stage 5
+
+Behavioral simulation
+
+Confusion matrix
+
+Positive = explicit
+
+Negative = non-explicit
+
+Metrics
+
+True positives
+
+False positives
+
+True negatives
+
+False negatives
+
+False positives receive the highest weighting.
+
+Threshold evaluation
+
+Test thresholds
+
+0.70
+
+0.75
+
+0.80
+
+0.85
+
+0.90
+
+0.95
+
+For each threshold measure
+
+Precision
+
+Recall
+
+Intervention frequency
+
+False positives
+
+The threshold is selected based on behavioral impact, not raw accuracy.
+
+Real-world benchmark
+
+A dedicated benchmark called SentinelScreen.
+
+Test using actual Android screenshots.
+
+Examples
+
+X feed
+
+Telegram chat
+
+Instagram explore
+
+Reddit app
+
+Chrome browser
+
+Google Images
+
+Video playback
+
+Image gallery
+
+Split screen
+
+Dark mode
+
+Light mode
+
+Different resolutions
+
+This becomes the canonical benchmark.
+
+Latency benchmark
+
+Measure
+
+Frame capture
+
+Resize
+
+Preprocessing
+
+Inference
+
+Decision
+
+Overlay trigger
+
+Target
+
+Total less than 800 ms.
+
+Device benchmark
+
+Test on
+
+Budget Android
+
+Mid-range Android
+
+Flagship Android
+
+Different chipsets
+
+Snapdragon
+
+MediaTek
+
+Tensor
+
+Exynos
+
+Performance must remain acceptable across all tiers.
+
+Battery benchmark
+
+Measure
+
+Idle
+
+Scrolling
+
+Video
+
+Gaming
+
+Charging
+
+Low battery
+
+Target
+
+Less than 5% daily impact.
+
+False positive taxonomy
+
+FP-1
+
+Medical
+
+Severity: Critical
+
+FP-2
+
+Personal family photos
+
+Severity: Critical
+
+FP-3
+
+Children
+
+Severity: Critical
+
+FP-4
+
+Educational content
+
+Severity: High
+
+FP-5
+
+Fitness
+
+Severity: Medium
+
+FP-6
+
+Swimwear
+
+Severity: Medium
+
+FP-7
+
+Art
+
+Severity: Low
+
+Critical false positives block release.
+
+False negative taxonomy
+
+FN-1
+
+Explicit image
+
+FN-2
+
+Explicit video
+
+FN-3
+
+Anime explicit
+
+FN-4
+
+Cropped explicit
+
+FN-5
+
+Thumbnail explicit
+
+Anime false negatives receive special attention.
+
+Human review process
+
+Every false positive is reviewed manually.
+
+Reviewers classify
+
+Category
+
+Severity
+
+Confidence
+
+Model explanation
+
+Root cause
+
+Root causes
+
+Lighting
+
+Cropping
+
+Skin exposure
+
+Art style
+
+Compression
+
+Small explicit region
+
+Continuous improvement loop
+
+User report
+
+↓
+
+Local classification
+
+↓
+
+Optional anonymized metadata
+
+↓
+
+Human review
+
+↓
+
+Dataset expansion
+
+↓
+
+Model retraining
+
+↓
+
+Benchmark evaluation
+
+↓
+
+Release
+
+No screenshots are uploaded by default.
+
+Model versioning
+
+Every model release records
+
+Version
+
+Training dataset
+
+Evaluation dataset
+
+Precision
+
+Recall
+
+False positive rate
+
+Latency
+
+Battery impact
+
+Known weaknesses
+
+Release gates
+
+A model may ship only if
+
+Precision improves or remains stable.
+
+False positives do not increase.
+
+Medical benchmark passes.
+
+Personal-content benchmark passes.
+
+Latency remains acceptable.
+
+Battery impact remains acceptable.
+
+Behavioral benchmark
+
+This is unique to Sentinel.
+
+Measure
+
+Detection
+
+↓
+
+Intervention
+
+↓
+
+Return within 10 minutes
+
+A model that increases successful interruptions is superior even if benchmark accuracy is similar.
+
+A/B testing
+
+Test
+
+Thresholds
+
+Cooldown timing
+
+Intervention timing
+
+Recovery tasks
+
+Detection confirmation windows
+
+Primary outcome
+
+Successful interruption rate.
+
+Adversarial benchmark
+
+Test against
+
+Blur
+
+Brightness
+
+Contrast
+
+Cropping
+
+Rotation
+
+Compression
+
+Memes
+
+Overlays
+
+Picture-in-picture
+
+Split screen
+
+Low resolution
+
+The model must be resilient to common bypass attempts.
+
+Explainability
+
+The model should eventually provide coarse explanations.
+
+Examples
+
+High explicit confidence
+
+Visible explicit nudity
+
+Repeated explicit frames
+
+These explanations remain local.
+
+Privacy validation
+
+Verify
+
+No frame persistence
+
+No frame upload
+
+No inference logging
+
+No image caching
+
+Privacy tests run with every release.
+
+The most important metric
+
+The single most important metric is trust-adjusted intervention quality.
+
+A useful approximation
+
+(TP × successful interruptions)
+
+minus
+
+(FP × trust damage)
+
+The model should optimize the number of times users are grateful that Sentinel intervened.
+
+Definition of model success
+
+The model is successful when users stop thinking about whether it is watching them and start thinking of it as protecting them.
+
+That requires not only intelligence,
+
+but restraint.
+
+The best Sentinel model is the one that intervenes at the right moments,
+
+stays silent at the wrong moments,
+
+and earns trust through accuracy, privacy, and predictability.
+
+Sentinel
+
+The self-control operating system
+
+Version: 0.1 (Founding Document)
+
+Vision
+
+Sentinel is an AI-powered commitment device that helps people keep promises they make to themselves.
+
+Most digital wellbeing tools fail because they rely on willpower during moments when willpower is weakest. Website blockers can be disabled. App limits can be ignored. Content filters only work in browsers. The phone remains optimized for impulse.
+
+Sentinel changes the model.
+
+Instead of blocking websites, Sentinel responds to what is actually happening on the screen. It detects explicit sexual content, compulsive scrolling, and other predefined triggers in real time and intervenes immediately with a structured interruption designed to break the impulse cycle.
+
+The goal is not punishment.
+
+The goal is to create enough friction between urge and action that the rational version of the user regains control.
+
+Mission
+
+Build the world’s most trusted AI guardian for digital self-control.
+
+Sentinel should eventually become a behavioral firewall for smartphones, computers, and wearable devices, protecting users from behaviors they have consciously chosen to avoid.
+
+Core Principle
+
+Increase friction during impulses and reduce friction during goals.
+
+Every feature must satisfy this principle.
+
+The Problem
+
+Current blockers fail for four reasons:
+
+They block websites, not screen content.
+
+They are easy to disable.
+
+They react too late.
+
+They do not interrupt the psychological momentum of an impulse.
+
+Sentinel focuses on the critical 2 to 10 minute window during which many compulsive behaviors occur.
+
+The First Use Case
+
+The initial product focuses on pornography interruption.
+
+When explicit content appears on the screen, Sentinel immediately:
+
+obscures the content,
+
+interrupts the session,
+
+starts a mandatory cooldown timer,
+
+guides the user through a predefined recovery action.
+
+This creates a buffer between temptation and behavior.
+
+Product Philosophy
+
+Sentinel is not a surveillance app.
+
+Sentinel is a private on-device guardian.
+
+The AI has eyes but no memory.
+
+Screen analysis happens locally on the device.
+
+No screenshots are uploaded.
+
+No screenshots are stored.
+
+No browsing history is transmitted.
+
+No personal content is used to train remote models.
+
+Privacy is not a feature.
+
+Privacy is the foundation of the product.
+
+Why This Matters
+
+People frequently install blockers during moments of clarity and uninstall them during moments of weakness.
+
+Sentinel exists to preserve the decisions made by the user’s rational self.
+
+The product should feel like a trusted guardian standing between the user and a destructive impulse.
+
+The Long-Term Vision
+
+Today:
+
+pornography interruption,
+
+app locking,
+
+cooldowns.
+
+Tomorrow:
+
+doomscrolling prevention,
+
+gambling interruption,
+
+shopping impulse control,
+
+sleep protection,
+
+study enforcement,
+
+exercise accountability,
+
+personalized behavioral intervention,
+
+cross-device commitment contracts.
+
+The final vision is a self-control operating system that helps users align their daily actions with their long-term goals.
+
+MVP
+
+The first version will be Android-only and include:
+
+real-time screen monitoring,
+
+on-device NSFW detection,
+
+black-screen intervention,
+
+configurable cooldown timer,
+
+mandatory recovery task,
+
+lock periods,
+
+local-only processing,
+
+basic analytics.
+
+Success Metric
+
+The primary metric is interrupted relapse events.
+
+Sentinel succeeds when a user reaches for a behavior they intended to avoid and the product creates enough friction that the behavior does not occur.
+
+Guiding Constraint
+
+Every design decision should answer one question:
+
+Does this increase the probability that the user keeps a promise they made to themselves?
+
+If the answer is no, the feature does not belong in Sentinel.

@@ -1,0 +1,24 @@
+# Android / Gradle
+.gradle/
+/build/
+*/build/
+local.properties
+*.iml
+.idea/
+
+# Signing and local secrets
+*.jks
+*.keystore
+.env
+.env.*
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Generated test and model artifacts
+coverage/
+reports/
+artifacts/
+*.tflite.tmp
