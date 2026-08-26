@@ -19,7 +19,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): VeilDatabase =
-        Room.databaseBuilder(context, VeilDatabase::class.java, "veil.db").build()
+        Room.databaseBuilder(context, VeilDatabase::class.java, "veil.db")
+            .addMigrations(VeilDatabase.MIGRATION_1_2)
+            .build()
 
     @Provides
     fun provideSettingsDao(database: VeilDatabase): VeilSettingsDao = database.settingsDao()

@@ -56,6 +56,7 @@ data class ProtectionSettings(
     val cooldown: CooldownDuration = CooldownDuration.TEN,
     val recoveryTask: RecoveryTask = RecoveryTask.BREATHING,
     val lockPeriod: LockPeriod = LockPeriod.TWO_HOURS,
+    val recoveryNote: String = "",
 ) {
     companion object {
         const val INITIAL_THRESHOLD = 0.90f

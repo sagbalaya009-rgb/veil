@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -77,6 +78,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
         } else if (viewModel.state is ProtectionState.Cooldown) {
             InterventionScreen(
                 state = viewModel.state as ProtectionState.Cooldown,
+                recoveryNote = viewModel.recoveryNote,
                 onRecoveryComplete = viewModel::completeRecovery,
                 onEmergencyOverride = viewModel::useEmergencyOverride,
             )
@@ -97,6 +99,7 @@ private fun OnboardingScreen(onComplete: (ProtectionSettings) -> Unit) {
     var cooldown by remember { mutableStateOf(CooldownDuration.TEN) }
     var recoveryTask by remember { mutableStateOf(RecoveryTask.BREATHING) }
     var lockPeriod by remember { mutableStateOf(LockPeriod.TWO_HOURS) }
+    var recoveryNote by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -161,6 +164,16 @@ private fun OnboardingScreen(onComplete: (ProtectionSettings) -> Unit) {
                     SelectionRow("10 min cooldown", cooldown == CooldownDuration.TEN) { cooldown = CooldownDuration.TEN }
                     SelectionRow("Breathing recovery", recoveryTask == RecoveryTask.BREATHING) { recoveryTask = RecoveryTask.BREATHING }
                     SelectionRow("2 hour lock", lockPeriod == LockPeriod.TWO_HOURS) { lockPeriod = LockPeriod.TWO_HOURS }
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = recoveryNote,
+                        onValueChange = { recoveryNote = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("A note for your cooldown") },
+                        placeholder = { Text("One line is enough.") },
+                        supportingText = { Text("Stored locally on this device.") },
+                        maxLines = 3,
+                    )
                 }
             }
         }
@@ -175,6 +188,7 @@ private fun OnboardingScreen(onComplete: (ProtectionSettings) -> Unit) {
                                 cooldown = cooldown,
                                 recoveryTask = recoveryTask,
                                 lockPeriod = lockPeriod,
+                                recoveryNote = recoveryNote.trim(),
                             ),
                         )
                     } else {
@@ -326,12 +340,15 @@ class VeilViewModel @Inject constructor(
         private set
     var interventionCount by mutableStateOf(0)
         private set
+    var recoveryNote by mutableStateOf("")
+        private set
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val saved = repository.loadSettings()
             settings = repository.settingsFrom(saved)
             engine = ProtectionEngine(settings = settings)
+            recoveryNote = settings.recoveryNote
             onboardingComplete = saved.onboardingComplete
             interventionCount = repository.observeEventCountSnapshot()
         }
@@ -340,6 +357,7 @@ class VeilViewModel @Inject constructor(
     fun completeOnboarding(selectedSettings: ProtectionSettings) {
         settings = selectedSettings
         engine = ProtectionEngine(settings = settings)
+        recoveryNote = settings.recoveryNote
         onboardingComplete = true
         viewModelScope.launch(Dispatchers.IO) {
             repository.saveSettings(settings, onboardingComplete = true)

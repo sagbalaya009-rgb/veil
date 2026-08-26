@@ -24,6 +24,7 @@ class VeilRepository(
                 cooldownMinutes = settings.cooldown.minutes,
                 recoveryTask = settings.recoveryTask.name,
                 lockPeriod = settings.lockPeriod.name,
+                recoveryNote = settings.recoveryNote,
             ),
         )
     }
@@ -51,5 +52,6 @@ class VeilRepository(
             .getOrDefault(RecoveryTask.BREATHING),
         lockPeriod = runCatching { LockPeriod.valueOf(entity.lockPeriod) }
             .getOrDefault(LockPeriod.TWO_HOURS),
+        recoveryNote = entity.recoveryNote,
     )
 }

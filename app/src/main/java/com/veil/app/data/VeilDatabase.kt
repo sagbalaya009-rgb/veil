@@ -7,6 +7,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 @Entity(tableName = "veil_settings")
@@ -17,6 +19,7 @@ data class VeilSettingsEntity(
     val cooldownMinutes: Long = 10,
     val recoveryTask: String = "BREATHING",
     val lockPeriod: String = "TWO_HOURS",
+    val recoveryNote: String = "",
 )
 
 @Entity(tableName = "protection_events")
@@ -50,10 +53,20 @@ interface ProtectionEventDao {
 
 @Database(
     entities = [VeilSettingsEntity::class, ProtectionEventEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class VeilDatabase : RoomDatabase() {
     abstract fun settingsDao(): VeilSettingsDao
     abstract fun eventDao(): ProtectionEventDao
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE veil_settings ADD COLUMN recoveryNote TEXT NOT NULL DEFAULT ''",
+                )
+            }
+        }
+    }
 }
