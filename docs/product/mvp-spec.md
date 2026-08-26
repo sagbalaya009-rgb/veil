@@ -11,8 +11,8 @@ Prove that a user-controlled, local-only intervention can interrupt exposure to 
 | FR-1 | Protection levels | The user can select Balanced, Strict, or Nuclear, with documented thresholds and behavior. |
 | FR-2 | Screen analysis | Veil captures frames only after explicit MediaProjection consent and analyzes them on-device. |
 | FR-3 | Explicit-content detection | A classifier produces a confidence score; the initial intervention threshold is 0.90. |
-| FR-4 | App-specific cooldown | After confirmed detection, Veil protects only the triggering foreground application with an input-capturing overlay. Other apps remain usable. The user selects 5, 10, 15, 20, 30, 45, or 60 minutes; the timer cannot be casually skipped. |
-| FR-5 | Recovery task | The user completes one configured task: push-ups, breathing, walking, or journaling. |
+| FR-4 | App-specific cooldown | After confirmed detection, Veil protects only the triggering foreground application with an input-capturing overlay. Other apps remain usable. The user selects 10, 15, 30, 45, or 60 minutes; 10 minutes is the minimum, and the timer cannot be casually skipped. |
+| FR-5 | Recovery task | The user completes one configured task: push-ups, breathing, walking, journaling, water, stretching, or an offline pause. |
 | FR-6 | Lock periods | The user can choose 2 hours, 8 hours, 24 hours, 3 days, or 7 days. |
 | FR-7 | Emergency override | One override is available with a 60-second countdown and a recorded local history event. |
 | FR-8 | Status | The home screen shows protection state, lock end time, today's interventions, streak, and settings. |

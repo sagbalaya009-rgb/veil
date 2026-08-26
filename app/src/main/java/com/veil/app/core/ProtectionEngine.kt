@@ -12,7 +12,6 @@ import java.time.Instant
 enum class ProtectionLevel { BALANCED, STRICT, NUCLEAR }
 
 enum class CooldownDuration(val minutes: Long) {
-    FIVE(5),
     TEN(10),
     FIFTEEN(15),
     TWENTY(20),
@@ -21,7 +20,15 @@ enum class CooldownDuration(val minutes: Long) {
     SIXTY(60),
 }
 
-enum class RecoveryTask { PUSH_UPS, BREATHING, WALK, JOURNAL }
+enum class RecoveryTask {
+    PUSH_UPS,
+    BREATHING,
+    WALK,
+    JOURNAL,
+    WATER,
+    STRETCH,
+    OFFLINE_PAUSE,
+}
 
 enum class LockPeriod(val duration: Duration) {
     TWO_HOURS(Duration.ofHours(2)),

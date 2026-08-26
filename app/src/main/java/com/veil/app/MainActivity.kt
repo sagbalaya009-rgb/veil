@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -149,22 +150,22 @@ private fun OnboardingScreen(onComplete: (ProtectionSettings) -> Unit) {
                     )
                 }
                 else -> {
-                    Text("Protection setup.", color = VeilText, style = MaterialTheme.typography.headlineMedium)
-                    Spacer(Modifier.height(16.dp))
+                    Text("Your cooldown plan.", color = VeilText, style = MaterialTheme.typography.headlineMedium)
+                    Spacer(Modifier.height(10.dp))
                     Text(
-                        text = "Choose the defaults Veil will use for your protection commitment.",
+                        text = "Choose a small reset for when Veil later confirms content that crosses your boundary.",
                         color = VeilMuted,
                         style = MaterialTheme.typography.bodyLarge,
                     )
-                    Spacer(Modifier.height(18.dp))
-                    SelectionRow("Balanced", level == ProtectionLevel.BALANCED) { level = ProtectionLevel.BALANCED }
-                    SelectionRow("Strict", level == ProtectionLevel.STRICT) { level = ProtectionLevel.STRICT }
-                    SelectionRow("Nuclear", level == ProtectionLevel.NUCLEAR) { level = ProtectionLevel.NUCLEAR }
-                    SelectionRow("5 min cooldown", cooldown == CooldownDuration.FIVE) { cooldown = CooldownDuration.FIVE }
-                    SelectionRow("10 min cooldown", cooldown == CooldownDuration.TEN) { cooldown = CooldownDuration.TEN }
-                    SelectionRow("Breathing recovery", recoveryTask == RecoveryTask.BREATHING) { recoveryTask = RecoveryTask.BREATHING }
-                    SelectionRow("2 hour lock", lockPeriod == LockPeriod.TWO_HOURS) { lockPeriod = LockPeriod.TWO_HOURS }
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(28.dp))
+                    Text("How long should the cooldown last?", color = VeilText, style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(10.dp))
+                    CooldownGrid(selected = cooldown, onSelected = { cooldown = it })
+                    Spacer(Modifier.height(28.dp))
+                    Text("Choose one reset.", color = VeilText, style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(10.dp))
+                    RecoveryGrid(selected = recoveryTask, onSelected = { recoveryTask = it })
+                    Spacer(Modifier.height(24.dp))
                     OutlinedTextField(
                         value = recoveryNote,
                         onValueChange = { recoveryNote = it },
@@ -223,16 +224,78 @@ private fun OnboardingScreen(onComplete: (ProtectionSettings) -> Unit) {
 }
 
 @androidx.compose.runtime.Composable
-private fun SelectionRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+private fun SetupChoice(label: String, selected: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (selected) VeilBlue else VeilSurface,
+            contentColor = VeilText,
+        ),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 9.dp),
+    ) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun CooldownGrid(selected: CooldownDuration, onSelected: (CooldownDuration) -> Unit) {
+    CooldownDuration.entries.toList().chunked(3).forEach { row ->
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            row.forEach { option ->
+                SetupChoice(
+                    label = cooldownLabel(option),
+                    selected = selected == option,
+                    onClick = { onSelected(option) },
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun RecoveryGrid(selected: RecoveryTask, onSelected: (RecoveryTask) -> Unit) {
+    val tasks = listOf(
+        RecoveryTask.PUSH_UPS to ("Push-ups" to "10 gentle reps"),
+        RecoveryTask.BREATHING to ("Breathing" to "2 minutes"),
+        RecoveryTask.WALK to ("Walk" to "5 minutes"),
+        RecoveryTask.JOURNAL to ("Journal" to "One honest line"),
+        RecoveryTask.WATER to ("Water" to "Fill a glass"),
+        RecoveryTask.STRETCH to ("Stretch" to "3 slow minutes"),
+        RecoveryTask.OFFLINE_PAUSE to ("Offline pause" to "Put the phone down"),
+    )
+    tasks.chunked(2).forEach { row ->
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            Text(label, color = if (selected) VeilText else VeilMuted)
-            Text(if (selected) "Selected" else "Choose", color = if (selected) VeilBlue else VeilMuted)
+            row.forEach { (task, copy) ->
+                Button(
+                    onClick = { onSelected(task) },
+                    modifier = Modifier.width(136.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selected == task) VeilBlue else VeilSurface,
+                        contentColor = VeilText,
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(14.dp),
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(copy.first, style = MaterialTheme.typography.labelLarge)
+                        Spacer(Modifier.height(3.dp))
+                        Text(copy.second, color = if (selected == task) VeilText else VeilMuted, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
         }
+        Spacer(Modifier.height(10.dp))
     }
+}
+
+private fun cooldownLabel(duration: CooldownDuration): String = when (duration) {
+    CooldownDuration.SIXTY -> "1 hour"
+    else -> "${duration.minutes} min"
 }
 
 @androidx.compose.runtime.Composable

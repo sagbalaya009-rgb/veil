@@ -45,6 +45,9 @@ fun InterventionScreen(
         RecoveryTask.BREATHING -> "Take two minutes to breathe."
         RecoveryTask.WALK -> "Take a short walk."
         RecoveryTask.JOURNAL -> "Write one honest sentence."
+        RecoveryTask.WATER -> "Fill a glass of water."
+        RecoveryTask.STRETCH -> "Take three slow minutes to stretch."
+        RecoveryTask.OFFLINE_PAUSE -> "Put the phone down for a moment."
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = InterventionBlack) {

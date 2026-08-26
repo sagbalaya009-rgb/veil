@@ -4,7 +4,7 @@ import { Bell, Check, ChevronLeft, CirclePause, Coffee, Dumbbell, Footprints, Mo
 
 type View = "home" | "reset" | "active" | "note";
 
-const durations = ["2 min", "5 min", "10 min", "15 min", "30 min", "45 min", "1 hour"];
+const durations = ["10 min", "15 min", "30 min", "45 min", "1 hour"];
 const resetOptions = [
   { name: "Push-ups", detail: "10 gentle reps", icon: Dumbbell },
   { name: "Breathing", detail: "2 minutes", icon: Waves },
@@ -16,7 +16,7 @@ const resetOptions = [
 ];
 
 const durationToSeconds: Record<string, number> = {
-  "2 min": 120, "5 min": 300, "10 min": 600, "15 min": 900,
+  "10 min": 600, "15 min": 900,
   "30 min": 1800, "45 min": 2700, "1 hour": 3600,
 };
 
@@ -28,7 +28,7 @@ const formatRemaining = (seconds: number) => {
 
 export default function Home() {
   const [view, setView] = useState<View>("home");
-  const [duration, setDuration] = useState(durations[1]);
+  const [duration, setDuration] = useState(durations[0]);
   const [reset, setReset] = useState(resetOptions[0]);
   const [note, setNote] = useState("");
   const [savedNote, setSavedNote] = useState("");
@@ -133,6 +133,7 @@ export default function Home() {
     setEndsAt(null);
     setRemainingSeconds(0);
     setCompleted(false);
+    if (!(duration in durationToSeconds)) setDuration(durations[0]);
     setView("reset");
   };
 

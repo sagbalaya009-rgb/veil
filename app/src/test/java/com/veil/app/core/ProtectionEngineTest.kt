@@ -13,7 +13,7 @@ import org.junit.Test
 class ProtectionEngineTest {
     private val clock = MutableTestClock(Instant.parse("2026-01-01T00:00:00Z"))
     private val settings = ProtectionSettings(
-        cooldown = CooldownDuration.FIVE,
+        cooldown = CooldownDuration.TEN,
         recoveryTask = RecoveryTask.BREATHING,
         lockPeriod = LockPeriod.TWO_HOURS,
     )
@@ -49,7 +49,7 @@ class ProtectionEngineTest {
 
         assertEquals(
             ProtectionState.Cooldown(
-                cooldownEndsAt = Instant.parse("2026-01-01T00:05:00Z"),
+                cooldownEndsAt = Instant.parse("2026-01-01T00:10:00Z"),
                 recoveryTask = RecoveryTask.BREATHING,
                 lockEndsAt = Instant.parse("2026-01-01T02:00:00Z"),
                 protectedApplication = xApplication,
@@ -67,7 +67,7 @@ class ProtectionEngineTest {
 
         assertTrue(engine.completeRecovery() is ProtectionState.Cooldown)
 
-        clock.advance(Duration.ofMinutes(5))
+        clock.advance(Duration.ofMinutes(10))
         assertTrue(engine.completeRecovery() is ProtectionState.Active)
     }
 
@@ -91,8 +91,13 @@ class ProtectionEngineTest {
         assertTrue(engine.shouldBlockForegroundApp("com.twitter.android"))
         assertFalse(engine.shouldBlockForegroundApp("com.android.chrome"))
 
-        clock.advance(Duration.ofMinutes(5))
+        clock.advance(Duration.ofMinutes(10))
         assertFalse(engine.shouldBlockForegroundApp("com.twitter.android"))
+    }
+
+    @Test
+    fun cooldownChoicesStartAtTenMinutes() {
+        assertEquals(10L, CooldownDuration.entries.minOf { it.minutes })
     }
 
     @Test
