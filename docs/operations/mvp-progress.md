@@ -27,3 +27,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 Device validation must then cover onboarding, Android permission flows, service behavior, intervention rendering, reboot recovery, battery use, and OEM-specific behavior as defined in the MVP documentation.
+
+## Launch-crash fix
+
+The first runtime launch failure was traced to the Compose entry point using `hiltViewModel()` while `MainActivity` was not registered as a Hilt entry point. The activity is now annotated with `@AndroidEntryPoint`. The corrected APK builds successfully and all current unit tests pass. A connected Android device was not available in this session, so final on-device launch verification remains pending.
+
+The hardened manifest and local launcher icon are also included in the corrected build.

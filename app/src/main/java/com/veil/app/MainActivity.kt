@@ -38,6 +38,7 @@ import com.veil.app.core.ProtectionSettings
 import com.veil.app.core.RecoveryTask
 import com.veil.app.data.VeilRepository
 import com.veil.app.ui.InterventionScreen
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,7 @@ private val VeilBlue = Color(0xFF385C98)
 private val VeilText = Color(0xFFF7F7FA)
 private val VeilMuted = Color(0xFFA7A7B0)
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
