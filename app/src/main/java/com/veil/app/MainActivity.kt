@@ -50,6 +50,8 @@ import com.veil.app.core.ProtectionEngine
 import com.veil.app.core.ProtectionSettings
 import com.veil.app.core.ProtectionState
 import com.veil.app.core.RecoveryTask
+import com.veil.app.core.WorldviewPreference
+import com.veil.app.core.supportiveMessageFor
 import com.veil.app.data.VeilRepository
 import com.veil.app.ui.InterventionScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -109,6 +111,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
     var darkMode by remember { mutableStateOf(false) }
     var selectedCooldown by remember { mutableStateOf(CooldownDuration.TEN) }
     var selectedTask by remember { mutableStateOf(RecoveryTask.PUSH_UPS) }
+    var selectedWorldview by remember { mutableStateOf<WorldviewPreference?>(null) }
     var draftNote by remember { mutableStateOf("") }
     var noteSaved by remember { mutableStateOf(false) }
     val palette = if (darkMode) DarkPalette else LightPalette
@@ -116,6 +119,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
     LaunchedEffect(viewModel.settings) {
         selectedCooldown = viewModel.settings.cooldown
         selectedTask = viewModel.settings.recoveryTask
+        selectedWorldview = viewModel.settings.worldview
     }
     LaunchedEffect(viewModel.recoveryNote) {
         draftNote = viewModel.recoveryNote
@@ -129,6 +133,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                 InterventionScreen(
                     state = cooldownState,
                     recoveryNote = viewModel.recoveryNote,
+                    supportiveMessage = supportiveMessageFor(viewModel.settings.worldview),
                     darkMode = darkMode,
                     onRecoveryComplete = viewModel::completeRecovery,
                     onChangePlan = {
@@ -163,10 +168,12 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                                     palette = palette,
                                     selectedCooldown = selectedCooldown,
                                     selectedTask = selectedTask,
+                                    selectedWorldview = selectedWorldview,
                                     onCooldownSelected = { selectedCooldown = it },
                                     onTaskSelected = { selectedTask = it },
+                                    onWorldviewSelected = { selectedWorldview = it },
                                     onBack = { destinationName = VeilDestination.HOME.name },
-                                    onStart = { viewModel.startPreviewCooldown(selectedCooldown, selectedTask) },
+                                    onStart = { viewModel.startPreviewCooldown(selectedCooldown, selectedTask, selectedWorldview) },
                                 )
                                 VeilDestination.NOTE -> NotePanel(
                                     palette = palette,
@@ -342,8 +349,10 @@ private fun ResetPanel(
     palette: VeilPalette,
     selectedCooldown: CooldownDuration,
     selectedTask: RecoveryTask,
+    selectedWorldview: WorldviewPreference?,
     onCooldownSelected: (CooldownDuration) -> Unit,
     onTaskSelected: (RecoveryTask) -> Unit,
+    onWorldviewSelected: (WorldviewPreference) -> Unit,
     onBack: () -> Unit,
     onStart: () -> Unit,
 ) {
@@ -370,6 +379,13 @@ private fun ResetPanel(
         item {
             SettingSection(title = "Choose one reset.", palette = palette) {
                 RecoveryChoices(selectedTask, palette, onTaskSelected)
+            }
+        }
+        item {
+            SettingSection(title = "What kind of reminder supports you?", palette = palette) {
+                WorldviewChoices(selectedWorldview, palette, onWorldviewSelected)
+                Spacer(Modifier.height(8.dp))
+                Text("Optional. Shown only during your chosen cooldown.", color = palette.muted, style = MaterialTheme.typography.bodySmall)
             }
         }
         item {
@@ -476,6 +492,42 @@ private fun RecoveryChoices(selected: RecoveryTask, palette: VeilPalette, onSele
                                 Text(copy.second, color = if (isSelected) palette.softText else palette.muted, textAlign = TextAlign.Start, style = MaterialTheme.typography.labelSmall)
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WorldviewChoices(
+    selected: WorldviewPreference?,
+    palette: VeilPalette,
+    onSelected: (WorldviewPreference) -> Unit,
+) {
+    val choices = listOf(
+        WorldviewPreference.ISLAM to "Islam · Qur’an",
+        WorldviewPreference.CHRISTIANITY to "Christianity · Bible",
+        WorldviewPreference.ATHEIST to "Atheist · Secular",
+    )
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cardWidth = (maxWidth - 8.dp) / 2
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            choices.chunked(2).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { (preference, label) ->
+                        val isSelected = selected == preference
+                        OutlinedButton(
+                            onClick = { onSelected(preference) },
+                            modifier = Modifier.width(cardWidth).height(52.dp),
+                            shape = RoundedCornerShape(5.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) palette.primary else palette.line),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isSelected) palette.soft else palette.panel,
+                                contentColor = if (isSelected) palette.softText else palette.text,
+                            ),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+                        ) { Text(label, textAlign = TextAlign.Start, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
             }
@@ -601,8 +653,12 @@ class VeilViewModel @Inject constructor(
     }
 
     /** Local UI preview only: it does not capture, inspect, or retain any screen content. */
-    fun startPreviewCooldown(cooldown: CooldownDuration, recoveryTask: RecoveryTask) {
-        settings = settings.copy(cooldown = cooldown, recoveryTask = recoveryTask)
+    fun startPreviewCooldown(
+        cooldown: CooldownDuration,
+        recoveryTask: RecoveryTask,
+        worldview: WorldviewPreference?,
+    ) {
+        settings = settings.copy(cooldown = cooldown, recoveryTask = recoveryTask, worldview = worldview)
         engine = ProtectionEngine(settings = settings)
         engine.startProtection()
         state = engine.registerDetection(

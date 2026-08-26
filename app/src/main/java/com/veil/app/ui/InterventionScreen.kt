@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.veil.app.core.ProtectionState
 import com.veil.app.core.RecoveryTask
+import com.veil.app.core.SupportiveMessage
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.delay
@@ -38,6 +39,7 @@ fun InterventionScreen(
     state: ProtectionState.Cooldown,
     now: Instant = Instant.now(),
     recoveryNote: String? = null,
+    supportiveMessage: SupportiveMessage? = null,
     darkMode: Boolean,
     onRecoveryComplete: () -> Unit,
     onChangePlan: () -> Unit,
@@ -107,6 +109,14 @@ fun InterventionScreen(
                         Text("YOUR NOTE", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(7.dp))
                         Text("“$recoveryNote”", color = palette.text, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
+                    }
+                    if (supportiveMessage != null) {
+                        Spacer(Modifier.height(20.dp))
+                        Text(supportiveMessage.label.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(7.dp))
+                        Text("“${supportiveMessage.body}”", color = palette.text, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
+                        Spacer(Modifier.height(5.dp))
+                        Text(supportiveMessage.reference, color = palette.muted, style = MaterialTheme.typography.bodySmall)
                     }
                     Spacer(Modifier.height(24.dp))
                     Text(

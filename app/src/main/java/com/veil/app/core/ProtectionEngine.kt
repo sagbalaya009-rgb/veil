@@ -64,6 +64,7 @@ data class ProtectionSettings(
     val recoveryTask: RecoveryTask = RecoveryTask.BREATHING,
     val lockPeriod: LockPeriod = LockPeriod.TWO_HOURS,
     val recoveryNote: String = "",
+    val worldview: WorldviewPreference? = null,
 ) {
     companion object {
         const val INITIAL_THRESHOLD = 0.90f

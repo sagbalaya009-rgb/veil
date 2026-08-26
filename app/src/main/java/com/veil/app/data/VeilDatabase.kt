@@ -20,6 +20,7 @@ data class VeilSettingsEntity(
     val recoveryTask: String = "BREATHING",
     val lockPeriod: String = "TWO_HOURS",
     val recoveryNote: String = "",
+    val worldview: String = "",
 )
 
 @Entity(tableName = "protection_events")
@@ -53,7 +54,7 @@ interface ProtectionEventDao {
 
 @Database(
     entities = [VeilSettingsEntity::class, ProtectionEventEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class VeilDatabase : RoomDatabase() {
@@ -65,6 +66,14 @@ abstract class VeilDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
                     "ALTER TABLE veil_settings ADD COLUMN recoveryNote TEXT NOT NULL DEFAULT ''",
+                )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE veil_settings ADD COLUMN worldview TEXT NOT NULL DEFAULT ''",
                 )
             }
         }

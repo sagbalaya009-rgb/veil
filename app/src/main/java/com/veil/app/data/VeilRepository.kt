@@ -7,6 +7,7 @@ import com.veil.app.core.ProtectionEventType
 import com.veil.app.core.ProtectionLevel
 import com.veil.app.core.ProtectionSettings
 import com.veil.app.core.RecoveryTask
+import com.veil.app.core.WorldviewPreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -25,6 +26,7 @@ class VeilRepository(
                 recoveryTask = settings.recoveryTask.name,
                 lockPeriod = settings.lockPeriod.name,
                 recoveryNote = settings.recoveryNote,
+                worldview = settings.worldview?.name.orEmpty(),
             ),
         )
     }
@@ -53,5 +55,8 @@ class VeilRepository(
         lockPeriod = runCatching { LockPeriod.valueOf(entity.lockPeriod) }
             .getOrDefault(LockPeriod.TWO_HOURS),
         recoveryNote = entity.recoveryNote,
+        worldview = entity.worldview.takeIf { it.isNotBlank() }?.let {
+            runCatching { WorldviewPreference.valueOf(it) }.getOrNull()
+        },
     )
 }
