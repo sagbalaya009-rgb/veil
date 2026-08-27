@@ -46,3 +46,7 @@ ml/**/*.mp4
 node_modules/
 dist/
 .vercel/
+
+# Python local workshop cache
+__pycache__/
+*.py[cod]
