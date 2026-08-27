@@ -1,0 +1,5 @@
+# Install only inside an isolated, controlled local environment after approved data is available.
+# This file does not download a dataset or run training.
+tensorflow-cpu>=2.16,<2.18
+numpy>=1.26,<3
+pillow>=10,<12

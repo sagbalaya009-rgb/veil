@@ -23,6 +23,25 @@ reports/
 artifacts/
 *.tflite.tmp
 
+# Local-only ML inputs and generated outputs. Never commit raw adult-content data, evaluation media,
+# downloaded checkpoints, trained models, model review manifests, or benchmark results.
+ml/data/
+ml/checkpoints/
+ml/artifacts/
+ml/private-manifests/
+ml/**/*.tflite
+ml/**/*.keras
+ml/**/*.h5
+ml/**/*.ckpt
+ml/**/*.zip
+ml/**/*.tar
+ml/**/*.parquet
+ml/**/*.jpg
+ml/**/*.jpeg
+ml/**/*.png
+ml/**/*.webp
+ml/**/*.mp4
+
 # Vite / Vercel web build artifacts
 node_modules/
 dist/

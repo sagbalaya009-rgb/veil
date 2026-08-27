@@ -1,0 +1,19 @@
+{
+  "runId": "replace-with-reviewed-run-id",
+  "randomSeed": 20260827,
+  "inputWidth": 224,
+  "inputHeight": 224,
+  "inputChannels": 3,
+  "normalization": "rgb_float_0_to_1",
+  "architecture": "MobileNetV3Small",
+  "baseCheckpoint": {
+    "path": "/controlled/path/mobilenetv3small.weights.h5",
+    "sourceUrl": "https://replace-with-checkpoint-source.example",
+    "license": "replace-with-checkpoint-license",
+    "sha256": "replace-with-64-character-checksum"
+  },
+  "epochs": 10,
+  "batchSize": 32,
+  "learningRate": 0.0001,
+  "outputDirectory": "/controlled/path/veil-training-artifacts"
+}

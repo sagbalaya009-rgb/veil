@@ -1,0 +1,10 @@
+{
+  "policyId": "veil-explicit-v1-policy",
+  "approvedBy": "",
+  "approvedAt": "",
+  "minPrecision": null,
+  "minRecall": null,
+  "maxFalsePositiveRate": null,
+  "maxMedianInferenceMs": null,
+  "notes": "Set each gate after review. Empty gates intentionally prevent automatic model export."
+}

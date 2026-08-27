@@ -1,0 +1,28 @@
+{
+  "datasetId": "replace-with-approved-dataset-id",
+  "version": "replace-with-release-version",
+  "sourceUrl": "https://replace-with-dataset-source.example",
+  "evaluationSourceUrl": "https://replace-with-independent-evaluation-source.example",
+  "license": "replace-with-specific-license",
+  "commercialTrainingAllowed": false,
+  "modelDistributionAllowed": false,
+  "adultOnlyAssurance": "replace-with-publisher-statement-or-contract-reference",
+  "provenance": "replace-with-collection-and-rights-summary",
+  "labelDefinitions": {
+    "explicit": "replace-with-approved-definition",
+    "non_explicit": "replace-with-approved-definition"
+  },
+  "evaluationIndependence": "replace-with-separate-evaluation-source-or-collection-method",
+  "approvedBy": "",
+  "approvedAt": "",
+  "minimumImageCounts": {
+    "train": { "explicit": 100, "non_explicit": 100 },
+    "validation": { "explicit": 50, "non_explicit": 50 },
+    "evaluation": { "explicit": 50, "non_explicit": 50 }
+  },
+  "splits": {
+    "train": { "explicit": "/controlled/path/train/explicit", "non_explicit": "/controlled/path/train/non_explicit" },
+    "validation": { "explicit": "/controlled/path/validation/explicit", "non_explicit": "/controlled/path/validation/non_explicit" },
+    "evaluation": { "explicit": "/controlled/path/evaluation/explicit", "non_explicit": "/controlled/path/evaluation/non_explicit" }
+  }
+}

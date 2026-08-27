@@ -4,7 +4,7 @@
 
 ## What Veil does
 
-When protection is active, Veil analyzes the visible screen locally on the device. If the classifier identifies content above a deliberately conservative confidence threshold, Veil presents a calm, full-screen intervention. The intervention introduces a configurable cooldown and a short recovery task, adding enough friction for the user to regain control without shame or punitive language.
+Veil’s target Android protection path will analyze bounded screen frames locally only after the user has completed a separate, explicit Android consent flow and a reviewed classifier model has passed real-device validation. A confirmed detection will present a calm intervention for the triggering application only, with a configurable cooldown and recovery task. It must not shame the user, block unrelated apps, or become a surveillance tool.
 
 The first release is intentionally narrow. The MVP proves one core hypothesis: a user can enable protection, encounter explicit content, be interrupted within approximately one second, complete a recovery action, and avoid immediately returning to the triggering content.
 
@@ -20,7 +20,7 @@ The first release is intentionally narrow. The MVP proves one core hypothesis: a
 
 ## MVP scope
 
-The MVP targets Android 12+ and includes onboarding, explicit permission education, protection levels, configurable cooldowns, recovery tasks, lock periods, an emergency override with friction, local intervention history, and a minimal status home screen. It uses Android Accessibility Service, MediaProjection, overlay windows, notifications, and a foreground service only with clear user consent and visible status.
+The current Android MVP targets Android 12+ and includes a minimal Home / Reset / Note flow, cooldown choices from 10 minutes through one hour, recovery tasks, local notes, a voluntary worldview preference, local cooldown preview, optional quiet completion notification, and a local language preference. It does not currently enable Android Accessibility Service, MediaProjection, screen capture, a foreground monitoring service, an overlay, live TensorFlow Lite inference, or app-specific enforcement. Those capabilities require clear consent, visible status, model approval, and real-device validation before they can be enabled.
 
 The initial model target is an on-device TensorFlow Lite classifier. The first threshold is **0.90 confidence**, intentionally favoring fewer false positives during early testing. The battery target is no more than approximately **5% additional daily consumption**, with adaptive sampling: idle at 0.5 FPS, normal use at 1 FPS, and active scrolling at 2 FPS.
 
@@ -50,13 +50,8 @@ veil/
 │   ├── operations/testing.md
 │   ├── decisions/0001-on-device-ai.md
 │   └── source/original-notes.txt
-├── app/        # Android application shell and composition root
-├── core/       # Domain models and protection rules
-├── data/       # Local persistence and repositories
-├── services/   # Android foreground, capture, accessibility, and recovery services
-├── ui/         # Onboarding, home, intervention, and settings UI
-├── tests/      # Unit, integration, device, and model evaluation tests
-├── scripts/    # Reproducible development and validation utilities
+├── app/        # Android application (UI, domain, persistence, services, and tests)
+├── ml/         # Local-only training, evaluation, conversion, and review workshop; no raw data
 └── .github/    # Issue forms, pull request template, and CI configuration
 ```
 
@@ -64,9 +59,9 @@ The Android implementation directories are scaffolds until the initial applicati
 
 ## Status
 
-**Phase:** Documentation and MVP foundation
+**Phase:** Working Android UI and safe local-model preparation
 
-**Next milestone:** Build the permission/onboarding flow and a deterministic protection engine before integrating live screen capture or model inference.
+**Next milestone:** Secure approved adult-only training/evaluation data, run the documented local model workshop, and benchmark any passing TensorFlow Lite candidate on the Galaxy M20 before introducing sensitive capture or enforcement capabilities.
 
 ## Important boundary
 
