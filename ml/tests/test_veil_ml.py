@@ -29,6 +29,27 @@ class VeilMlSafetyTest(unittest.TestCase):
             with self.assertRaisesRegex(RefusalError, "evaluation report did not pass"):
                 export_tflite(report_path, policy_path, model_path, root / "candidate.tflite")
 
+    def test_same_source_cannot_be_declared_as_independent_evaluation(self):
+        with tempfile.TemporaryDirectory() as workspace:
+            root = Path(workspace)
+            for split in ("train", "validation", "evaluation"):
+                for label in ("explicit", "non_explicit"):
+                    (root / split / label).mkdir(parents=True)
+            manifest = {
+                "datasetId": "approved-set", "version": "1", "sourceUrl": "https://example.org/training",
+                "evaluationSourceUrl": "https://example.org/training", "license": "Example License",
+                "commercialTrainingAllowed": True, "modelDistributionAllowed": True,
+                "adultOnlyAssurance": "All files depict adults.", "provenance": "Documented source.",
+                "labelDefinitions": {"explicit": "Explicit content", "non_explicit": "Other content"},
+                "evaluationIndependence": "Separate held-out collection.", "approvedBy": "reviewer", "approvedAt": "2026-08-27",
+                "minimumImageCounts": {split: {label: 1 for label in ("explicit", "non_explicit")} for split in ("train", "validation", "evaluation")},
+                "splits": {split: {label: str(root / split / label) for label in ("explicit", "non_explicit")} for split in ("train", "validation", "evaluation")},
+            }
+            path = root / "dataset-manifest.json"
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(RefusalError, "evaluationSourceUrl must identify a source separate"):
+                validate_dataset_manifest(path, verify_files=False)
+
     def test_binary_metrics_calculates_false_positive_rate(self):
         metrics = binary_metrics([1, 1, 0, 0], [1, 0, 1, 0])
         self.assertEqual(metrics["truePositive"], 1)

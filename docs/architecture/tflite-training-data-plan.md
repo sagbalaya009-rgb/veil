@@ -16,6 +16,12 @@ Free Hugging Face hosting does not resolve Veil’s approval requirements. The D
 
 The Hugging Face `yuwan0/UnsafeSceneDetection` dataset is explicitly unavailable for Veil: its published access terms limit use to non-commercial research/education, prohibit redistribution, require case-by-case access, and describe a text-to-image scene-graph objective rather than Veil’s Android screen-image classifier target.[8]
 
+## User-provided scraper assessment
+
+The user-provided `alex000kim/nsfw_data_scraper` codebase is MIT-licensed software, so its scripts can be read, modified, or reused subject to the MIT notice.[9] That license applies to the **software**, not to the scraped images. The project’s own README warns that its dataset is noisy and describes a workflow that collects URLs primarily from subreddits and other sites supported by Ripme, then downloads the images. It also optionally downloads from Danbooru2018 and Caltech256.[10]
+
+This collection approach fails Veil’s source-approval gate as written. It does not establish a per-image commercial training right, permission to distribute a trained consumer-app model, adult-only assurance, creator consent, or an independent held-out evaluation source. The scraper must therefore **not be executed, cloned for operation, or connected to Veil’s training workspace**. It remains useful only as an example of why Veil needs manifest-based source approval before acquisition.
+
 ## Dataset source-approval gate
 
 | Requirement | Evidence required before download or use |
@@ -48,3 +54,5 @@ The future model remains local-only. It does not authorize cloud inference, back
 [6]: https://huggingface.co/datasets/deepghs/nsfw_detect "DeepGHS NSFW dataset listing"
 [7]: https://huggingface.co/datasets/DarkyMan/nsfw-image-classification "DarkyMan NSFW image-classification dataset listing"
 [8]: https://huggingface.co/datasets/yuwan0/UnsafeSceneDetection "UnsafeSceneDetection dataset card and access conditions"
+[9]: https://raw.githubusercontent.com/alex000kim/nsfw_data_scraper/main/LICENSE "alex000kim/nsfw_data_scraper MIT license"
+[10]: https://raw.githubusercontent.com/alex000kim/nsfw_data_scraper/main/README.md "alex000kim/nsfw_data_scraper README"

@@ -102,6 +102,16 @@ def validate_dataset_manifest(path: Path, verify_files: bool = True) -> DatasetV
     minimum_counts = manifest.get("minimumImageCounts")
     if not isinstance(minimum_counts, dict):
         errors.append("minimumImageCounts must declare reviewed minimum counts for every split and class.")
+    else:
+        for split in SPLITS:
+            reviewed_counts = minimum_counts.get(split)
+            if not isinstance(reviewed_counts, dict):
+                errors.append(f"minimumImageCounts.{split} must define explicit and non_explicit counts.")
+                continue
+            for label in CLASSES:
+                required_count = reviewed_counts.get(label)
+                if not isinstance(required_count, int) or isinstance(required_count, bool) or required_count <= 0:
+                    errors.append(f"minimumImageCounts.{split}.{label} must be a reviewed positive integer.")
     counts: dict[str, dict[str, int]] = {}
     if not isinstance(splits, dict):
         errors.append("splits must define train, validation, and evaluation directories.")
@@ -112,12 +122,14 @@ def validate_dataset_manifest(path: Path, verify_files: bool = True) -> DatasetV
                 errors.append(f"splits.{split} must define explicit and non_explicit directories.")
                 continue
             counts[split] = {}
+            parent_folders: set[Path] = set()
             for label in CLASSES:
                 raw_path = split_paths.get(label)
                 if not isinstance(raw_path, str) or not raw_path.strip():
                     errors.append(f"splits.{split}.{label} must be a local directory path.")
                     continue
                 folder = Path(raw_path).expanduser()
+                parent_folders.add(folder.parent.resolve())
                 if verify_files:
                     if not folder.is_dir():
                         errors.append(f"Required data directory does not exist: {folder}")
@@ -126,11 +138,11 @@ def validate_dataset_manifest(path: Path, verify_files: bool = True) -> DatasetV
                     counts[split][label] = count
                     if count == 0:
                         errors.append(f"Required data directory has no supported images: {folder}")
-                    required_count = minimum_counts.get(split, {}).get(label) if isinstance(minimum_counts, dict) else None
-                    if not isinstance(required_count, int) or isinstance(required_count, bool) or required_count <= 0:
-                        errors.append(f"minimumImageCounts.{split}.{label} must be a reviewed positive integer.")
-                    elif count < required_count:
+                    required_count = minimum_counts[split][label] if isinstance(minimum_counts, dict) else None
+                    if isinstance(required_count, int) and count < required_count:
                         errors.append(f"Required data directory {folder} has {count} images; the reviewed minimum is {required_count}.")
+            if len(parent_folders) > 1:
+                errors.append(f"splits.{split} class folders must share one parent directory.")
     if errors:
         raise RefusalError("Dataset validation refused:\n- " + "\n- ".join(errors))
     return DatasetValidation(manifest=manifest, class_counts=counts)
@@ -270,6 +282,7 @@ def train(manifest_path: Path, config_path: Path) -> Path:
         "baseCheckpoint": config["baseCheckpoint"],
         "history": history.history,
         "candidateModel": str(output),
+        "candidateModelSha256": sha256(output),
     })
     return output
 
@@ -312,6 +325,7 @@ def evaluate(manifest_path: Path, policy_path: Path, model_path: Path, threshold
         "datasetId": validated.manifest["datasetId"],
         "evaluationSourceUrl": validated.manifest["evaluationSourceUrl"],
         "modelPath": str(model_path),
+        "modelSha256": sha256(model_path),
         "threshold": threshold,
         "imageCount": len(true_labels),
         "metrics": metrics,
@@ -347,8 +361,7 @@ def binary_metrics(true_labels: Iterable[int], predicted_labels: Iterable[int]) 
 
 def export_tflite(evaluation_report_path: Path, policy_path: Path, model_path: Path, output: Path) -> Path:
     report = read_json(evaluation_report_path)
-    if report.get("passed") is not True:
-        raise RefusalError("TensorFlow Lite export is blocked because the evaluation report did not pass all reviewed gates.")
+    validate_passing_evaluation_report(report, model_path)
     validate_evaluation_policy(policy_path)
     if not model_path.is_file():
         raise RefusalError(f"Candidate model does not exist: {model_path}")
@@ -359,19 +372,23 @@ def export_tflite(evaluation_report_path: Path, policy_path: Path, model_path: P
     if input_shape != EXPECTED_SHAPE or output_shape != (1,):
         raise RefusalError(f"Candidate model contract must be input {EXPECTED_SHAPE} and one output score.")
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    converted = converter.convert()
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_bytes(converted)
-    interpreter = tf.lite.Interpreter(model_path=str(output))
-    interpreter.allocate_tensors()
-    details = interpreter.get_input_details()[0]
-    output_details = interpreter.get_output_details()[0]
-    input_dtype = tf.as_dtype(details["dtype"])
-    output_dtype = tf.as_dtype(output_details["dtype"])
-    if tuple(details["shape"].tolist()) != (1, *EXPECTED_SHAPE) or input_dtype != tf.float32:
-        raise RefusalError("Converted TFLite input no longer satisfies Veil's float 224×224 RGB contract.")
-    if tuple(output_details["shape"].tolist()) != (1, 1) or output_dtype != tf.float32:
-        raise RefusalError("Converted TFLite output no longer satisfies Veil's one-float confidence contract.")
+    try:
+        converted = converter.convert()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(converted)
+        interpreter = tf.lite.Interpreter(model_path=str(output))
+        interpreter.allocate_tensors()
+        details = interpreter.get_input_details()[0]
+        output_details = interpreter.get_output_details()[0]
+        input_dtype = tf.as_dtype(details["dtype"])
+        output_dtype = tf.as_dtype(output_details["dtype"])
+        if tuple(details["shape"].tolist()) != (1, *EXPECTED_SHAPE) or input_dtype != tf.float32:
+            raise RefusalError("Converted TFLite input no longer satisfies Veil's float 224×224 RGB contract.")
+        if tuple(output_details["shape"].tolist()) != (1, 1) or output_dtype != tf.float32:
+            raise RefusalError("Converted TFLite output no longer satisfies Veil's one-float confidence contract.")
+    except Exception:
+        output.unlink(missing_ok=True)
+        raise
     return output
 
 
@@ -390,8 +407,9 @@ def create_review_manifest(
         raise RefusalError(f"TensorFlow Lite model does not exist: {model_path}")
     dataset = validate_dataset_manifest(dataset_manifest_path, verify_files=False).manifest
     report = read_json(evaluation_report_path)
-    if report.get("passed") is not True:
-        raise RefusalError("Review manifest creation is blocked because the evaluation report is not a pass.")
+    validate_passing_evaluation_report(report, model_path)
+    if report.get("datasetId") != dataset["datasetId"]:
+        raise RefusalError("Review manifest creation is blocked because the evaluation report names a different dataset.")
     for label, value in (("source_url", source_url), ("evaluation_report_url", evaluation_report_url)):
         if not value.startswith("https://"):
             raise RefusalError(f"{label} must be an https:// URL for Android release review.")
@@ -415,6 +433,17 @@ def create_review_manifest(
         "normalization": EXPECTED_NORMALIZATION,
     })
     return output
+
+
+def validate_passing_evaluation_report(report: dict[str, Any], model_path: Path) -> None:
+    if report.get("passed") is not True:
+        raise RefusalError("TensorFlow Lite export is blocked because the evaluation report did not pass all reviewed gates.")
+    required_fields = ("policyId", "approvedBy", "approvedAt", "datasetId", "modelPath", "modelSha256", "metrics", "medianInferenceMs")
+    missing = [field for field in required_fields if field not in report or report[field] in (None, "")]
+    if missing:
+        raise RefusalError("Passing evaluation report is incomplete: " + ", ".join(missing))
+    if not _valid_sha(str(report["modelSha256"])) or str(report["modelSha256"]).lower() != sha256(model_path).lower():
+        raise RefusalError("Passing evaluation report does not match the candidate model checksum.")
 
 
 def _write_json(path: Path, contents: dict[str, Any]) -> None:

@@ -27,6 +27,8 @@ The `evaluation` split must come from a separately documented source or collecti
 
 The workshop explicitly maps `non_explicit` to model label `0` and `explicit` to model label `1`. This means the final sigmoid output is always the **explicit-content confidence** expected by Veil’s Android classifier contract.
 
+The validator also requires `evaluationSourceUrl` to differ from the training-data source and requires every split/class to have a reviewed minimum image count. It refuses class folders that are not a matched `explicit/` and `non_explicit/` pair under the same split parent.
+
 ## Required local inputs
 
 | Input | What it proves |
