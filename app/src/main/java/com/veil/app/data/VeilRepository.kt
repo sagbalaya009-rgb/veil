@@ -8,6 +8,7 @@ import com.veil.app.core.ProtectionLevel
 import com.veil.app.core.ProtectionSettings
 import com.veil.app.core.RecoveryTask
 import com.veil.app.core.WorldviewPreference
+import com.veil.app.core.UiLanguage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -28,6 +29,7 @@ class VeilRepository(
                 recoveryNote = settings.recoveryNote,
                 worldview = settings.worldview?.name.orEmpty(),
                 cooldownCompletionNotificationsEnabled = settings.cooldownCompletionNotificationsEnabled,
+                uiLanguage = settings.uiLanguage.name,
             ),
         )
     }
@@ -60,5 +62,7 @@ class VeilRepository(
             runCatching { WorldviewPreference.valueOf(it) }.getOrNull()
         },
         cooldownCompletionNotificationsEnabled = entity.cooldownCompletionNotificationsEnabled,
+        uiLanguage = runCatching { UiLanguage.valueOf(entity.uiLanguage) }
+            .getOrDefault(UiLanguage.ENGLISH),
     )
 }

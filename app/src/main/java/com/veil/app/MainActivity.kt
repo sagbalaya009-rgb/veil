@@ -57,6 +57,9 @@ import com.veil.app.core.ProtectionEngine
 import com.veil.app.core.ProtectionSettings
 import com.veil.app.core.ProtectionState
 import com.veil.app.core.RecoveryTask
+import com.veil.app.core.UiLanguage
+import com.veil.app.core.VeilLocalization
+import com.veil.app.core.VeilStrings
 import com.veil.app.core.WorldviewPreference
 import com.veil.app.core.supportiveMessageFor
 import com.veil.app.data.VeilRepository
@@ -138,14 +141,17 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
     var selectedCooldown by remember { mutableStateOf(CooldownDuration.TEN) }
     var selectedTask by remember { mutableStateOf(RecoveryTask.PUSH_UPS) }
     var selectedWorldview by remember { mutableStateOf<WorldviewPreference?>(null) }
+    var selectedLanguage by remember { mutableStateOf(UiLanguage.ENGLISH) }
     var draftNote by remember { mutableStateOf("") }
     var noteSaved by remember { mutableStateOf(false) }
     val palette = if (darkMode) DarkPalette else LightPalette
+    val strings = VeilLocalization.stringsFor(selectedLanguage)
 
     LaunchedEffect(viewModel.settings) {
         selectedCooldown = viewModel.settings.cooldown
         selectedTask = viewModel.settings.recoveryTask
         selectedWorldview = viewModel.settings.worldview
+        selectedLanguage = viewModel.settings.uiLanguage
     }
     LaunchedEffect(viewModel.recoveryNote) {
         draftNote = viewModel.recoveryNote
@@ -161,6 +167,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                     recoveryNote = viewModel.recoveryNote,
                     supportiveMessage = supportiveMessageFor(viewModel.settings.worldview),
                     darkMode = darkMode,
+                    strings = strings,
                     onRecoveryComplete = viewModel::completeRecovery,
                     onCooldownFinished = viewModel::onCooldownFinished,
                     onChangePlan = {
@@ -181,6 +188,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                             destination = destination,
                             darkMode = darkMode,
                             palette = palette,
+                            strings = strings,
                             onDestination = { destinationName = it.name },
                             onToggleTheme = { darkMode = !darkMode },
                         )
@@ -188,24 +196,32 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                             when (destination) {
                                 VeilDestination.HOME -> HomePanel(
                                     palette = palette,
+                                    strings = strings,
                                     onSetCooldown = { destinationName = VeilDestination.RESET.name },
                                     onWriteNote = { destinationName = VeilDestination.NOTE.name },
                                 )
                                 VeilDestination.RESET -> ResetPanel(
                                     palette = palette,
+                                    strings = strings,
                                     selectedCooldown = selectedCooldown,
                                     selectedTask = selectedTask,
                                     selectedWorldview = selectedWorldview,
+                                    selectedLanguage = selectedLanguage,
                                     notificationsEnabled = viewModel.settings.cooldownCompletionNotificationsEnabled,
                                     onCooldownSelected = { selectedCooldown = it },
                                     onTaskSelected = { selectedTask = it },
                                     onWorldviewSelected = { selectedWorldview = it },
+                                    onLanguageSelected = {
+                                        selectedLanguage = it
+                                        viewModel.setUiLanguage(it)
+                                    },
                                     onNotificationsToggle = toggleCompletionNotifications,
                                     onBack = { destinationName = VeilDestination.HOME.name },
                                     onStart = { viewModel.startPreviewCooldown(selectedCooldown, selectedTask, selectedWorldview) },
                                 )
                                 VeilDestination.NOTE -> NotePanel(
                                     palette = palette,
+                                    strings = strings,
                                     note = draftNote,
                                     saved = noteSaved,
                                     onNoteChange = {
@@ -220,7 +236,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                                 )
                             }
                         }
-                        VeilFooter(palette)
+                        VeilFooter(palette, strings)
                     }
                 }
             }
@@ -233,6 +249,7 @@ private fun VeilHeader(
     destination: VeilDestination,
     darkMode: Boolean,
     palette: VeilPalette,
+    strings: VeilStrings,
     onDestination: (VeilDestination) -> Unit,
     onToggleTheme: () -> Unit,
 ) {
@@ -263,9 +280,9 @@ private fun VeilHeader(
             )
         }
         Row(modifier = Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
-            VeilNavigationButton("Home", destination == VeilDestination.HOME, palette) { onDestination(VeilDestination.HOME) }
-            VeilNavigationButton("Reset", destination == VeilDestination.RESET, palette) { onDestination(VeilDestination.RESET) }
-            VeilNavigationButton("Note", destination == VeilDestination.NOTE, palette) { onDestination(VeilDestination.NOTE) }
+            VeilNavigationButton(strings.home, destination == VeilDestination.HOME, palette) { onDestination(VeilDestination.HOME) }
+            VeilNavigationButton(strings.reset, destination == VeilDestination.RESET, palette) { onDestination(VeilDestination.RESET) }
+            VeilNavigationButton(strings.note, destination == VeilDestination.NOTE, palette) { onDestination(VeilDestination.NOTE) }
             TextButton(
                 onClick = onToggleTheme,
                 modifier = Modifier.background(palette.soft, RoundedCornerShape(6.dp)),
@@ -291,17 +308,22 @@ private fun VeilNavigationButton(label: String, selected: Boolean, palette: Veil
 }
 
 @Composable
-private fun HomePanel(palette: VeilPalette, onSetCooldown: () -> Unit, onWriteNote: () -> Unit) {
+private fun HomePanel(
+    palette: VeilPalette,
+    strings: VeilStrings,
+    onSetCooldown: () -> Unit,
+    onWriteNote: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.Center,
     ) {
-        Eyebrow("Private reset space", palette)
+        Eyebrow(strings.private_reset_space, palette)
         Spacer(Modifier.height(14.dp))
         Text(
-            "What would help\nright now?",
+            strings.what_would_help,
             color = palette.text,
             style = MaterialTheme.typography.displaySmall,
             fontFamily = FontFamily.Serif,
@@ -309,7 +331,7 @@ private fun HomePanel(palette: VeilPalette, onSetCooldown: () -> Unit, onWriteNo
         )
         Spacer(Modifier.height(18.dp))
         Text(
-            "Choose a small reset. Veil does not watch your device or send your activity anywhere.",
+            strings.home_intro,
             color = palette.muted,
             style = MaterialTheme.typography.bodyLarge,
         )
@@ -321,8 +343,8 @@ private fun HomePanel(palette: VeilPalette, onSetCooldown: () -> Unit, onWriteNo
                 HomeActionCard(
                     modifier = Modifier.width(primaryWidth),
                     marker = "◴",
-                    title = "Set your cooldown",
-                    detail = "Pick time and one helpful action.",
+                    title = strings.set_your_cooldown,
+                    detail = strings.pick_time_action,
                     primary = true,
                     palette = palette,
                     onClick = onSetCooldown,
@@ -330,8 +352,8 @@ private fun HomePanel(palette: VeilPalette, onSetCooldown: () -> Unit, onWriteNo
                 HomeActionCard(
                     modifier = Modifier.width(secondaryWidth),
                     marker = "✎",
-                    title = "Write a note",
-                    detail = "Leave one line for yourself.",
+                    title = strings.write_a_note,
+                    detail = strings.leave_one_line,
                     primary = false,
                     palette = palette,
                     onClick = onWriteNote,
@@ -376,13 +398,16 @@ private fun HomeActionCard(
 @Composable
 private fun ResetPanel(
     palette: VeilPalette,
+    strings: VeilStrings,
     selectedCooldown: CooldownDuration,
     selectedTask: RecoveryTask,
     selectedWorldview: WorldviewPreference?,
+    selectedLanguage: UiLanguage,
     notificationsEnabled: Boolean,
     onCooldownSelected: (CooldownDuration) -> Unit,
     onTaskSelected: (RecoveryTask) -> Unit,
     onWorldviewSelected: (WorldviewPreference) -> Unit,
+    onLanguageSelected: (UiLanguage) -> Unit,
     onNotificationsToggle: () -> Unit,
     onBack: () -> Unit,
     onStart: () -> Unit,
@@ -394,61 +419,72 @@ private fun ResetPanel(
     ) {
         item {
             TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) {
-                Text("‹  Back", color = palette.muted)
+                Text("‹  ${strings.back}", color = palette.muted)
             }
         }
         item {
-            Eyebrow("Cooldown plan", palette)
+            Eyebrow(strings.cooldown_plan, palette)
             Spacer(Modifier.height(14.dp))
-            Text("Decide what\nwill help.", color = palette.text, style = MaterialTheme.typography.displaySmall, fontFamily = FontFamily.Serif)
+            Text(strings.decide_what_will_help, color = palette.text, style = MaterialTheme.typography.displaySmall, fontFamily = FontFamily.Serif)
         }
         item {
-            SettingSection(title = "How long do you want this reset to last?", palette = palette) {
+            SettingSection(title = strings.how_long, palette = palette) {
                 DurationChoices(selectedCooldown, palette, onCooldownSelected)
             }
         }
         item {
-            SettingSection(title = "Choose one reset.", palette = palette) {
-                RecoveryChoices(selectedTask, palette, onTaskSelected)
+            SettingSection(title = strings.choose_one_reset, palette = palette) {
+                RecoveryChoices(selectedTask, palette, strings, onTaskSelected)
             }
         }
         item {
-            SettingSection(title = "What kind of reminder supports you?", palette = palette) {
+            SettingSection(title = strings.what_reminder, palette = palette) {
                 WorldviewChoices(selectedWorldview, palette, onWorldviewSelected)
                 Spacer(Modifier.height(8.dp))
-                Text("Optional. Shown only during your chosen cooldown.", color = palette.muted, style = MaterialTheme.typography.bodySmall)
+                Text(strings.reminder_optional, color = palette.muted, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        item {
+            SettingSection(title = strings.language, palette = palette) {
+                LanguageChoices(selectedLanguage, palette, onLanguageSelected)
             }
         }
         item {
             NotificationPreferenceRow(
                 enabled = notificationsEnabled,
                 palette = palette,
+                strings = strings,
                 onToggle = onNotificationsToggle,
             )
         }
         item {
             Text(
-                "Android preview only: this starts a local cooldown. Veil does not yet inspect other apps or blur your phone.",
+                strings.preview_only,
                 color = palette.muted,
                 style = MaterialTheme.typography.bodySmall,
             )
         }
         item {
             Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
-                Text("${durationLabel(selectedCooldown)} · ${taskLabel(selectedTask)}", color = palette.muted, style = MaterialTheme.typography.bodySmall)
+                Text("${durationLabel(selectedCooldown)} · ${taskLabel(selectedTask, strings)}", color = palette.muted, style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(10.dp))
                 Button(
                     onClick = onStart,
                     shape = RoundedCornerShape(5.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = palette.primary, contentColor = Color.White),
-                ) { Text("Test cooldown") }
+                ) { Text(strings.test_cooldown) }
             }
         }
     }
 }
 
 @Composable
-private fun NotificationPreferenceRow(enabled: Boolean, palette: VeilPalette, onToggle: () -> Unit) {
+private fun NotificationPreferenceRow(
+    enabled: Boolean,
+    palette: VeilPalette,
+    strings: VeilStrings,
+    onToggle: () -> Unit,
+) {
     Surface(color = palette.panel, shape = RoundedCornerShape(5.dp)) {
         Row(
             modifier = Modifier
@@ -457,11 +493,11 @@ private fun NotificationPreferenceRow(enabled: Boolean, palette: VeilPalette, on
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.width(190.dp)) {
-                Text("Quiet completion notification", color = palette.text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Text(strings.quiet_notification, color = palette.text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(3.dp))
-                Text("Optional. Only sent when this cooldown ends.", color = palette.muted, style = MaterialTheme.typography.bodySmall)
+                Text(strings.notification_optional, color = palette.muted, style = MaterialTheme.typography.bodySmall)
             }
-            OutlinedButton(onClick = onToggle, shape = RoundedCornerShape(5.dp)) { Text(if (enabled) "On" else "Turn on") }
+            OutlinedButton(onClick = onToggle, shape = RoundedCornerShape(5.dp)) { Text(if (enabled) strings.on else strings.turn_on) }
         }
     }
 }
@@ -498,22 +534,27 @@ private fun DurationChoices(selected: CooldownDuration, palette: VeilPalette, on
 }
 
 @Composable
-private fun RecoveryChoices(selected: RecoveryTask, palette: VeilPalette, onSelected: (RecoveryTask) -> Unit) {
+private fun RecoveryChoices(
+    selected: RecoveryTask,
+    palette: VeilPalette,
+    strings: VeilStrings,
+    onSelected: (RecoveryTask) -> Unit,
+) {
     val tasks = listOf(
-        RecoveryTask.PUSH_UPS to ("Push-ups" to "10 gentle reps"),
-        RecoveryTask.BREATHING to ("Breathing" to "2 minutes"),
-        RecoveryTask.WALK to ("Walk" to "5 minutes"),
-        RecoveryTask.JOURNAL to ("Journal" to "One honest line"),
-        RecoveryTask.WATER to ("Water" to "Fill a glass"),
-        RecoveryTask.STRETCH to ("Stretch" to "3 slow minutes"),
-        RecoveryTask.OFFLINE_PAUSE to ("Offline pause" to "Put the phone down"),
+        RecoveryTask.PUSH_UPS to strings.push_ups,
+        RecoveryTask.BREATHING to strings.breathing,
+        RecoveryTask.WALK to strings.walk,
+        RecoveryTask.JOURNAL to strings.journal,
+        RecoveryTask.WATER to strings.water,
+        RecoveryTask.STRETCH to strings.stretch,
+        RecoveryTask.OFFLINE_PAUSE to strings.offline_pause,
     )
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val cardWidth = (maxWidth - 8.dp) / 2
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             tasks.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    row.forEach { (task, copy) ->
+                    row.forEach { (task, label) ->
                         val isSelected = selected == task
                         OutlinedButton(
                             onClick = { onSelected(task) },
@@ -527,11 +568,41 @@ private fun RecoveryChoices(selected: RecoveryTask, palette: VeilPalette, onSele
                             contentPadding = PaddingValues(10.dp),
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
-                                Text(copy.first, textAlign = TextAlign.Start, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-                                Spacer(Modifier.height(3.dp))
-                                Text(copy.second, color = if (isSelected) palette.softText else palette.muted, textAlign = TextAlign.Start, style = MaterialTheme.typography.labelSmall)
+                                Text(label, textAlign = TextAlign.Start, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LanguageChoices(
+    selected: UiLanguage,
+    palette: VeilPalette,
+    onSelected: (UiLanguage) -> Unit,
+) {
+    val languages = UiLanguage.entries.toList()
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val cardWidth = (maxWidth - 8.dp) / 2
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            languages.chunked(2).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { language ->
+                        val isSelected = selected == language
+                        OutlinedButton(
+                            onClick = { onSelected(language) },
+                            modifier = Modifier.width(cardWidth).height(46.dp),
+                            shape = RoundedCornerShape(5.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) palette.primary else palette.line),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isSelected) palette.soft else palette.panel,
+                                contentColor = if (isSelected) palette.softText else palette.text,
+                            ),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 7.dp),
+                        ) { Text(language.displayName, textAlign = TextAlign.Start, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
             }
@@ -578,6 +649,7 @@ private fun WorldviewChoices(
 @Composable
 private fun NotePanel(
     palette: VeilPalette,
+    strings: VeilStrings,
     note: String,
     saved: Boolean,
     onNoteChange: (String) -> Unit,
@@ -591,11 +663,11 @@ private fun NotePanel(
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
         Column {
-            TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) { Text("‹  Back", color = palette.muted) }
+            TextButton(onClick = onBack, contentPadding = PaddingValues(0.dp)) { Text("‹  ${strings.back}", color = palette.muted) }
             Spacer(Modifier.height(30.dp))
-            Eyebrow("A note for yourself", palette)
+            Eyebrow(strings.note_for_yourself, palette)
             Spacer(Modifier.height(14.dp))
-            Text("What do you want\nto remember?", color = palette.text, style = MaterialTheme.typography.displaySmall, fontFamily = FontFamily.Serif)
+            Text(strings.what_remember, color = palette.text, style = MaterialTheme.typography.displaySmall, fontFamily = FontFamily.Serif)
             Spacer(Modifier.height(28.dp))
             OutlinedTextField(
                 value = note,
@@ -603,7 +675,7 @@ private fun NotePanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp),
-                placeholder = { Text("One line is enough.", color = palette.muted) },
+                placeholder = { Text(strings.one_line_enough, color = palette.muted) },
                 shape = RoundedCornerShape(5.dp),
                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = palette.primary,
@@ -616,14 +688,14 @@ private fun NotePanel(
             )
         }
         Column(horizontalAlignment = Alignment.End) {
-            Text("Stored locally on this device.", color = palette.muted, style = MaterialTheme.typography.bodySmall)
+            Text(strings.stored_locally, color = palette.muted, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(10.dp))
             Button(
                 onClick = onSave,
                 enabled = note.trim().isNotEmpty(),
                 shape = RoundedCornerShape(5.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = palette.primary, contentColor = Color.White),
-            ) { Text(if (saved) "Saved" else "Save note") }
+            ) { Text(if (saved) strings.saved else strings.save_note) }
         }
     }
 }
@@ -640,11 +712,11 @@ private fun Eyebrow(text: String, palette: VeilPalette) {
 }
 
 @Composable
-private fun VeilFooter(palette: VeilPalette) {
+private fun VeilFooter(palette: VeilPalette, strings: VeilStrings) {
     Column {
         HorizontalDivider(color = palette.line)
         Spacer(Modifier.height(12.dp))
-        Text("No tracking · no screen capture · no device monitoring", color = palette.muted, style = MaterialTheme.typography.labelSmall)
+        Text(strings.no_tracking, color = palette.muted, style = MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -653,14 +725,14 @@ private fun durationLabel(duration: CooldownDuration): String = when (duration) 
     else -> "${duration.minutes} min"
 }
 
-private fun taskLabel(task: RecoveryTask): String = when (task) {
-    RecoveryTask.PUSH_UPS -> "Push-ups"
-    RecoveryTask.BREATHING -> "Breathing"
-    RecoveryTask.WALK -> "Walk"
-    RecoveryTask.JOURNAL -> "Journal"
-    RecoveryTask.WATER -> "Water"
-    RecoveryTask.STRETCH -> "Stretch"
-    RecoveryTask.OFFLINE_PAUSE -> "Offline pause"
+private fun taskLabel(task: RecoveryTask, strings: VeilStrings): String = when (task) {
+    RecoveryTask.PUSH_UPS -> strings.push_ups
+    RecoveryTask.BREATHING -> strings.breathing
+    RecoveryTask.WALK -> strings.walk
+    RecoveryTask.JOURNAL -> strings.journal
+    RecoveryTask.WATER -> strings.water
+    RecoveryTask.STRETCH -> strings.stretch
+    RecoveryTask.OFFLINE_PAUSE -> strings.offline_pause
 }
 
 @HiltViewModel
@@ -695,6 +767,11 @@ class VeilViewModel @Inject constructor(
 
     fun setCooldownCompletionNotificationsEnabled(enabled: Boolean) {
         settings = settings.copy(cooldownCompletionNotificationsEnabled = enabled)
+        persistSettings()
+    }
+
+    fun setUiLanguage(language: UiLanguage) {
+        settings = settings.copy(uiLanguage = language)
         persistSettings()
     }
 

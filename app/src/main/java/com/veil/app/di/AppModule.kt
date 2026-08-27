@@ -23,6 +23,7 @@ object AppModule {
             .addMigrations(VeilDatabase.MIGRATION_1_2)
             .addMigrations(VeilDatabase.MIGRATION_2_3)
             .addMigrations(VeilDatabase.MIGRATION_3_4)
+            .addMigrations(VeilDatabase.MIGRATION_4_5)
             .build()
 
     @Provides

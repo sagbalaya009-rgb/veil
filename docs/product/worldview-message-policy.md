@@ -26,7 +26,7 @@ When the user selects Islam, Veil shows this complete reference in the cooldown 
 >
 > **Translation:** “O My servants who have exceeded the limits against their souls! Do not lose hope in Allah’s mercy, for Allah certainly forgives all sins. He is indeed the All-Forgiving, Most Merciful.” — *The Clear Quran*, Dr. Mustafa Khattab.[1]
 
-The app keeps the Arabic, transliteration, translation, and source together so the user can identify the verse and the translation rather than seeing an unattributed or shortened line.
+The app keeps the Arabic, transliteration, translation, and source together so the user can identify the verse and the translation rather than seeing an unattributed or shortened line. The entire message sits in a scrollable cooldown panel, so the translation remains visible on smaller Android screens instead of falling below an unscrollable panel.
 
 ## Optional quiet completion notification
 

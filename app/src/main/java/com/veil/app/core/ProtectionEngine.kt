@@ -66,6 +66,7 @@ data class ProtectionSettings(
     val recoveryNote: String = "",
     val worldview: WorldviewPreference? = null,
     val cooldownCompletionNotificationsEnabled: Boolean = false,
+    val uiLanguage: UiLanguage = UiLanguage.ENGLISH,
 ) {
     companion object {
         const val INITIAL_THRESHOLD = 0.90f

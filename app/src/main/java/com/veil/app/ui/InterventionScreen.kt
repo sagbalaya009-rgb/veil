@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.veil.app.core.ProtectionState
 import com.veil.app.core.RecoveryTask
 import com.veil.app.core.SupportiveMessage
+import com.veil.app.core.VeilStrings
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.delay
@@ -41,6 +43,7 @@ fun InterventionScreen(
     recoveryNote: String? = null,
     supportiveMessage: SupportiveMessage? = null,
     darkMode: Boolean,
+    strings: VeilStrings,
     onRecoveryComplete: () -> Unit,
     onCooldownFinished: () -> Unit,
     onChangePlan: () -> Unit,
@@ -63,19 +66,19 @@ fun InterventionScreen(
         }
     }
     val time = "%02d:%02d".format(secondsRemaining / 60, secondsRemaining % 60)
-    val task = taskCopy(state.recoveryTask)
+    val task = taskLabel(state.recoveryTask, strings)
 
     Surface(modifier = Modifier.fillMaxSize(), color = palette.background) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 28.dp),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 24.dp, vertical = 28.dp),
             verticalArrangement = Arrangement.Center,
         ) {
+            item {
             Surface(color = palette.panel, shape = RoundedCornerShape(5.dp)) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        "COOLDOWN STARTED",
+                        strings.cooldown_started.uppercase(),
                         color = palette.primary,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
@@ -83,17 +86,12 @@ fun InterventionScreen(
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        "Good call. You chose a pause.",
+                        strings.good_call,
                         color = palette.text,
                         style = MaterialTheme.typography.displaySmall,
                         fontFamily = FontFamily.Serif,
                     )
                     Spacer(Modifier.height(16.dp))
-                    Text(
-                        "Your local ${state.recoveryTask.name.lowercase().replace('_', ' ')} reset is active. You made a thoughtful choice for yourself.",
-                        color = palette.muted,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
                     Spacer(Modifier.height(26.dp))
                     Surface(color = palette.soft, shape = RoundedCornerShape(0.dp)) {
                         Column(
@@ -101,37 +99,33 @@ fun InterventionScreen(
                                 .fillMaxWidth()
                                 .padding(18.dp),
                         ) {
-                            Text("TIME REMAINING", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                            Text(strings.time_remaining.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.height(6.dp))
                             Text(time, color = palette.text, style = MaterialTheme.typography.displayLarge, fontFamily = FontFamily.Serif)
                         }
                     }
                     Spacer(Modifier.height(20.dp))
-                    Text("YOUR RESET ACTIVITY", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                    Text(strings.your_reset_activity.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.height(7.dp))
-                    Text(task.first, color = palette.text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(3.dp))
-                    Text(task.second, color = palette.muted, style = MaterialTheme.typography.bodyMedium)
+                    Text(task, color = palette.text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     if (!recoveryNote.isNullOrBlank()) {
                         Spacer(Modifier.height(20.dp))
-                        Text("YOUR NOTE", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                        Text(strings.your_note.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(7.dp))
                         Text("“$recoveryNote”", color = palette.text, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
                     }
                     if (supportiveMessage != null) {
                         Spacer(Modifier.height(20.dp))
-                        Text(supportiveMessage.label.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                        Text(supportiveMessage.reference.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(7.dp))
                         if (supportiveMessage.arabicText != null) {
-                            Text(supportiveMessage.reference, color = palette.text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            Spacer(Modifier.height(10.dp))
                             Text(supportiveMessage.arabicText, color = palette.text, style = MaterialTheme.typography.titleLarge, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.fillMaxWidth())
                             Spacer(Modifier.height(12.dp))
-                            Text("TRANSLITERATION", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                            Text(strings.transliteration.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.height(5.dp))
                             Text(supportiveMessage.transliteration.orEmpty(), color = palette.muted, style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.height(12.dp))
-                            Text("TRANSLATION", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                            Text(strings.translation.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.height(5.dp))
                             Text("“${supportiveMessage.body}”", color = palette.text, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Serif)
                             Spacer(Modifier.height(5.dp))
@@ -144,7 +138,7 @@ fun InterventionScreen(
                     }
                     Spacer(Modifier.height(24.dp))
                     Text(
-                        "Android preview only: this screen is local to Veil. It does not yet inspect other apps or blur your phone.",
+                        strings.preview_only,
                         color = palette.muted,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -155,32 +149,33 @@ fun InterventionScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(5.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = palette.primary, contentColor = Color.White),
-                    ) { Text("I’m done") }
+                    ) { Text(strings.im_done) }
                     Spacer(Modifier.height(10.dp))
                     OutlinedButton(
                         onClick = onChangePlan,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(5.dp),
-                    ) { Text("Change plan", color = palette.text) }
+                    ) { Text(strings.change_plan, color = palette.text) }
                     Spacer(Modifier.height(4.dp))
                     androidx.compose.material3.TextButton(
                         onClick = onEmergencyOverride,
                         modifier = Modifier.align(Alignment.CenterHorizontally),
-                    ) { Text("Emergency override", color = palette.muted) }
+                    ) { Text(strings.emergency_override, color = palette.muted) }
                 }
             }
+        }
         }
     }
 }
 
-private fun taskCopy(task: RecoveryTask): Pair<String, String> = when (task) {
-    RecoveryTask.PUSH_UPS -> "Push-ups" to "10 gentle reps"
-    RecoveryTask.BREATHING -> "Breathing" to "2 minutes"
-    RecoveryTask.WALK -> "Walk" to "5 minutes"
-    RecoveryTask.JOURNAL -> "Journal" to "One honest line"
-    RecoveryTask.WATER -> "Water" to "Fill a glass"
-    RecoveryTask.STRETCH -> "Stretch" to "3 slow minutes"
-    RecoveryTask.OFFLINE_PAUSE -> "Offline pause" to "Put the phone down"
+private fun taskLabel(task: RecoveryTask, strings: VeilStrings): String = when (task) {
+    RecoveryTask.PUSH_UPS -> strings.push_ups
+    RecoveryTask.BREATHING -> strings.breathing
+    RecoveryTask.WALK -> strings.walk
+    RecoveryTask.JOURNAL -> strings.journal
+    RecoveryTask.WATER -> strings.water
+    RecoveryTask.STRETCH -> strings.stretch
+    RecoveryTask.OFFLINE_PAUSE -> strings.offline_pause
 }
 
 private data class CooldownPalette(
