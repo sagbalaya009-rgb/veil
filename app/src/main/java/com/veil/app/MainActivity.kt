@@ -1,8 +1,13 @@
 package com.veil.app
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,11 +41,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.veil.app.core.CooldownDuration
@@ -53,6 +60,7 @@ import com.veil.app.core.RecoveryTask
 import com.veil.app.core.WorldviewPreference
 import com.veil.app.core.supportiveMessageFor
 import com.veil.app.data.VeilRepository
+import com.veil.app.services.CooldownCompletionNotifier
 import com.veil.app.ui.InterventionScreen
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -106,6 +114,24 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        viewModel.setCooldownCompletionNotificationsEnabled(granted)
+    }
+    val toggleCompletionNotifications = {
+        if (viewModel.settings.cooldownCompletionNotificationsEnabled) {
+            viewModel.setCooldownCompletionNotificationsEnabled(false)
+        } else if (
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        ) {
+            viewModel.setCooldownCompletionNotificationsEnabled(true)
+        } else {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
     var destinationName by remember { mutableStateOf(VeilDestination.HOME.name) }
     val destination = VeilDestination.valueOf(destinationName)
     var darkMode by remember { mutableStateOf(false) }
@@ -136,6 +162,7 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                     supportiveMessage = supportiveMessageFor(viewModel.settings.worldview),
                     darkMode = darkMode,
                     onRecoveryComplete = viewModel::completeRecovery,
+                    onCooldownFinished = viewModel::onCooldownFinished,
                     onChangePlan = {
                         viewModel.cancelPreviewCooldown()
                         destinationName = VeilDestination.RESET.name
@@ -169,9 +196,11 @@ private fun VeilApp(viewModel: VeilViewModel = hiltViewModel()) {
                                     selectedCooldown = selectedCooldown,
                                     selectedTask = selectedTask,
                                     selectedWorldview = selectedWorldview,
+                                    notificationsEnabled = viewModel.settings.cooldownCompletionNotificationsEnabled,
                                     onCooldownSelected = { selectedCooldown = it },
                                     onTaskSelected = { selectedTask = it },
                                     onWorldviewSelected = { selectedWorldview = it },
+                                    onNotificationsToggle = toggleCompletionNotifications,
                                     onBack = { destinationName = VeilDestination.HOME.name },
                                     onStart = { viewModel.startPreviewCooldown(selectedCooldown, selectedTask, selectedWorldview) },
                                 )
@@ -350,9 +379,11 @@ private fun ResetPanel(
     selectedCooldown: CooldownDuration,
     selectedTask: RecoveryTask,
     selectedWorldview: WorldviewPreference?,
+    notificationsEnabled: Boolean,
     onCooldownSelected: (CooldownDuration) -> Unit,
     onTaskSelected: (RecoveryTask) -> Unit,
     onWorldviewSelected: (WorldviewPreference) -> Unit,
+    onNotificationsToggle: () -> Unit,
     onBack: () -> Unit,
     onStart: () -> Unit,
 ) {
@@ -389,21 +420,11 @@ private fun ResetPanel(
             }
         }
         item {
-            Surface(color = palette.panel, shape = RoundedCornerShape(5.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.width(190.dp)) {
-                        Text("Quiet completion notification", color = palette.text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.height(3.dp))
-                        Text("Available when native notifications are added.", color = palette.muted, style = MaterialTheme.typography.bodySmall)
-                    }
-                    OutlinedButton(onClick = {}, enabled = false, shape = RoundedCornerShape(5.dp)) { Text("Turn on") }
-                }
-            }
+            NotificationPreferenceRow(
+                enabled = notificationsEnabled,
+                palette = palette,
+                onToggle = onNotificationsToggle,
+            )
         }
         item {
             Text(
@@ -422,6 +443,25 @@ private fun ResetPanel(
                     colors = ButtonDefaults.buttonColors(containerColor = palette.primary, contentColor = Color.White),
                 ) { Text("Test cooldown") }
             }
+        }
+    }
+}
+
+@Composable
+private fun NotificationPreferenceRow(enabled: Boolean, palette: VeilPalette, onToggle: () -> Unit) {
+    Surface(color = palette.panel, shape = RoundedCornerShape(5.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.width(190.dp)) {
+                Text("Quiet completion notification", color = palette.text, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(3.dp))
+                Text("Optional. Only sent when this cooldown ends.", color = palette.muted, style = MaterialTheme.typography.bodySmall)
+            }
+            OutlinedButton(onClick = onToggle, shape = RoundedCornerShape(5.dp)) { Text(if (enabled) "On" else "Turn on") }
         }
     }
 }
@@ -626,6 +666,7 @@ private fun taskLabel(task: RecoveryTask): String = when (task) {
 @HiltViewModel
 class VeilViewModel @Inject constructor(
     private val repository: VeilRepository,
+    private val cooldownCompletionNotifier: CooldownCompletionNotifier,
 ) : ViewModel() {
     var settings by mutableStateOf(ProtectionSettings())
         private set
@@ -652,6 +693,11 @@ class VeilViewModel @Inject constructor(
         persistSettings()
     }
 
+    fun setCooldownCompletionNotificationsEnabled(enabled: Boolean) {
+        settings = settings.copy(cooldownCompletionNotificationsEnabled = enabled)
+        persistSettings()
+    }
+
     /** Local UI preview only: it does not capture, inspect, or retain any screen content. */
     fun startPreviewCooldown(
         cooldown: CooldownDuration,
@@ -675,6 +721,12 @@ class VeilViewModel @Inject constructor(
 
     fun completeRecovery() {
         state = engine.completeRecovery()
+    }
+
+    fun onCooldownFinished() {
+        if (settings.cooldownCompletionNotificationsEnabled) {
+            cooldownCompletionNotifier.notifyIfAllowed()
+        }
     }
 
     fun useEmergencyOverride() {

@@ -65,6 +65,7 @@ data class ProtectionSettings(
     val lockPeriod: LockPeriod = LockPeriod.TWO_HOURS,
     val recoveryNote: String = "",
     val worldview: WorldviewPreference? = null,
+    val cooldownCompletionNotificationsEnabled: Boolean = false,
 ) {
     companion object {
         const val INITIAL_THRESHOLD = 0.90f

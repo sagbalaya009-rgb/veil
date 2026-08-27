@@ -42,6 +42,7 @@ fun InterventionScreen(
     supportiveMessage: SupportiveMessage? = null,
     darkMode: Boolean,
     onRecoveryComplete: () -> Unit,
+    onCooldownFinished: () -> Unit,
     onChangePlan: () -> Unit,
     onEmergencyOverride: () -> Unit,
 ) {
@@ -54,6 +55,13 @@ fun InterventionScreen(
         }
     }
     val secondsRemaining = Duration.between(currentTime, state.cooldownEndsAt).seconds.coerceAtLeast(0)
+    var completionHandled by remember(state.cooldownEndsAt) { mutableStateOf(false) }
+    LaunchedEffect(secondsRemaining) {
+        if (secondsRemaining == 0L && !completionHandled) {
+            completionHandled = true
+            onCooldownFinished()
+        }
+    }
     val time = "%02d:%02d".format(secondsRemaining / 60, secondsRemaining % 60)
     val task = taskCopy(state.recoveryTask)
 
@@ -114,9 +122,25 @@ fun InterventionScreen(
                         Spacer(Modifier.height(20.dp))
                         Text(supportiveMessage.label.uppercase(), color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(7.dp))
-                        Text("“${supportiveMessage.body}”", color = palette.text, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
-                        Spacer(Modifier.height(5.dp))
-                        Text(supportiveMessage.reference, color = palette.muted, style = MaterialTheme.typography.bodySmall)
+                        if (supportiveMessage.arabicText != null) {
+                            Text(supportiveMessage.reference, color = palette.text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(10.dp))
+                            Text(supportiveMessage.arabicText, color = palette.text, style = MaterialTheme.typography.titleLarge, textAlign = androidx.compose.ui.text.style.TextAlign.End, modifier = Modifier.fillMaxWidth())
+                            Spacer(Modifier.height(12.dp))
+                            Text("TRANSLITERATION", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(5.dp))
+                            Text(supportiveMessage.transliteration.orEmpty(), color = palette.muted, style = MaterialTheme.typography.bodySmall)
+                            Spacer(Modifier.height(12.dp))
+                            Text("TRANSLATION", color = palette.softText, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(5.dp))
+                            Text("“${supportiveMessage.body}”", color = palette.text, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Serif)
+                            Spacer(Modifier.height(5.dp))
+                            Text(supportiveMessage.translationAttribution.orEmpty(), color = palette.muted, style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            Text("“${supportiveMessage.body}”", color = palette.text, style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
+                            Spacer(Modifier.height(5.dp))
+                            Text(supportiveMessage.reference, color = palette.muted, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                     Spacer(Modifier.height(24.dp))
                     Text(

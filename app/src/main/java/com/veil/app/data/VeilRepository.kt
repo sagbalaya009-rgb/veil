@@ -27,6 +27,7 @@ class VeilRepository(
                 lockPeriod = settings.lockPeriod.name,
                 recoveryNote = settings.recoveryNote,
                 worldview = settings.worldview?.name.orEmpty(),
+                cooldownCompletionNotificationsEnabled = settings.cooldownCompletionNotificationsEnabled,
             ),
         )
     }
@@ -58,5 +59,6 @@ class VeilRepository(
         worldview = entity.worldview.takeIf { it.isNotBlank() }?.let {
             runCatching { WorldviewPreference.valueOf(it) }.getOrNull()
         },
+        cooldownCompletionNotificationsEnabled = entity.cooldownCompletionNotificationsEnabled,
     )
 }

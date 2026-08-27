@@ -17,10 +17,13 @@ class WorldviewSupportTest {
         val christianity = supportiveMessageFor(WorldviewPreference.CHRISTIANITY)
         val atheist = supportiveMessageFor(WorldviewPreference.ATHEIST)
 
-        assertEquals("Qur’an 39:53 · The Clear Quran", islam?.reference)
+        assertEquals("Surah Az-Zumar · 39:53", islam?.reference)
         assertEquals("1 John 1:9 · King James Version", christianity?.reference)
         assertEquals("A secular recovery reminder", atheist?.reference)
         assertNotNull(islam?.sourceUrl)
+        assertNotNull(islam?.arabicText)
+        assertNotNull(islam?.transliteration)
+        assertNotNull(islam?.translationAttribution)
         assertNotNull(christianity?.sourceUrl)
     }
 }

@@ -12,6 +12,9 @@ data class SupportiveMessage(
     val body: String,
     val reference: String,
     val sourceUrl: String? = null,
+    val arabicText: String? = null,
+    val transliteration: String? = null,
+    val translationAttribution: String? = null,
 )
 
 /**
@@ -21,9 +24,12 @@ data class SupportiveMessage(
 fun supportiveMessageFor(preference: WorldviewPreference?): SupportiveMessage? = when (preference) {
     WorldviewPreference.ISLAM -> SupportiveMessage(
         label = "A reminder from the Qur’an",
-        body = "Do not lose hope in Allah’s mercy.",
-        reference = "Qur’an 39:53 · The Clear Quran",
+        body = "O My servants who have exceeded the limits against their souls! Do not lose hope in Allah’s mercy, for Allah certainly forgives all sins. He is indeed the All-Forgiving, Most Merciful.",
+        reference = "Surah Az-Zumar · 39:53",
         sourceUrl = "https://quran.com/az-zumar/53",
+        arabicText = "قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا ۚ إِنَّهُ هُوَ الْغَفُورُ الرَّحِيمُ",
+        transliteration = "Qul yaa’ibaadiyal lazeena asrafoo ‘alaaa anfusihim laa taqnatoo mirrahmatil laah; innal laaha yaghfiruz zunooba jamee’aa; innahoo Huwal Ghafoorur Raheem.",
+        translationAttribution = "English translation: The Clear Quran · Dr. Mustafa Khattab",
     )
     WorldviewPreference.CHRISTIANITY -> SupportiveMessage(
         label = "A reminder from the Bible",

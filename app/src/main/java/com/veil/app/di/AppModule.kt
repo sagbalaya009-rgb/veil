@@ -22,6 +22,7 @@ object AppModule {
         Room.databaseBuilder(context, VeilDatabase::class.java, "veil.db")
             .addMigrations(VeilDatabase.MIGRATION_1_2)
             .addMigrations(VeilDatabase.MIGRATION_2_3)
+            .addMigrations(VeilDatabase.MIGRATION_3_4)
             .build()
 
     @Provides
