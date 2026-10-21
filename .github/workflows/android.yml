@@ -23,6 +23,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          accept-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
         with:
           validate-wrappers: true
@@ -63,6 +66,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          accept-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
         with:
           validate-wrappers: true
@@ -72,13 +78,28 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Run Android instrumentation tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          profile: pixel_2
-          disable-animations: true
-          script: bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest
+        run: |
+          # Use only licenses already present on the hosted runner. Do not accept agreements.
+          sdkmanager 'platforms;android-35' 'build-tools;34.0.0' 'system-images;android-35;default;x86_64' emulator
+          echo no | avdmanager create avd --force --name veil-api35 --package 'system-images;android-35;default;x86_64' --device pixel_2
+          "$ANDROID_HOME/emulator/emulator" -avd veil-api35 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
+          emulator_pid=$!
+          trap 'kill "$emulator_pid" || true' EXIT
+          timeout 180 adb wait-for-device
+          booted=false
+          for attempt in $(seq 1 60); do
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then
+              booted=true
+              break
+            fi
+            sleep 5
+          done
+          if [ "$booted" != true ]; then cat emulator.log; exit 1; fi
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          adb shell input keyevent 82
+          bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest
       - name: Preserve device test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -87,4 +108,5 @@ jobs:
           path: |
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
+            emulator.log
           if-no-files-found: warn

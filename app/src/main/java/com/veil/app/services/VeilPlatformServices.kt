@@ -13,6 +13,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.ScrollView
 import com.veil.app.MainActivity
 
 /**
@@ -27,7 +28,7 @@ class VeilAccessibilityService : AccessibilityService() {
     private val tick = object : Runnable {
         override fun run() { store.tick(); render(); handler.postDelayed(this, 1000) }
     }
-    override fun onServiceConnected() { store.connection(true); handler.post(tick) }
+    override fun onServiceConnected() { store.connection(true); handler.removeCallbacks(tick); handler.post(tick) }
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString() ?: return
@@ -48,6 +49,10 @@ class VeilAccessibilityService : AccessibilityService() {
             orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
             setPadding(40, 40, 40, 40); setBackgroundColor(Color.rgb(23, 24, 28))
         }
+        panel.addView(Button(this).apply {
+            text = "Emergency exit — end restrictions"
+            setOnClickListener { store.endFocus(); store.dismissCooldown(); removeOverlay() }
+        }, LinearLayout.LayoutParams(-1, -2))
         panel.addView(TextView(this).apply {
             text = "VEIL\n\n$reason\n\nLeave this app, open recovery, or exit protection at any time."
             setTextColor(Color.WHITE); textSize = 22f; gravity = Gravity.CENTER
@@ -65,10 +70,10 @@ class VeilAccessibilityService : AccessibilityService() {
             runCatching { startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)) }
         }
         if (store.state.value.cooldownPackage == pkg) button("Incorrect detection / dismiss cooldown") { store.dismissCooldown(true); removeOverlay() }
-        button("Emergency exit — end restrictions") { store.endFocus(); store.dismissCooldown(); removeOverlay() }
+        val scroll = ScrollView(this).apply { isFillViewport = true; addView(panel) }
         val params = WindowManager.LayoutParams(-1, -1, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT).apply { gravity = Gravity.CENTER }
-        try { getSystemService(WindowManager::class.java).addView(panel, params); overlay = panel }
+        try { getSystemService(WindowManager::class.java).addView(scroll, params); overlay = scroll }
         catch (_: RuntimeException) { foreground = null; MonitoringRuntime.updateForegroundPackage(null); store.connection(false); stopService(Intent(this, VeilMonitoringService::class.java)) }
     }
     private fun removeOverlay() {

@@ -1,76 +1,34 @@
-# Project Veil
+# Veil
 
-**Project Veil** is an Android-first digital-wellbeing application that helps people enforce self-control commitments around explicit content and other distracting behaviors. Veil is designed as a **user-controlled protective layer**, not a surveillance product: processing is local, operation is visible, and the user chooses when protection is active.
+Veil is an experimental, offline Android wellbeing app: voluntary focus commitments, user-consented visual screening and calm recovery activities.
 
-## What Veil does
+The native app now includes onboarding, a live-status dashboard, focus app selection and scheduled starts, package-bound dismissible overlays, monotonic timers, local history and privacy controls. Existing local recovery notes, language/worldview choices and recovery-plan UI remain accessible through Reset. The separate website is retained without deployment changes.
 
-Veil’s target Android protection path will analyze bounded screen frames locally only after the user has completed a separate, explicit Android consent flow and a reviewed classifier model has passed real-device validation. A confirmed detection will present a calm intervention for the triggering application only, with a configurable cooldown and recovery task. It must not shame the user, block unrelated apps, or become a surveillance tool.
+Visual screening uses a real bundled, checksum-pinned MobileNetV2 TensorFlow Lite model. Android screen sharing always needs explicit consent; capture never restarts silently. The app has no INTERNET permission and does not store screen frames. Accessibility access is optional for focus and required before visual interventions; it receives app-window metadata without retrieving text or window content. All restrictions can be ended immediately; system settings, launchers and calls are excluded.
 
-The first release is intentionally narrow. The MVP proves one core hypothesis: a user can enable protection, encounter explicit content, be interrupted within approximately one second, complete a recovery action, and avoid immediately returning to the triggering content.
+**This is an experimental engineering build.** Semantic accuracy on mobile feeds, target-device battery/performance and complete physical lifecycle qualification are pending. A provisional score threshold is not calibrated accuracy. Protected surfaces cannot be analyzed; ordinary Android apps cannot guarantee blocking. See the delivery report for exact build, test and artifact evidence.
 
-## Product principles
+## Build
 
-| Principle | Meaning |
-|---|---|
-| User autonomy | Protection is explicitly initiated and controlled by the person using the device. |
-| Privacy by architecture | Screen frames, recordings, browsing history, and classifier inputs are never stored or sent to a cloud service. |
-| Calm authority | Intervention is direct, non-judgmental, and focused on the next healthy action. |
-| Trust over growth | Veil will choose stronger transparency and privacy over faster adoption. |
-| Graceful degradation | If Android revokes a permission or a device limits background execution, Veil reports the reduced protection state rather than pretending to be active. |
-
-## MVP scope
-
-The current Android MVP targets Android 12+ and includes a minimal Home / Reset / Note flow, cooldown choices from 10 minutes through one hour, recovery tasks, local notes, a voluntary worldview preference, local cooldown preview, optional quiet completion notification, and a local language preference. It does not currently enable Android Accessibility Service, MediaProjection, screen capture, a foreground monitoring service, an overlay, live TensorFlow Lite inference, or app-specific enforcement. Those capabilities require clear consent, visible status, model approval, and real-device validation before they can be enabled.
-
-The initial model target is an on-device TensorFlow Lite classifier. The first threshold is **0.90 confidence**, intentionally favoring fewer false positives during early testing. The battery target is no more than approximately **5% additional daily consumption**, with adaptive sampling: idle at 0.5 FPS, normal use at 1 FPS, and active scrolling at 2 FPS.
-
-## Repository map
+Use JDK 17, Android SDK 35 and the pinned Gradle wrapper:
 
 ```text
-veil/
-├── README.md
-├── FOUNDER_MEMO.md
-├── ROADMAP.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── CODE_OF_CONDUCT.md
-├── SECURITY.md
-├── LICENSE
-├── docs/
-│   ├── overview.md
-│   ├── product/mvp-spec.md
-│   ├── product/problem.md
-│   ├── product/vision.md
-│   ├── architecture/android-architecture.md
-│   ├── architecture/ai-system.md
-│   ├── security/privacy-security.md
-│   ├── security/ethical-boundaries.md
-│   ├── security/risk-register.md
-│   ├── operations/build-plan.md
-│   ├── operations/testing.md
-│   ├── decisions/0001-on-device-ai.md
-│   └── source/original-notes.txt
-├── app/        # Android application (UI, domain, persistence, services, and tests)
-├── ml/         # Local-only training, evaluation, conversion, and review workshop; no raw data
-└── .github/    # Issue forms, pull request template, and CI configuration
+./gradlew testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease
 ```
 
-The Android implementation directories are scaffolds until the initial application code is added. The documentation is the current source of truth for product boundaries, architecture, privacy, and release gates.
+Windows: `gradlew.bat` or `tools/verify.ps1`. CI builds debug APKs and unsigned release APKs, with a separate API35 emulator instrumentation job. A workflow file alone is not evidence of a passing run. Debug APK path: `app/build/outputs/apk/debug/app-debug.apk` after a successful build. [Build and release instructions](docs/releases/BUILD_AND_RELEASE.md).
 
-## Status
+## Read next
 
-**Phase:** Working Android UI and safe local-model preparation
+- [Documentation index](docs/INDEX.md)
+- [Engineering delivery report](docs/releases/ENGINEERING_DELIVERY_REPORT.md)
+- [Repository audit](docs/audits/REPOSITORY_AUDIT.md)
+- [Architecture](docs/architecture/OVERVIEW.md)
+- [Model source, license and limits](docs/ai/MODEL_SELECTION.md)
+- [Model evaluation evidence](docs/ai/MODEL_EVALUATION.md)
+- [Privacy architecture](docs/privacy/PRIVACY_ARCHITECTURE.md)
+- [Android permissions](docs/compliance/ANDROID_PERMISSIONS.md)
+- [Device test matrix](docs/testing/DEVICE_TEST_MATRIX.md)
+- [Contributor instructions](AGENTS.md)
 
-**Next milestone:** Secure approved adult-only training/evaluation data, run the documented local model workshop, and benchmark any passing TensorFlow Lite candidate on the Galaxy M20 before introducing sensitive capture or enforcement capabilities.
-
-## Important boundary
-
-Veil must never become a remote monitoring tool. It must not hide its operation, transmit screen content, read message contents unnecessarily, log accessibility events, or provide third-party supervision. Any future feature that weakens these boundaries requires an explicit architecture decision and privacy review.
-
-## License
-
-This repository is currently released under the Apache License 2.0. See [LICENSE](LICENSE).
-
-## Source notes
-
-The initial product brief supplied for this repository is preserved at [`docs/source/original-notes.txt`](docs/source/original-notes.txt). The structured documents in `docs/` normalize those notes under the Veil name and organize them for implementation.
+Minimum Android version: 12 (API31). No accounts, paid backend, remote moderation or analytics. Project source is Apache-2.0; the bundled model carries its separate upstream MIT notice. Model training-data provenance remains incomplete; no screenshot-domain performance or independently audited training rights are claimed.

@@ -5,7 +5,7 @@
 ## Evidence classes
 
 1. Byte integrity: the bundled 17,355,548-byte TFLite SHA-256 is `380f98f7685f9d8a386f8cc595b6dfcb972989aae3d1b8b270d3a4a5b96fab40`; the loader checks the manifest and the code pin. The exact upstream distributor commit is recorded in MODEL_SELECTION.md.
-2. Desktop execution: pending the local LiteRT runtime installation at the time of this initial document; the generated `desktop-smoke-report.json`, when present, is the authoritative executed result. Generated solid colors test shapes, numerics, loading, and actual inference only. They contain no meaningful labeled NSFW examples.
+2. Desktop execution: **passed** using `ai-edge-litert==2.1.2`, Python 3.12.14 on Windows 11, two CPU threads. The generated `desktop-smoke-report.json` is the authoritative executed result: six generated solid colors plus 20 additional gray inputs, after two excluded warmups; finite normalized five-class outputs. Observed median invoke time **125.93 ms**, p95 **152.66 ms** (26 measured invokes). These fixtures test loading, shape, numerics, and actual inference only. They contain no meaningful labeled NSFW examples.
 3. Android execution: `BundledModelInferenceTest` initializes the shipped asset and repeatedly processes generated solid colors. Its presence is not a claim that it ran. See the build/device report for executed instrumentation status.
 4. Semantic accuracy: **not measured**. No labeled content dataset was acquired. No precision, recall, false-positive rate, F1, skin-tone robustness, screenshot-domain accuracy, or validated threshold is claimed.
 5. Performance: only values actually present in the desktop smoke report may be described as measured. Desktop invocation timing excludes capture, decoding, resizing, Android/JNI, overlays, and battery costs. It does not establish latency, thermal, or battery behavior on the TECNO SPARK 30C.
@@ -47,3 +47,4 @@ Do not treat upstream promotional accuracy as Veil accuracy, and do not tune thr
 - No bounding boxes or precise redaction regions are produced by this classifier.
 - MIT license evidence exists; a complete training-data rights/consent audit and a conversion parity comparison against the original training artifact do not.
 - The original repository's future Galaxy M20 release gate was tied to an absent custom binary model. The current master directive authorizes a real experimental upstream integration and names TECNO SPARK 30C as the owner test device. The new manifest records engineering integration review, not owner sign-off, model accuracy qualification, or completed physical-device testing. Existing training-data/export safety gates were retained.
+
