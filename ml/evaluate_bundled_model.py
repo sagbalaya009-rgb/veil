@@ -19,6 +19,47 @@ from PIL import Image
 LABELS = ["drawings", "hentai", "neutral", "porn", "sexy"]
 
 
+
+def read_evaluation_manifest(path: Path):
+    """Validate reviewer assertions and constrain local files to the manifest directory.
+
+    Assertions cannot prove age, consent, licensing, or split independence. A qualified
+    reviewer remains responsible for those claims; the harness never downloads images.
+    """
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    required = ["approvedForEvaluation", "adultOnlyAssurance", "rightsVerified", "independentOfTraining"]
+    if not isinstance(manifest, dict) or any(manifest.get(field) is not True for field in required):
+        raise ValueError("Evaluation requires reviewed independent, licensed, approved adult-only data.")
+    source, license_name = manifest.get("sourceUrl"), manifest.get("license")
+    if not isinstance(source, str) or not source.startswith("https://") or not isinstance(license_name, str) or not license_name.strip():
+        raise ValueError("Evaluation requires an HTTPS source URL and a named license.")
+    records = manifest.get("images")
+    if not isinstance(records, list) or not records:
+        raise ValueError("Evaluation requires a nonempty image list.")
+    base = path.resolve().parent
+    seen_paths, seen_bytes, samples = set(), set(), []
+    for record in records:
+        if not isinstance(record, dict) or type(record.get("explicit")) is not bool:
+            raise ValueError("Every evaluation record needs a boolean explicit label.")
+        relative = record.get("path")
+        if not isinstance(relative, str) or not relative.strip() or Path(relative).is_absolute():
+            raise ValueError("Evaluation image paths must be relative to the manifest directory.")
+        candidate = (base / relative).resolve()
+        if not candidate.is_relative_to(base):
+            raise ValueError("Evaluation image path escapes the approved manifest directory.")
+        if not candidate.is_file() or candidate in seen_paths:
+            raise ValueError("Evaluation image is absent or listed more than once.")
+        digest = hashlib.sha256(candidate.read_bytes()).hexdigest()
+        if digest in seen_bytes:
+            raise ValueError("Duplicate image bytes would invalidate independent sample counts.")
+        seen_paths.add(candidate)
+        seen_bytes.add(digest)
+        samples.append((candidate, record["explicit"]))
+    if {label for _, label in samples} != {True, False}:
+        raise ValueError("Evaluation must contain both positive and negative cases.")
+    return manifest, samples
+
+
 def interpreter_class():
     try:
         from ai_edge_litert.interpreter import Interpreter
@@ -89,24 +130,13 @@ def main():
         },
     }
     if args.evaluation_manifest:
-        manifest = json.loads(args.evaluation_manifest.read_text(encoding="utf-8"))
-        required = ["approvedForEvaluation", "adultOnlyAssurance", "rightsVerified", "independentOfTraining"]
-        if any(manifest.get(field) is not True for field in required) or not manifest.get("sourceUrl") or not manifest.get("license"):
-            raise ValueError("Evaluation requires documented independent, licensed, approved adult-only data.")
+        manifest, samples_to_evaluate = read_evaluation_manifest(args.evaluation_manifest)
         matrix = {"tp": 0, "fp": 0, "tn": 0, "fn": 0}
-        counts = {True: 0, False: 0}
-        for record in manifest["images"]:
-            label = record["explicit"]
-            if type(label) is not bool:
-                raise ValueError("explicit labels must be booleans")
-            path = args.evaluation_manifest.parent / record["path"]
+        for path, label in samples_to_evaluate:
             with Image.open(path) as image:
                 scores, _ = infer(image.convert("RGB").resize((224, 224), Image.Resampling.NEAREST))
             predicted = float(scores[1] + scores[3]) >= .90
             matrix[("t" if predicted == label else "f") + ("p" if predicted else "n")] += 1
-            counts[label] += 1
-        if not all(counts.values()):
-            raise ValueError("Evaluation must contain both positive and negative cases.")
         tp, fp, tn, fn = (matrix[k] for k in ["tp", "fp", "tn", "fn"])
         report["semanticValidation"] = "evaluated-on-owner-supplied-manifest; not automatic release qualification"
         report["evaluation"] = {"confusionMatrix": matrix, "threshold": .90,

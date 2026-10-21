@@ -1,4 +1,4 @@
-# Model evaluation status — 2026-10-21
+# Model evaluation status â€” 2026-10-21
 
 **Experimental integration. Semantic content accuracy and Android performance are not qualified.**
 
@@ -28,11 +28,11 @@ cd ml
 python -m unittest discover -s tests -v
 ```
 
-Five existing data/metric/export safety tests passed on 2026-10-21. An initial invocation from the root failed module import; using the documented ml working directory resolved the import, without changing tests.
+Eleven ML tests passed on 2026-10-21: the five existing data/metric/export safety tests and six evaluation-manifest tests covering local valid files, absolute paths, parent traversal, duplicate content, strict reviewer assertions, and boolean labels. An initial invocation from the root failed module import; using the documented ml working directory resolved the import, without changing tests.
 
 ## Independent semantic evaluation
 
-`evaluate_bundled_model.py --evaluation-manifest /controlled/path/manifest.json --output /controlled/path/report.json` accepts a separately reviewed local image set. The manifest must declare `approvedForEvaluation`, `adultOnlyAssurance`, `rightsVerified`, and `independentOfTraining` as true; record `sourceUrl`, `license`, and an `images` array of `{ "path": "relative/local/path", "explicit": true/false }`. Both classes are required. These are reviewer assertions, not automated verification of image rights or age. Do not use Veil users' captures as a dataset.
+`evaluate_bundled_model.py --evaluation-manifest /controlled/path/manifest.json --output /controlled/path/report.json` accepts a separately reviewed local image set. The manifest must declare `approvedForEvaluation`, `adultOnlyAssurance`, `rightsVerified`, and `independentOfTraining` as true; record `sourceUrl`, `license`, and an `images` array of `{ "path": "relative/local/path", "explicit": true/false }`. Both classes are required. Image paths must be relative and remain within the manifest directory after symlink resolution. Duplicate paths or duplicate file bytes are refused to protect sample counts. The source must be an HTTPS URL and the license must be named. These are reviewer assertions, not automated verification of image rights, consent, age, or split independence. A qualified reviewer remains responsible for the evidence. Do not use Veil users' captures as a dataset.
 
 The script reports a confusion matrix, precision, recall, and false-positive rate at the provisional 0.90 single-frame threshold. It never declares automatic release qualification. Separate phone testing must evaluate temporal confirmation, false-positive recovery, supported capture behavior, inference throughput, peak memory, battery drain over a fixed duration, screen rotation, permission revocation, thermal slowdown, and unsupported/protected surfaces. Keep safety-critical medical information and emergency use accessible.
 

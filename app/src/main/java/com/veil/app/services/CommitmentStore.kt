@@ -74,7 +74,7 @@ class CommitmentStore private constructor(context: Context) {
     }
     fun endFocus() = change { it.copy(focusEndElapsed = 0, focusPackages = emptySet(), events = it.events + event("FOCUS_ENDED_EARLY")) }
     fun intervene(score: Float, packageName: String) {
-        if (!score.isFinite() || !connected.value || isEssentialPackage(app, packageName)) return
+        if (!score.isFinite() || score !in VeilModelSpec.threshold..1f || !connected.value || isEssentialPackage(app, packageName)) return
         change {
             if (it.cooldownRemaining(SystemClock.elapsedRealtime(), bootCount()) > 0) it
             else it.copy(cooldownPackage = packageName, cooldownEndElapsed = SystemClock.elapsedRealtime() + it.cooldownMinutes * 60_000L,

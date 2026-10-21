@@ -33,6 +33,8 @@ jobs:
         run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0'
       - name: Verify unit tests, lint, debug and unsigned release packaging
         run: bash gradlew --no-daemon --stacktrace testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease
+      - name: Check merged manifest privacy properties
+        run: python3 tools/verify_manifest.py
       - name: Preserve verification reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -41,6 +43,7 @@ jobs:
           path: |
             app/build/reports/
             app/build/test-results/
+            app/build/intermediates/merged_manifests/debug/
           if-no-files-found: warn
       - name: Preserve installable debug APK
         uses: actions/upload-artifact@v4

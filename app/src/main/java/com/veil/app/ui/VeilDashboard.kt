@@ -20,6 +20,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -182,7 +184,7 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
                                     items(apps, key = { it.pkg }) { app ->
                                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                             Text(app.label, Modifier.weight(1f).padding(top = 12.dp))
-                                            Checkbox(app.pkg in selected, onCheckedChange = { check -> selected = if (check) selected + app.pkg else selected - app.pkg })
+                                            Checkbox(app.pkg in selected, onCheckedChange = { check -> selected = if (check) selected + app.pkg else selected - app.pkg }, modifier = Modifier.semantics { contentDescription = "Restrict ${app.label}" })
                                         }
                                     }
                                 }
@@ -195,7 +197,7 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
                                     } }
                                     item { Panel("Reflect or move") {
                                         OutlinedTextField(reflection, { reflection = it.take(500) }, label = { Text("What do you want to return to?") }, modifier = Modifier.fillMaxWidth())
-                                        Text("Reflection stays in this screen and is discarded when you leave the app. Alternatively, stretch, drink water or choose a few comfortable push-ups. Physical activity is optional and self reported.")
+                                        Text("Reflection stays in memory until this screen is destroyed or you clear it. Alternatively, stretch, drink water or choose a few comfortable push-ups. Physical activity is optional and self reported.")
                                         Button(onClick = { reflection = ""; store.recoveryComplete(); message = "Recovery noted. Return at your own pace." }) { Text("I completed a recovery activity") }
                                     } }
                                     if (state.cooldownPackage.isNotBlank()) item {
