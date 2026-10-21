@@ -2,8 +2,7 @@ name: Android verification
 
 on:
   push:
-  pull_request:
-  workflow_dispatch:
+    branches: [codex/veil-mvp]
 
 permissions:
   contents: read
@@ -13,11 +12,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  model:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ml/inference-requirements.txt
+      - name: Install desktop model verification runtime
+        run: python -m pip install -r ml/inference-requirements.txt
+      - name: Verify ML tooling and bundled model metadata
+        working-directory: ml
+        run: python -m unittest discover -s tests -v
+      - name: Exercise bundled model with synthetic image fixtures
+        run: python ml/evaluate_bundled_model.py --output work/ci-model-smoke.json
+      - name: Preserve model smoke report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-smoke-report
+          path: work/ci-model-smoke.json
+          if-no-files-found: warn
+      - name: Preserve model evidence in unpublished private draft
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/preserve_ci_delivery.py model
+
   verify:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - name: Check source whitespace
+        run: python3 tools/verify_source_format.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -37,6 +73,7 @@ jobs:
         run: python3 tools/verify_manifest.py
       - name: Preserve verification reports
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: verification-reports
@@ -46,19 +83,28 @@ jobs:
             app/build/intermediates/merged_manifests/debug/
           if-no-files-found: warn
       - name: Preserve installable debug APK
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: veil-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
       - name: Preserve unsigned release APK
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: veil-unsigned-release-apk
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+      - name: Preserve APKs and verification evidence in unpublished private draft
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/preserve_ci_delivery.py verify
 
   emulator:
+    permissions:
+      contents: write
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -103,8 +149,12 @@ jobs:
           adb shell settings put global animator_duration_scale 0
           adb shell input keyevent 82
           bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest
+          adb shell am start -W -n com.veil.app/.MainActivity
+          sleep 3
+          adb exec-out screencap -p > veil-emulator.png
       - name: Preserve device test reports
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: emulator-test-reports
@@ -112,4 +162,10 @@ jobs:
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
             emulator.log
+            veil-emulator.png
           if-no-files-found: warn
+      - name: Preserve emulator evidence in unpublished private draft
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/preserve_ci_delivery.py emulator

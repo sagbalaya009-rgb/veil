@@ -43,7 +43,7 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
     val connected by store.accessibilityConnected.collectAsStateWithLifecycle()
     val monitoring by MonitoringRuntime.status.collectAsStateWithLifecycle()
     val running by MonitoringRuntime.isRunning.collectAsStateWithLifecycle()
-    var consentPending by rememberSaveable { mutableStateOf(false) }
+    var consentPending by remember { mutableStateOf(false) }
     var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
     var tab by rememberSaveable { mutableStateOf("Home") }
     var intro by rememberSaveable { mutableIntStateOf(0) }

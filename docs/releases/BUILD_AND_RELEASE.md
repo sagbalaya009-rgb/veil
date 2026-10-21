@@ -23,5 +23,9 @@ unsigned and is not an owner-signed production release. Keep release signing key
 outside Git. There is deliberately no automatic Google Play publication or signing secret.
 
 The GitHub Android verification workflow runs the same tasks and retains reports and APKs.
+A Python check verifies privacy properties of the merged debug manifest, including the absence
+of network and broad device-data permissions, disabled backups and cleartext traffic, and
+permission protection for exported services. A second job boots an API 35 emulator and runs
+instrumentation tests. Both jobs use only SDK licenses already present on the hosted runner.
 A workflow definition does not itself prove a successful remote run. Device tests are separate;
 use [the device matrix](../testing/DEVICE_TEST_MATRIX.md) and record results honestly.

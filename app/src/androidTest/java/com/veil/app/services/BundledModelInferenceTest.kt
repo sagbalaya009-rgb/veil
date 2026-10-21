@@ -31,6 +31,17 @@ class BundledModelInferenceTest {
                     assertTrue(result.suggestiveConfidence in 0f..1f)
                     assertEquals(VeilModelSpec.version, result.modelVersion)
                     assertFalse("Classifier must not recycle the caller bitmap", bitmap.isRecycled)
+                    // Numerical reference from actual desktop inference of these exact bytes.
+                    // Tolerance accommodates CPU kernels; this is preprocessing/mapping parity,
+                    // not a content-label or accuracy assertion.
+                    if (color == Color.RED) {
+                        assertEquals(0.07623534f, result.explicitConfidence, 0.01f)
+                        assertEquals(0.008512f, result.suggestiveConfidence, 0.005f)
+                    }
+                    if (color == Color.BLUE) {
+                        assertEquals(0.16186508f, result.explicitConfidence, 0.01f)
+                        assertEquals(0.00213654f, result.suggestiveConfidence, 0.005f)
+                    }
                 }
             }
         } finally {

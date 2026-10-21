@@ -1,3 +1,5 @@
+> Historical context: this document describes an earlier Veil scope or build. For the current implementation and executed evidence, use docs/INDEX.md and docs/releases/ENGINEERING_DELIVERY_REPORT.md. Earlier device gates, scalar-model contracts, feature restrictions and benchmark targets are not claims about the current experimental build.
+
 # Native TensorFlow Lite initialization milestone
 
 The browser MVP now demonstrates the intended control flow: a simulated detection event starts a cooldown, presents the selected recovery activity and saved note, and clearly states that a browser cannot inspect other applications or blur the operating system.

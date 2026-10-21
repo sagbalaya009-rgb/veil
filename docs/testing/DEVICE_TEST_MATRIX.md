@@ -12,9 +12,11 @@ Android build, APK SHA-256, steps and observed results for every executed row.
 | Screen capture consent denied/stopped | No retained token or capture; service stops cleanly | Not run |
 | Voluntary focus session | Selected app triggers intervention; unselected app remains available | Not run |
 | Session expiry and explicit emergency exit | Focus enforcement ends predictably | Not run |
-| Process death and device restart | No silent screen capture restart; persisted commitment accurately restored | Not run |
-| Delete local data | Local settings/history cleared; protection stopped | Not run |
-| Accessibility disabled / usage access revoked | No enforcement claim when unavailable | Not run |
+| Same-boot process recreation | Persisted monotonic commitment restored; capture needs new consent | Not run |
+| Device reboot | Commitments end safely; no silent capture restart | Not run |
+| In-app rule/history deletion | Named current rules/history removed; protection stopped | Not run |
+| Android Clear data | Both current state and legacy Room notes/preferences erased | Not run |
+| Accessibility disabled | No enforcement claim when unavailable | Not run |
 | Guardian without a validated bundled model | Honest unavailable status; no fabricated detection | Not run |
 | Approved labeled classifier evaluation | Measured sensitivity, false positives, device latency | Not run |
 | Sustained device operation | Measure battery, thermal state, peak memory and service stability | Not run |

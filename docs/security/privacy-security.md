@@ -1,3 +1,5 @@
+> Historical context: this earlier architecture is superseded by docs/privacy/PRIVACY_ARCHITECTURE.md and docs/security/THREAT_MODEL.md. Current storage includes selected app rules and retained local recovery notes; reading message text is prohibited.
+
 # Privacy and Security Architecture
 
 ## Core guarantee

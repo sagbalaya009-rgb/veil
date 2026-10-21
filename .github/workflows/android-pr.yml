@@ -1,0 +1,42 @@
+name: Android pull request verification
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check source whitespace
+        run: python3 tools/verify_source_format.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          accept-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          validate-wrappers: true
+      - name: Install Android SDK dependencies using existing runner licenses
+        run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0'
+      - name: Verify unit tests, lint and all APK compilation
+        run: bash gradlew --no-daemon --stacktrace testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease
+      - name: Check merged manifest privacy properties
+        run: python3 tools/verify_manifest.py
+      - name: Print unit test and lint summaries in job log
+        if: always()
+        run: |
+          find app/build/test-results -name '*.xml' -maxdepth 3 -print -exec head -n 2 {} \; 2>/dev/null || true
+          test ! -f app/build/reports/lint-results-debug.txt || cat app/build/reports/lint-results-debug.txt

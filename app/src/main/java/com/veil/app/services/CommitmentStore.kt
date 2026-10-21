@@ -72,7 +72,10 @@ class CommitmentStore private constructor(context: Context) {
         change { it.copy(focusPackages = packages.toSet(), focusStartElapsed = start,
             focusEndElapsed = start + minutes * 60_000L, bootCount = bootCount(), events = it.events + event("FOCUS_CREATED")) }
     }
-    fun endFocus() = change { it.copy(focusEndElapsed = 0, focusPackages = emptySet(), events = it.events + event("FOCUS_ENDED_EARLY")) }
+    fun endFocus() = change {
+        if (it.focusEndElapsed <= 0) it
+        else it.copy(focusEndElapsed = 0, focusPackages = emptySet(), events = it.events + event("FOCUS_ENDED_EARLY"))
+    }
     fun intervene(score: Float, packageName: String) {
         if (!score.isFinite() || score !in VeilModelSpec.threshold..1f || !connected.value || isEssentialPackage(app, packageName)) return
         change {
@@ -81,12 +84,15 @@ class CommitmentStore private constructor(context: Context) {
                 bootCount = bootCount(), events = it.events + event("AI_INTERVENTION"))
         }
     }
-    fun dismissCooldown(incorrect: Boolean = false) = change { it.copy(cooldownPackage = "", cooldownEndElapsed = 0,
-        events = it.events + event(if (incorrect) "FALSE_POSITIVE" else "EMERGENCY_EXIT")) }
+    fun dismissCooldown(incorrect: Boolean = false) = change {
+        if (it.cooldownEndElapsed <= 0) it
+        else it.copy(cooldownPackage = "", cooldownEndElapsed = 0,
+            events = it.events + event(if (incorrect) "FALSE_POSITIVE" else "EMERGENCY_EXIT"))
+    }
     fun recoveryComplete() = change { it.copy(events = it.events + event("RECOVERY_SELF_REPORTED")) }
     fun clearHistory() = change { it.copy(events = emptyList()) }
     fun clearAll() = change { CommitmentSnapshot(onboarded = true, dark = it.dark) }
-    fun tick() {
+    @Synchronized fun tick() {
         if (mutable.value.events.any { it.at < System.currentTimeMillis() - RETENTION_MS }) change { it }
         val s = mutable.value
         val now = SystemClock.elapsedRealtime()

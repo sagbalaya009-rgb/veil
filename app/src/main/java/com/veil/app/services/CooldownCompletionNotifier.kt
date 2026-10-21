@@ -30,7 +30,12 @@ class CooldownCompletionNotifier @Inject constructor(
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .build()
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        try {
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        } catch (_: SecurityException) {
+            // The user can revoke notification access after the permission check.
+            // A missed optional reminder must never crash or block recovery.
+        }
     }
 
     private fun canPostNotifications(): Boolean {

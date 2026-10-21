@@ -30,6 +30,8 @@ class CommitmentStoreTest {
         assertNull(store.blockingReason("org.example.distraction"))
         store.clearHistory()
         assertTrue(store.state.value.events.isEmpty())
+        store.endFocus(); store.dismissCooldown()
+        assertTrue("Stopping inactive protection must not invent history", store.state.value.events.isEmpty())
     }
     @Test fun interventionRequiresConnectionAndAlwaysHasExit() {
         val store = CommitmentStore.get(context)
