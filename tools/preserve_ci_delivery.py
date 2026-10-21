@@ -63,8 +63,8 @@ if not release or not release["draft"] or release["target_commitish"] != sha:
 output = Path("work/ci-delivery")
 output.mkdir(parents=True, exist_ok=True)
 patterns = {
-    "verify": ["app/build/reports/**/*", "app/build/test-results/**/*", "app/build/intermediates/merged_manifests/debug/**/*", "app/build/outputs/apk/**/*.apk"],
-    "emulator": ["app/build/reports/androidTests/**/*", "app/build/outputs/androidTest-results/**/*", "emulator.log", "veil-emulator.png"],
+    "verify": ["app/build/reports/**/*", "app/build/test-results/**/*", "app/build/intermediates/merged_manifests/debug/**/*", "app/build/outputs/apk/androidTest/**/*.apk", "capture-fixture/build/outputs/apk/debug/*.apk"],
+    "emulator": ["app/build/reports/androidTests/**/*", "app/build/outputs/androidTest-results/**/*", "emulator.log", "veil-emulator.png", "capture-evidence/**/*"],
     "model": ["work/ci-model-smoke.json"],
 }[args.kind]
 files = sorted({path for pattern in patterns for path in Path(".").glob(pattern) if path.is_file()})

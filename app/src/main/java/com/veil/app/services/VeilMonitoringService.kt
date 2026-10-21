@@ -48,7 +48,7 @@ class VeilMonitoringService : Service() {
     private var captureAspect = 0f
     private val healthCheck = object : Runnable {
         override fun run() {
-            if (stopping.get()) return
+            if (stopping.get() || !MonitoringRuntime.isRunning.value) return
             if (!CommitmentStore.get(this@VeilMonitoringService).accessibilityConnected.value) {
                 finishSession("App intervention access was revoked. Monitoring stopped.")
                 return
@@ -112,7 +112,7 @@ class VeilMonitoringService : Service() {
     }
 
     private fun startCapture(resultCode: Int, resultData: Intent) {
-        if (stopping.get() || projection != null) return
+        if (stopping.get() || !MonitoringRuntime.isRunning.value || projection != null) return
         if (!CommitmentStore.get(this).accessibilityConnected.value) {
             finishSession("Enable disclosed app intervention access before screen analysis.")
             return
@@ -129,7 +129,7 @@ class VeilMonitoringService : Service() {
                 return
             }
         }
-        if (stopping.get()) return // A stop while native initialization ran wins over starting capture.
+        if (stopping.get() || !MonitoringRuntime.isRunning.value) return // A stop while native initialization ran wins.
         try {
             val bounds = getSystemService(WindowManager::class.java).maximumWindowMetrics.bounds
             captureAspect = bounds.width().toFloat() / bounds.height()
@@ -147,6 +147,7 @@ class VeilMonitoringService : Service() {
                 "Veil local analysis", width, height, resources.displayMetrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, reader!!.surface, null, worker,
             )
+            if (stopping.get() || !MonitoringRuntime.isRunning.value) return
             MonitoringRuntime.updateStatus("Screen sharing active · waiting for an eligible app · protected screens unavailable")
             worker.postDelayed(healthCheck, 1_000L)
         } catch (_: Exception) {
@@ -157,7 +158,7 @@ class VeilMonitoringService : Service() {
     private fun consumeLatestFrame(source: ImageReader) {
         val image = try { source.acquireLatestImage() } catch (_: IllegalStateException) { null } ?: return
         try {
-            if (stopping.get()) return
+            if (stopping.get() || !MonitoringRuntime.isRunning.value) return
             val now = SystemClock.elapsedRealtime()
             if (now - lastFrameAt < FRAME_INTERVAL_MS) return
             if (now - lastFrameAt > MAX_FRAME_AGE_MS) evaluator.reset()
@@ -184,7 +185,7 @@ class VeilMonitoringService : Service() {
             val bitmap = copyFrame(image)
             try {
                 val score = classifier?.classify(bitmap)?.explicitConfidence ?: return
-                if (stopping.get() || SystemClock.elapsedRealtime() - now > MAX_FRAME_AGE_MS) {
+                if (stopping.get() || !MonitoringRuntime.isRunning.value || SystemClock.elapsedRealtime() - now > MAX_FRAME_AGE_MS) {
                     evaluator.reset()
                     return
                 }
@@ -225,23 +226,34 @@ class VeilMonitoringService : Service() {
         pixels.clear()
         val source = plane.buffer.duplicate()
         val base = source.position()
-        // The last image row need not include trailing padding. Copy only actual pixels per row.
-        for (row in 0 until image.height) {
-            val start = base + row * plane.rowStride
-            source.limit(plane.buffer.limit())
-            source.position(start)
-            source.limit(start + rowBytes)
-            pixels.put(source)
-        }
-        pixels.flip()
-        val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
+        var bitmap: Bitmap? = null
         try {
+            // The last image row need not include trailing padding. Copy only actual pixels.
+            for (row in 0 until image.height) {
+                val start = base + row * plane.rowStride
+                source.limit(plane.buffer.limit())
+                source.position(start)
+                source.limit(start + rowBytes)
+                pixels.put(source)
+            }
+            pixels.flip()
+            bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
             bitmap.copyPixelsFromBuffer(pixels)
             return bitmap
         } catch (error: Exception) {
-            bitmap.recycle()
+            bitmap?.recycle()
             throw error
+        } finally {
+            // The caller owns only its bitmap; no screen pixels remain in the reusable scratch.
+            zeroBuffer(pixels)
         }
+    }
+
+    private fun zeroBuffer(buffer: ByteBuffer) {
+        buffer.clear()
+        while (buffer.remaining() >= java.lang.Long.BYTES) buffer.putLong(0L)
+        while (buffer.hasRemaining()) buffer.put(0.toByte())
+        buffer.clear()
     }
 
     private fun finishSession(reason: String) {
@@ -268,10 +280,7 @@ class VeilMonitoringService : Service() {
         projection = null
         runCatching { classifier?.close() }
         classifier = null
-        framePixels?.let { pixels ->
-            pixels.clear()
-            while (pixels.hasRemaining()) pixels.put(0.toByte())
-        }
+        framePixels?.let(::zeroBuffer)
         framePixels = null
         evaluator.reset()
     }

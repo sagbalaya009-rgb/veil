@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Veil"
 include(":app")
+// Separate synthetic verification APK; never bundled into the Veil consumer application.
+include(":capture-fixture")

@@ -51,7 +51,7 @@ class VeilAccessibilityService : AccessibilityService() {
         }
         panel.addView(Button(this).apply {
             text = "Emergency exit — end restrictions"
-            setOnClickListener { store.endFocus(); store.dismissCooldown(); removeOverlay() }
+            setOnClickListener { MonitoringRuntime.stop(this@VeilAccessibilityService); store.endFocus(); store.dismissCooldown(); removeOverlay() }
         }, LinearLayout.LayoutParams(-1, -2))
         panel.addView(TextView(this).apply {
             text = "VEIL\n\n$reason\n\nLeave this app, open recovery, or exit protection at any time."
@@ -69,12 +69,12 @@ class VeilAccessibilityService : AccessibilityService() {
             removeOverlay()
             runCatching { startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)) }
         }
-        if (store.state.value.cooldownPackage == pkg) button("Incorrect detection / dismiss cooldown") { store.dismissCooldown(true); removeOverlay() }
+        if (store.state.value.cooldownPackage == pkg) button("Incorrect detection — stop guardian") { MonitoringRuntime.stop(this); store.dismissCooldown(true); removeOverlay() }
         val scroll = ScrollView(this).apply { isFillViewport = true; addView(panel) }
         val params = WindowManager.LayoutParams(-1, -1, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT).apply { gravity = Gravity.CENTER }
         try { getSystemService(WindowManager::class.java).addView(scroll, params); overlay = scroll }
-        catch (_: RuntimeException) { foreground = null; MonitoringRuntime.updateForegroundPackage(null); store.connection(false); stopService(Intent(this, VeilMonitoringService::class.java)) }
+        catch (_: RuntimeException) { foreground = null; MonitoringRuntime.updateForegroundPackage(null); store.connection(false); MonitoringRuntime.stop(this) }
     }
     private fun removeOverlay() {
         overlay?.let { view -> runCatching { getSystemService(WindowManager::class.java).removeView(view) } }; overlay = null
@@ -84,6 +84,6 @@ class VeilAccessibilityService : AccessibilityService() {
     override fun onDestroy() { cleanup(); super.onDestroy() }
     private fun cleanup() {
         handler.removeCallbacksAndMessages(null); foreground = null; MonitoringRuntime.updateForegroundPackage(null)
-        removeOverlay(); store.connection(false); stopService(Intent(this, VeilMonitoringService::class.java))
+        removeOverlay(); store.connection(false); MonitoringRuntime.stop(this)
     }
 }

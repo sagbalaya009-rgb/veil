@@ -32,7 +32,7 @@ jobs:
       - name: Install Android SDK dependencies using existing runner licenses
         run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0'
       - name: Verify unit tests, lint and all APK compilation
-        run: bash gradlew --no-daemon --stacktrace testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease
+        run: bash gradlew --no-daemon --stacktrace testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease :capture-fixture:assembleDebug
       - name: Check merged manifest privacy properties
         run: python3 tools/verify_manifest.py
       - name: Print unit test and lint summaries in job log

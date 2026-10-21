@@ -79,7 +79,7 @@ class CommitmentStore private constructor(context: Context) {
     fun intervene(score: Float, packageName: String) {
         if (!score.isFinite() || score !in VeilModelSpec.threshold..1f || !connected.value || isEssentialPackage(app, packageName)) return
         change {
-            if (it.cooldownRemaining(SystemClock.elapsedRealtime(), bootCount()) > 0) it
+            if (!MonitoringRuntime.isRunning.value || it.cooldownRemaining(SystemClock.elapsedRealtime(), bootCount()) > 0) it
             else it.copy(cooldownPackage = packageName, cooldownEndElapsed = SystemClock.elapsedRealtime() + it.cooldownMinutes * 60_000L,
                 bootCount = bootCount(), events = it.events + event("AI_INTERVENTION"))
         }

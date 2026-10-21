@@ -68,7 +68,7 @@ jobs:
       - name: Install Android SDK dependencies
         run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0'
       - name: Verify unit tests, lint, debug and unsigned release packaging
-        run: bash gradlew --no-daemon --stacktrace testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease
+        run: bash gradlew --no-daemon --stacktrace testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease :capture-fixture:assembleDebug
       - name: Check merged manifest privacy properties
         run: python3 tools/verify_manifest.py
       - name: Preserve verification reports
@@ -129,12 +129,22 @@ jobs:
       - name: Run Android instrumentation tests
         run: |
           # Use only licenses already present on the hosted runner. Do not accept agreements.
+          export ANDROID_USER_HOME="$RUNNER_TEMP/veil-android-user"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
           sdkmanager 'platforms;android-35' 'build-tools;34.0.0' 'system-images;android-35;default;x86_64' emulator
-          echo no | avdmanager create avd --force --name veil-api35 --package 'system-images;android-35;default;x86_64' --device pixel_2
+          echo no | avdmanager create avd --force --name veil-api35 --path "$ANDROID_AVD_HOME/veil-api35.avd" --package 'system-images;android-35;default;x86_64' --device pixel_2
+          test -f "$ANDROID_AVD_HOME/veil-api35.ini"
+          "$ANDROID_HOME/emulator/emulator" -list-avds
           "$ANDROID_HOME/emulator/emulator" -avd veil-api35 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
           emulator_pid=$!
-          trap 'kill "$emulator_pid" || true' EXIT
-          timeout 180 adb wait-for-device
+          cleanup() {
+            adb pull /sdcard/Android/data/com.veil.app/files/capture-evidence capture-evidence || true
+            kill "$emulator_pid" || true
+          }
+          trap cleanup EXIT
+          if ! timeout 180 adb wait-for-device; then cat emulator.log; exit 1; fi
           booted=false
           for attempt in $(seq 1 60); do
             if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then
@@ -148,6 +158,8 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           adb shell input keyevent 82
+          bash gradlew --no-daemon :capture-fixture:assembleDebug
+          adb install -r capture-fixture/build/outputs/apk/debug/capture-fixture-debug.apk
           bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest
           adb shell am start -W -n com.veil.app/.MainActivity
           sleep 3
@@ -163,6 +175,7 @@ jobs:
             app/build/outputs/androidTest-results/
             emulator.log
             veil-emulator.png
+            capture-evidence/
           if-no-files-found: warn
       - name: Preserve emulator evidence in unpublished private draft
         if: always()

@@ -1,0 +1,13 @@
+{
+  "purpose": "synthetic numeric integration false positive only; no content accuracy claim",
+  "sha256": "dd2997e646e8ca144e820128846a27309664b99979a7b8d55fbdd1ed36a4a8c9",
+  "directModelScore": 0.9332950711250305,
+  "qualifiedDesktopRoundTrip": "224 -> 1080x1920 -> 405x720 -> 224",
+  "roundTripScores": {
+    "nearest-nearest": 0.9332950711250305,
+    "nearest-bilinear": 0.9243011474609375,
+    "bilinear-nearest": 0.9235862493515015,
+    "bilinear-bilinear": 0.8895643949508667
+  },
+  "caution": "Not guaranteed to exceed threshold on every screen/interpolation pipeline. Actual emulator instrumentation is authoritative. Production threshold unchanged."
+}

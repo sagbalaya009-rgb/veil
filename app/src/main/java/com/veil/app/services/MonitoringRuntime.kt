@@ -1,5 +1,7 @@
 package com.veil.app.services
 
+import android.content.Context
+import android.content.Intent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +27,13 @@ object MonitoringRuntime {
     internal fun foregroundObservation() = ForegroundObservation(mutableForegroundPackage.value, foregroundRevision)
 
     internal fun updateRunning(running: Boolean) { mutableRunning.value = running }
+
+    /** Immediately closes the policy gate before asynchronous native/service cleanup. */
+    fun stop(context: Context) {
+        mutableRunning.value = false
+        mutableStatus.value = "Guardian stopped by you. New screen-sharing consent is required."
+        context.stopService(Intent(context, VeilMonitoringService::class.java))
+    }
 
     internal fun updateStatus(message: String) {
         mutableStatus.value = message

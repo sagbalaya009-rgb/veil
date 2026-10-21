@@ -146,7 +146,7 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
                                     item { Panel("Screen guardian") {
                                         Text("Experimental local screening. Protected surfaces cannot be analyzed. Phone-feed accuracy is not established.")
                                         Button(onClick = { captureDisclosure = true }, enabled = modelAvailable && connected && !running && !consentPending) { Text("Review and start screen sharing") }
-                                        OutlinedButton(onClick = { context.stopService(Intent(context, VeilMonitoringService::class.java)) }) { Text("Stop screen sharing") }
+                                        OutlinedButton(onClick = { MonitoringRuntime.stop(context) }) { Text("Stop screen sharing") }
                                         if (!connected) TextButton(onClick = { disclosure = true }) { Text("Set up foreground awareness") }
                                     } }
                                     item { Panel("Your commitment") {
@@ -201,8 +201,8 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
                                         Button(onClick = { reflection = ""; store.recoveryComplete(); message = "Recovery noted. Return at your own pace." }) { Text("I completed a recovery activity") }
                                     } }
                                     if (state.cooldownPackage.isNotBlank()) item {
-                                        OutlinedButton(onClick = { store.dismissCooldown(true) }) { Text("Incorrect detection — dismiss") }
-                                        TextButton(onClick = { store.dismissCooldown() }) { Text("Emergency exit from cooldown") }
+                                        OutlinedButton(onClick = { MonitoringRuntime.stop(context); store.dismissCooldown(true) }) { Text("Incorrect detection — stop guardian") }
+                                        TextButton(onClick = { MonitoringRuntime.stop(context); store.dismissCooldown() }) { Text("Emergency exit — stop guardian") }
                                     }
                                     item { TextButton(onClick = { legacy = true }) { Text("Open recovery plan and local notes") } }
                                 }
@@ -222,14 +222,14 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
                                         Text(if (connected) "Accessibility service connected." else "Accessibility service disconnected.")
                                         TextButton(onClick = { disclosure = true }) { Text("Review foreground awareness") }
                                         if (Build.VERSION.SDK_INT >= 33) TextButton(onClick = { notification.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text("Allow status notifications") }
-                                        TextButton(onClick = { context.stopService(Intent(context, VeilMonitoringService::class.java)); store.endFocus(); store.dismissCooldown(); message = "Screen sharing and restrictions stopped. You can revoke accessibility in Android Settings." }) { Text("Stop all protection") }
+                                        TextButton(onClick = { MonitoringRuntime.stop(context); store.endFocus(); store.dismissCooldown(); message = "Screen sharing and restrictions stopped. You can revoke accessibility in Android Settings." }) { Text("Stop all protection") }
                                     } }
                                     item { Panel("AI cooldown") {
                                         listOf(5, 10, 15).forEach { minutes -> FilterChip(selected = state.cooldownMinutes == minutes, onClick = { store.cooldownMinutes(minutes) }, label = { Text("$minutes minutes") }) }
                                         Text("The detector uses experimental model scores and temporal confirmation, not a diagnosis or a guarantee.")
                                     } }
                                     item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Dark appearance"); Switch(state.dark, onCheckedChange = store::theme) } }
-                                    item { OutlinedButton(onClick = { context.stopService(Intent(context, VeilMonitoringService::class.java)); store.clearAll(); message = "Current rules and history deleted. Notes and legacy preferences can be erased through Android App info → Storage → Clear data." }) { Text("Delete focus rules and event history") } }
+                                    item { OutlinedButton(onClick = { MonitoringRuntime.stop(context); store.clearAll(); message = "Current rules and history deleted. Notes and legacy preferences can be erased through Android App info → Storage → Clear data." }) { Text("Delete focus rules and event history") } }
                                     item { Text("Veil · experimental engineering build\nOrdinary apps cannot prevent permission revocation, force stop or uninstall. Reboot ends commitments safely; it never restarts screen sharing. Google Play review and device qualification remain pending.") }
                                 }
                             }

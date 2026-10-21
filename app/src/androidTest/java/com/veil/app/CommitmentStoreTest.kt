@@ -5,6 +5,7 @@ import android.os.SystemClock
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.veil.app.services.CommitmentStore
+import com.veil.app.services.MonitoringRuntime
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,11 +40,13 @@ class CommitmentStoreTest {
         store.intervene(.99f, "org.example.content")
         assertEquals("", store.state.value.cooldownPackage)
         store.connection(true)
+        MonitoringRuntime.updateRunning(true) // Isolated policy-boundary test; capture is tested separately.
         store.intervene(.99f, "org.example.content")
         assertNotNull(store.blockingReason("org.example.content"))
         store.dismissCooldown(true)
         assertNull(store.blockingReason("org.example.content"))
         assertEquals("FALSE_POSITIVE", store.state.value.events.last().kind)
+        MonitoringRuntime.updateRunning(false)
         store.connection(false); store.clearAll()
     }
 }
