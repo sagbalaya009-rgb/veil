@@ -1,0 +1,20 @@
+{
+  "modelId": "gantman-mobilenet-v2-140-224-tflite-v1",
+  "sha256": "380f98f7685f9d8a386f8cc595b6dfcb972989aae3d1b8b270d3a4a5b96fab40",
+  "sourceUrl": "https://raw.githubusercontent.com/getknit/knit/2c5a0c440acfcae59cae1ccd2557581b8d1a57a4/app/src/main/assets/moderation/nsfw.tflite",
+  "license": "MIT (GantMan/nsfw_model; see MODEL_LICENSE.txt and MODEL_SELECTION.md)",
+  "datasetProvenanceUrl": "https://github.com/GantMan/nsfw_model",
+  "evaluationReportUrl": "https://github.com/sagbalaya009-rgb/veil/blob/codex/veil-mvp/docs/ai/MODEL_EVALUATION.md",
+  "rollbackModelId": "disable-visual-classification-no-previous-bundled-model",
+  "approvedBy": "Codex engineering integration review; semantic accuracy and device performance NOT qualified",
+  "approvedAt": "2026-10-21",
+  "inputWidth": 224,
+  "inputHeight": 224,
+  "inputChannels": 3,
+  "outputScores": 5,
+  "normalization": "rgb_float_0_to_1",
+  "labels": ["drawings", "hentai", "neutral", "porn", "sexy"],
+  "evaluationStatus": "experimental; synthetic executable smoke only, no labeled content benchmark",
+  "bytes": 17355548,
+  "policy": "explicitScore=hentai+porn; sexy separate; threshold 0.90 is provisional, not calibrated"
+}

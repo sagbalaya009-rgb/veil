@@ -14,53 +14,67 @@ interface ScreenClassifier : AutoCloseable {
 data class ClassificationResult(
     val explicitConfidence: Float,
     val modelVersion: String,
+    val suggestiveConfidence: Float = 0f,
 )
 
-/**
- * TensorFlow Lite implementation for the Veil MVP.
- *
- * The model is supplied by the app module and is executed entirely on-device. The Bitmap is
- * converted to a bounded in-memory tensor and is not retained after classify returns.
- */
+/** Offline GantMan MobileNetV2 adapter. Never retains or writes the source bitmap. */
 class TensorFlowLiteScreenClassifier(
     modelBuffer: ByteBuffer,
-    private val inputSize: Int = 224,
-    private val modelVersion: String = "unbundled-mvp",
+    private val inputSize: Int = VeilModelSpec.inputSize,
+    private val modelVersion: String = VeilModelSpec.version,
 ) : ScreenClassifier {
-    private val interpreter = Interpreter(
-        modelBuffer,
-        Interpreter.Options().setNumThreads(2),
-    )
+    private val interpreter = Interpreter(modelBuffer, Interpreter.Options().setNumThreads(2))
+    private val input = ByteBuffer.allocateDirect(inputSize * inputSize * 3 * 4)
+        .order(ByteOrder.nativeOrder())
+    private val pixels = IntArray(inputSize * inputSize)
+    private val output = Array(1) { FloatArray(VeilModelSpec.outputScores) }
+    private var closed = false
 
+    @Synchronized
     override fun classify(frame: Bitmap): ClassificationResult {
-        val input = ByteBuffer.allocateDirect(inputSize * inputSize * 3 * FLOAT_BYTES)
-            .order(ByteOrder.nativeOrder())
-        val scaled = Bitmap.createScaledBitmap(frame, inputSize, inputSize, true)
-        val pixels = IntArray(inputSize * inputSize)
-        scaled.getPixels(pixels, 0, inputSize, 0, 0, inputSize, inputSize)
-
-        pixels.forEach { pixel ->
-            input.putFloat(Color.red(pixel) / 255f)
-            input.putFloat(Color.green(pixel) / 255f)
-            input.putFloat(Color.blue(pixel) / 255f)
+        check(!closed) { "Classifier is closed." }
+        // Upstream predict.py resizes to 224x224, converts to RGB, and divides by 255.
+        // Nearest-neighbor matches Keras load_img's default interpolation.
+        val scaled = Bitmap.createScaledBitmap(frame, inputSize, inputSize, false)
+        try {
+            scaled.getPixels(pixels, 0, inputSize, 0, 0, inputSize, inputSize)
+            input.clear()
+            pixels.forEach { pixel ->
+                input.putFloat(Color.red(pixel) / 255f)
+                input.putFloat(Color.green(pixel) / 255f)
+                input.putFloat(Color.blue(pixel) / 255f)
+            }
+            input.rewind()
+            interpreter.run(input, output)
+            val scores = output[0]
+            require(scores.all { it.isFinite() && it in 0f..1f }) { "Invalid classifier scores." }
+            require(kotlin.math.abs(scores.sum() - 1f) < 0.02f) { "Invalid softmax output." }
+            // This is a product policy grouping of genuine upstream classes, not calibration.
+            return ClassificationResult(
+                explicitConfidence = (scores[1] + scores[3]).coerceIn(0f, 1f),
+                suggestiveConfidence = scores[4],
+                modelVersion = modelVersion,
+            )
+        } finally {
+            // createScaledBitmap may return its source when already 224x224.
+            if (scaled !== frame) scaled.recycle()
+            pixels.fill(0)
+            input.clear()
+            while (input.hasRemaining()) input.put(0.toByte())
+            input.rewind()
+            output[0].fill(0f)
         }
-        input.rewind()
-
-        val output = Array(1) { FloatArray(1) }
-        interpreter.run(input, output)
-        scaled.recycle()
-
-        return ClassificationResult(
-            explicitConfidence = output[0][0].coerceIn(0f, 1f),
-            modelVersion = modelVersion,
-        )
     }
 
+    @Synchronized
     override fun close() {
-        interpreter.close()
-    }
-
-    companion object {
-        private const val FLOAT_BYTES = 4
+        if (!closed) {
+            closed = true
+            interpreter.close()
+            pixels.fill(0)
+            input.clear()
+            while (input.hasRemaining()) input.put(0.toByte())
+            output[0].fill(0f)
+        }
     }
 }

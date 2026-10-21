@@ -1,0 +1,111 @@
+{
+  "status": "real-inference-smoke-passed",
+  "semanticValidation": "not-performed",
+  "modelId": "gantman-mobilenet-v2-140-224-tflite-v1",
+  "sha256": "380f98f7685f9d8a386f8cc595b6dfcb972989aae3d1b8b270d3a4a5b96fab40",
+  "bytes": 17355548,
+  "runtime": "ai-edge-litert",
+  "host": "Windows-11-10.0.26300-SP0",
+  "python": "3.12.14",
+  "threads": 2,
+  "input": [
+    1,
+    224,
+    224,
+    3
+  ],
+  "output": [
+    1,
+    5
+  ],
+  "dtype": "float32",
+  "normalization": "RGB / 255; nearest resize",
+  "labels": [
+    "drawings",
+    "hentai",
+    "neutral",
+    "porn",
+    "sexy"
+  ],
+  "explicitPolicy": "hentai + porn; sexy is separate; no calibration claim",
+  "syntheticFixtures": [
+    {
+      "fixture": "black",
+      "scores": {
+        "drawings": 0.2878325879573822,
+        "hentai": 0.20058093965053558,
+        "neutral": 0.4902714788913727,
+        "porn": 0.015332347713410854,
+        "sexy": 0.00598265090957284
+      },
+      "explicitScore": 0.21591328084468842,
+      "invokeMs": 86.1670000012964
+    },
+    {
+      "fixture": "white",
+      "scores": {
+        "drawings": 0.37796786427497864,
+        "hentai": 0.043675683438777924,
+        "neutral": 0.5743856430053711,
+        "porn": 0.0005649838712997735,
+        "sexy": 0.0034057972952723503
+      },
+      "explicitScore": 0.044240668416023254,
+      "invokeMs": 126.57729999045841
+    },
+    {
+      "fixture": "gray",
+      "scores": {
+        "drawings": 0.552627444267273,
+        "hentai": 0.13486887514591217,
+        "neutral": 0.30202141404151917,
+        "porn": 0.004499419592320919,
+        "sexy": 0.005982853937894106
+      },
+      "explicitScore": 0.13936829566955566,
+      "invokeMs": 131.80629999260418
+    },
+    {
+      "fixture": "red",
+      "scores": {
+        "drawings": 0.4254508316516876,
+        "hentai": 0.07324551790952682,
+        "neutral": 0.48980197310447693,
+        "porn": 0.0029898234643042088,
+        "sexy": 0.008511996828019619
+      },
+      "explicitScore": 0.0762353390455246,
+      "invokeMs": 124.44200000027195
+    },
+    {
+      "fixture": "green",
+      "scores": {
+        "drawings": 0.015352844260632992,
+        "hentai": 0.006533120758831501,
+        "neutral": 0.9780542254447937,
+        "porn": 4.198668648314197e-06,
+        "sexy": 5.5607542890356854e-05
+      },
+      "explicitScore": 0.006537319626659155,
+      "invokeMs": 83.54520000284538
+    },
+    {
+      "fixture": "blue",
+      "scores": {
+        "drawings": 0.4299503266811371,
+        "hentai": 0.16045735776424408,
+        "neutral": 0.4060480296611786,
+        "porn": 0.0014077220112085342,
+        "sexy": 0.0021365389693528414
+      },
+      "explicitScore": 0.16186508536338806,
+      "invokeMs": 83.91080002184026
+    }
+  ],
+  "timing": {
+    "kind": "desktop CPU invoke only, two warmups excluded; not Android/battery/end-to-end",
+    "count": 26,
+    "medianMs": 125.92724998830818,
+    "p95Ms": 152.66225000232225
+  }
+}

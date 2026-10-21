@@ -1,0 +1,4 @@
+# Optional lightweight runtime for evaluate_bundled_model.py (Python 3.12 desktop).
+ai-edge-litert==2.1.2
+numpy>=1.26,<3
+pillow>=10,<12

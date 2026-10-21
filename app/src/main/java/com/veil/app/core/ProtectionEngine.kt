@@ -112,7 +112,7 @@ class ProtectionEngine(
     ): ProtectionState {
         val now = clock.instant()
         val active = state as? ProtectionState.Active ?: return state
-        if (now >= active.lockEndsAt || confidence < ProtectionSettings.INITIAL_THRESHOLD) return state
+        if (now >= active.lockEndsAt || !confidence.isFinite() || confidence !in 0f..1f || confidence < ProtectionSettings.INITIAL_THRESHOLD) return state
 
         val cooldownEndsAt = now.plus(Duration.ofMinutes(settings.cooldown.minutes))
         state = ProtectionState.Cooldown(

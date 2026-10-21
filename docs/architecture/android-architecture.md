@@ -1,59 +1,11 @@
-# Android Architecture
+# Android architecture
 
-## Architectural pattern
+The current architecture is described in [OVERVIEW](OVERVIEW.md), with legal transitions in [STATE_MACHINE](STATE_MACHINE.md) and exact permission behavior in [ANDROID_PERMISSIONS](../compliance/ANDROID_PERMISSIONS.md).
 
-Veil follows **MVVM with Clean Architecture**. The domain layer owns protection rules and must remain testable without Android framework dependencies. Platform adapters handle permissions, screen capture, accessibility events, overlays, notifications, and service lifecycle. UI observes state rather than directly controlling long-running work.
+Capture requires an activity disclosure, fresh Android MediaProjection consent, and connected disclosed accessibility access for app-specific interventions. The service is non-exported, foreground mediaProjection typed and non-sticky. It uses ImageReader capacity two and acquireLatestImage, samples at most twice per second, caps capture's long dimension at 720 pixels, performs native inference on a worker and releases images/bitmaps/buffers. These are source limits, not measured device performance. It drops stale inference and resets confirmation on foreground changes. No screenshot storage or network code exists in this Android pipeline.
 
-## Runtime flow
+Accessibility uses only window-state event metadata, cannot retrieve window content, and is explicitly not designated an accessibility tool. The overlay is dismissible, scrollable and limited to selected/triggering packages; Settings, launcher, call and essential system packages are excluded. OEM and split-screen attribution remain best effort and require physical qualification. No UsageStats polling, QUERY_ALL_PACKAGES, SYSTEM_ALERT_WINDOW, device administrator or root is required.
 
-```text
-User consent
-   |
-Permission coordinator
-   |
-Foreground monitoring service
-   |\
-   | +--> Accessibility adapter: foreground and lifecycle events
-   | +--> MediaProjection adapter: consented screen frames
-   |
-Frame preprocessor
-   |
-On-device TensorFlow Lite classifier
-   |
-Confidence and temporal evaluator
-   |
-Protection engine
-   |\
-   | +--> Intervention overlay
-   | +--> Cooldown and recovery task
-   | +--> Local event repository
-   |
-Status UI and notification
-```
+The dashboard and accessibility service expire persisted monotonic deadlines. Process recreation on the same boot retains them. Reboot ends them safely on next evaluation. The app has no boot receiver or background capture restart. Do not replace this with silent recovery or reuse consent tokens.
 
-## Modules
-
-| Module | Responsibility |
-|---|---|
-| `core` | Protection state machine, thresholds, cooldowns, lock periods, recovery tasks, and domain events. |
-| `services` | Foreground service, MediaProjection capture, Accessibility Service integration, overlay lifecycle, boot recovery, and notifications. |
-| `data` | Local settings, event history, streaks, and lock-state persistence. |
-| `ui` | Onboarding, permission education, home/status, intervention, settings, and recovery-task screens. |
-| `app` | Dependency injection, navigation, application startup, and Android composition root. |
-| `tests` | Unit, integration, device, battery, OEM compatibility, and model evaluation suites. |
-
-## Capture and inference policy
-
-The MVP samples at 0.5 FPS when idle, 1 FPS during ordinary use, and 2 FPS during active scrolling. Sampling stops when the screen is off or during cooldown. Frames are processed in memory and discarded after inference. The pipeline must use bounded buffers, avoid unnecessary bitmap copies, and enforce a latency budget below 800 ms.
-
-## Failure handling
-
-If MediaProjection is revoked, Veil stops capture, marks protection degraded, and requests reauthorization. If Accessibility is revoked, Veil disables only the capabilities that depend on it while preserving any safe partial protection. If overlay permission is revoked, Veil warns that interventions cannot be displayed. If the model is unavailable, the product must fail safely and report that protection is temporarily unavailable.
-
-## OEM and reboot resilience
-
-The service uses a foreground notification, persists state, verifies permissions, and attempts recovery after `BOOT_COMPLETED`. Onboarding includes vendor-specific guidance for battery optimization and auto-start behavior, with priority testing for Samsung, Pixel, OnePlus, Xiaomi, Oppo, Vivo, Tecno, and Infinix devices.
-
-## Security boundary
-
-The MVP requires no network permission. No remote control, stealth mode, screenshot archive, or third-party monitoring pathway may be introduced through platform adapters or debug tooling.
+Target/minimum SDK, dependency versions, Java and wrapper are pinned in source. Compatibility was checked against the official AGP8.7 documentation; modernization is optional and must be verified as a coordinated change. Current API35 target is an engineering baseline, not a claim of meeting all future Play submissions.
