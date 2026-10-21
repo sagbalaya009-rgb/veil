@@ -19,7 +19,7 @@ class VeilModelReviewTest {
             inputWidth = 224,
             inputHeight = 224,
             inputChannels = 3,
-            outputScores = 1,
+            outputScores = VeilModelSpec.outputScores,
             normalization = "rgb_float_0_to_1",
         )
         assertTrue(manifest.acceptanceErrors().isEmpty())
@@ -40,9 +40,10 @@ class VeilModelReviewTest {
             inputWidth = 299,
             inputHeight = 299,
             inputChannels = 3,
-            outputScores = 5,
+            outputScores = 1,
             normalization = "unknown",
         )
         assertTrue(manifest.acceptanceErrors().isNotEmpty())
     }
 }
+

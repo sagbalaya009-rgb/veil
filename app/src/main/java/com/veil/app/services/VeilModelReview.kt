@@ -21,6 +21,7 @@ data class VeilModelReview(
     val inputChannels: Int,
     val outputScores: Int,
     val normalization: String,
+    val labels: List<String> = VeilModelSpec.labels,
 ) {
     fun acceptanceErrors(): List<String> = buildList {
         if (modelId != VeilModelSpec.version) add("Model review modelId must match ${VeilModelSpec.version}.")
@@ -34,7 +35,8 @@ data class VeilModelReview(
         if (inputWidth != VeilModelSpec.inputSize || inputHeight != VeilModelSpec.inputSize || inputChannels != VeilModelSpec.inputChannels) {
             add("Model review input must be ${VeilModelSpec.inputSize}×${VeilModelSpec.inputSize} RGB.")
         }
-        if (outputScores != VeilModelSpec.outputScores) add("Model review must declare one explicit-content score.")
+        if (outputScores != VeilModelSpec.outputScores) add("Model review must declare ${VeilModelSpec.outputScores} upstream scores.")
+        if (labels != VeilModelSpec.labels) add("Model review class order must match the adapter.")
         if (normalization != VeilModelSpec.normalization) add("Model review must declare ${VeilModelSpec.normalization} normalization.")
     }
 
@@ -56,7 +58,9 @@ data class VeilModelReview(
                 inputChannels = value.getInt("inputChannels"),
                 outputScores = value.getInt("outputScores"),
                 normalization = value.getString("normalization"),
+                labels = value.getJSONArray("labels").let { array -> List(array.length()) { array.getString(it) } },
             )
         }
     }
 }
+

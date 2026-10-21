@@ -111,7 +111,7 @@ private enum class VeilDestination { HOME, RESET, NOTE }
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { VeilApp() }
+        setContent { com.veil.app.ui.VeilDashboard(legacyRecovery = { VeilApp() }) }
     }
 }
 

@@ -6,6 +6,10 @@ This folder is Project Veil’s **Option-C training workshop**. It prepares a re
 
 The workflow cannot train, evaluate, export, or generate a release review manifest until a dataset manifest passes the required evidence checks. Raw data and model artifacts must remain on a controlled local drive outside version control; the repository’s `.gitignore` prevents accidental commits of common data and model formats.
 
+## Bundled experimental inference
+
+The app now separately bundles an attributed third-party five-class MobileNet model. See `docs/ai/MODEL_SELECTION.md`, `docs/ai/MODEL_EVALUATION.md`, and `ml/evaluate_bundled_model.py`. This training workshop still describes a future custom binary classifier; its exported scalar model is **not** a drop-in replacement for the five-output Android adapter. Update the adapter, contract tests, hash pin, class policy, and review evidence together before changing model families.
+
 ## Future approved-data layout
 
 When an approved source exists, keep its files outside the Git repository or inside the ignored `ml/data/` path. The validator expects an image folder layout such as:
@@ -59,6 +63,7 @@ python3 ml/veil_ml.py create-review-manifest --model /controlled/path/veil_expli
 
 > Never use screenshots, photos, messages, browser history, accessibility events, or any other information from a Veil user as training or evaluation data.
 
-This workshop does not download data, call a cloud model, generate images, upload files, enable MediaProjection, enable accessibility capture, or activate a monitoring/overlay service. A resulting model is not placed into the Android app until its local review manifest passes the existing `VeilModelReview` gate and Galaxy M20 measurement has been recorded.
+This workshop does not download data, call a cloud model, generate images, upload files, enable MediaProjection, enable accessibility capture, or activate a monitoring/overlay service. A newly trained model is not placed into the Android app until its local review manifest, model family/class mapping, evaluation evidence, and target-device measurements have been reviewed. The owner test device in the current directive is the TECNO SPARK 30C; no physical-device performance is claimed.
 
 For source approval rules and candidate-research history, see [`docs/architecture/tflite-training-data-plan.md`](../docs/architecture/tflite-training-data-plan.md). For Android asset acceptance, see [`docs/architecture/tflite-model-review-gate.md`](../docs/architecture/tflite-model-review-gate.md).
+

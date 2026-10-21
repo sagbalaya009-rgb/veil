@@ -14,11 +14,13 @@ class TemporalDetectionEvaluator(
     private val scores = ArrayDeque<Float>()
 
     init {
+        require(threshold.isFinite() && threshold in 0f..1f)
         require(windowSize > 0)
         require(confirmationsRequired in 1..windowSize)
     }
 
     fun observe(score: Float): Boolean {
+        if (!score.isFinite() || score !in 0f..1f) { reset(); return false }
         scores.addLast(score)
         if (scores.size > windowSize) scores.removeFirst()
         return scores.count { it >= threshold } >= confirmationsRequired
