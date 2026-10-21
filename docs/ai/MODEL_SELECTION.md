@@ -47,4 +47,3 @@ The adapter rejects non-finite/out-of-range outputs or invalid softmax totals, s
 | Yahoo OpenNSFW derivatives | [BSD-3-Clause upstream](https://github.com/yahoo/open_nsfw); binary visual NSFW model | Different preprocessing, older architecture, and conversion chain; no reason established to prefer over available MobileNet |
 
 No cross-model accuracy benchmark was run. Quantization, GPU latency, battery, thermal response, demographic bias, recall, precision, and false-positive rates remain unmeasured for this Veil build. A model being executable is distinct from it being accurate or suitable for production filtering.
-

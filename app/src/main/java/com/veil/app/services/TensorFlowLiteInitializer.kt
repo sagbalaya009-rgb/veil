@@ -112,5 +112,3 @@ class TensorFlowLiteInitializer {
         exception.message ?: "Unable to inspect the TensorFlow Lite model contract."
     }
 }
-
-

@@ -46,4 +46,3 @@ class VeilModelReviewTest {
         assertTrue(manifest.acceptanceErrors().isNotEmpty())
     }
 }
-

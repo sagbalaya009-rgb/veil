@@ -121,8 +121,9 @@ fun isEssentialPackage(context: Context, name: String): Boolean {
     val home = android.content.Intent(android.content.Intent.ACTION_MAIN).addCategory(android.content.Intent.CATEGORY_HOME)
     val launcher = context.packageManager.resolveActivity(home, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
     val dialer = context.getSystemService(android.telecom.TelecomManager::class.java)?.defaultDialerPackage
+    val criticalSystemPackages = setOf("com.android.phone", "com.android.server.telecom", "com.android.packageinstaller", "com.android.intentresolver")
     return name.isBlank() || name == context.packageName || name == launcher || name == dialer ||
-        name.startsWith("com.android.") || name.contains("permissioncontroller") || name.contains("launcher") ||
+        name in criticalSystemPackages || name.contains("permissioncontroller") || name.contains("launcher") ||
         name.contains("incallui") || name.contains("dialer") || name.contains("emergency") ||
         name.contains("settings") || name == "android" || name.contains("systemui")
 }

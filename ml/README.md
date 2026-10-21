@@ -66,4 +66,3 @@ python3 ml/veil_ml.py create-review-manifest --model /controlled/path/veil_expli
 This workshop does not download data, call a cloud model, generate images, upload files, enable MediaProjection, enable accessibility capture, or activate a monitoring/overlay service. A newly trained model is not placed into the Android app until its local review manifest, model family/class mapping, evaluation evidence, and target-device measurements have been reviewed. The owner test device in the current directive is the TECNO SPARK 30C; no physical-device performance is claimed.
 
 For source approval rules and candidate-research history, see [`docs/architecture/tflite-training-data-plan.md`](../docs/architecture/tflite-training-data-plan.md). For Android asset acceptance, see [`docs/architecture/tflite-model-review-gate.md`](../docs/architecture/tflite-model-review-gate.md).
-

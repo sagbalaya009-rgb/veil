@@ -19,6 +19,9 @@ class CommitmentStoreTest {
         assertNotNull(store.blockingReason("org.example.distraction"))
         assertNull(store.blockingReason(context.packageName))
         assertNull(store.blockingReason("com.android.settings"))
+        store.startFocus(setOf("com.android.chrome"), 1)
+        assertNotNull(store.blockingReason("com.android.chrome"))
+        store.startFocus(setOf("org.example.distraction"), 1)
         assertTrue(store.state.value.focusRemaining(SystemClock.elapsedRealtime(), store.bootCount()) > 0)
         val persisted = context.getSharedPreferences("veil_commitments", Context.MODE_PRIVATE).getString("state", "")!!
         assertTrue(persisted.contains("org.example.distraction"))

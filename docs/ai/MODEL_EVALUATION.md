@@ -47,4 +47,3 @@ Do not treat upstream promotional accuracy as Veil accuracy, and do not tune thr
 - No bounding boxes or precise redaction regions are produced by this classifier.
 - MIT license evidence exists; a complete training-data rights/consent audit and a conversion parity comparison against the original training artifact do not.
 - The original repository's future Galaxy M20 release gate was tied to an absent custom binary model. The current master directive authorizes a real experimental upstream integration and names TECNO SPARK 30C as the owner test device. The new manifest records engineering integration review, not owner sign-off, model accuracy qualification, or completed physical-device testing. Existing training-data/export safety gates were retained.
-
