@@ -169,7 +169,7 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
                             item {
                                 Headline(listOf("Make room for what matters.", "Your screen stays yours.", "Protection, by your choice.")[intro])
                                 Text(listOf("Create a focus commitment. Pause unwanted content. Return to your goals with a calmer mind.",
-                                    "Screen frames stay in memory for local inference. No screenshot archive, account, cloud moderation or analytics. Local history contains event types and times only.",
+                                    "Screen frames stay in memory for local inference. No screenshot archive, account, cloud moderation or analytics. Protection history contains event types and times only. Optional Recovery records are stored separately with encryption on this device.",
                                     "Screen sharing needs Android consent each session. Foreground awareness needs optional accessibility access. You can revoke permissions, stop sharing or uninstall at any time. Veil cannot guarantee blocking or perfect classification.")[intro])
                             }
                             item { Button(onClick = { if (intro < 2) intro++ else store.onboard() }) { Text(if (intro < 2) "Continue" else "Open Veil") } }
@@ -178,7 +178,7 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
                             when (tab) {
                                 "Home" -> {
                                     item { Headline("Space to choose."); Text("A quieter screen. A clearer next step.", color = scheme.onSurfaceVariant) }
-                                    item { ProtectionSignature(running, connected, modelAvailable) }
+                                    item { ProtectionSignature(running, connected, modelAvailable, modelStatus == "Checking local model…") }
                                     item { Panel("Protection status") {
                                         Text(monitoring)
                                         Text(if (connected) "Foreground awareness connected" else "Foreground awareness off — app restrictions unavailable")
@@ -316,7 +316,7 @@ private fun timeLeft(milliseconds: Long): String = "%02d:%02d".format(millisecon
 
 private fun navLabel(name: String): String = when (name) { "Focus" -> "Shield"; "Reset" -> "Recovery"; "History" -> "Progress"; "Privacy" -> "Settings"; else -> name }
 
-@Composable private fun ProtectionSignature(running: Boolean, connected: Boolean, modelReady: Boolean) {
+@Composable private fun ProtectionSignature(running: Boolean, connected: Boolean, modelReady: Boolean, modelChecking: Boolean) {
     val muted = MaterialTheme.colorScheme.outlineVariant
     val ready = MaterialTheme.colorScheme.secondary
     Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(28.dp)).padding(20.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -329,7 +329,7 @@ private fun navLabel(name: String): String = when (name) { "Focus" -> "Shield"; 
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(if (running) "Sharing session active" else "Screen sharing off", fontWeight = FontWeight.SemiBold)
             Text(if (connected) "App intervention connected" else "App intervention needs setup", style = MaterialTheme.typography.bodySmall)
-            Text(if (modelReady) "Experimental model ready" else "Model unavailable", style = MaterialTheme.typography.bodySmall)
+            Text(if (modelReady) "Experimental model ready" else if (modelChecking) "Checking local model…" else "Model unavailable", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

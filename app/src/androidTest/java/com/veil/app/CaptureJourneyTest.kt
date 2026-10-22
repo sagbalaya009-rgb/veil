@@ -164,6 +164,21 @@ class CaptureJourneyTest {
                     record("recentsTaskRemovedCaptureRetained")
                 }
             }
+            // Launcher gestures vary. If the identified swipe failed, remove only this
+            // app's actual Android task through AppTask; never synthesize the service callback.
+            // This fallback qualifies task lifecycle, not a successful launcher gesture.
+            if ((MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) <= priorTaskRemovals) {
+                val tasks = context.getSystemService(android.app.ActivityManager::class.java).appTasks
+                tasks.filter { it.taskInfo.baseIntent.component?.packageName == context.packageName }
+                    .forEach { it.finishAndRemoveTask() }
+                await("Android must deliver real task removal", 10_000) {
+                    (MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) > priorTaskRemovals
+                }
+                report.put("recentsRemovalStatus", "CONFIRMED: Android AppTask removal fallback; launcher gesture not qualified")
+                report.put("recentsTaskRemovedCallback", true)
+            }
+            assertTrue("Actual task removal retains authorized capture", MonitoringRuntime.isRunning.value)
+            assertTrue("Actual task removal retains interpreter", MonitoringRuntime.health.value.inferenceReady)
             device.pressHome()
             assertTrue("Returning Home retains sharing before the real fixture", MonitoringRuntime.isRunning.value)
             assertEquals("No injected or premature intervention", 0, store.state.value.events.count { it.kind == "AI_INTERVENTION" })
