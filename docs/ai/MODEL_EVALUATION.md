@@ -1,4 +1,4 @@
-# Model evaluation status â€” 2026-10-21
+# Model evaluation status — 2026-10-22
 
 **Experimental integration. Semantic content accuracy and Android performance are not qualified.**
 
@@ -6,7 +6,7 @@
 
 1. Byte integrity: the bundled 17,355,548-byte TFLite SHA-256 is `380f98f7685f9d8a386f8cc595b6dfcb972989aae3d1b8b270d3a4a5b96fab40`; the loader checks the manifest and the code pin. The exact upstream distributor commit is recorded in MODEL_SELECTION.md.
 2. Desktop execution: **passed** using `ai-edge-litert==2.1.2`, Python 3.12.14 on Windows 11, two CPU threads. The generated `desktop-smoke-report.json` is the authoritative executed result: six generated solid colors plus 20 additional gray inputs, after two excluded warmups; finite normalized five-class outputs. Observed median invoke time **125.93 ms**, p95 **152.66 ms** (26 measured invokes). These fixtures test loading, shape, numerics, and actual inference only. They contain no meaningful labeled NSFW examples.
-3. Android execution: `BundledModelInferenceTest` initializes the shipped asset and repeatedly processes generated solid colors. Its presence is not a claim that it ran. See the build/device report for executed instrumentation status.
+3. Android execution: `BundledModelInferenceTest` initializes the shipped asset and repeatedly processes generated solid colors. It executed successfully on an API35 x86_64 emulator:15 genuine native inferences, bitmap ownership/idempotent shutdown, and red/blue numerical references passed. The capture integration also produced a genuine intervention from an entirely synthetic geometric false positive with the unchanged threshold; this does not establish semantic accuracy. See the delivery report for exact CI/commit evidence.
 4. Semantic accuracy: **not measured**. No labeled content dataset was acquired. No precision, recall, false-positive rate, F1, skin-tone robustness, screenshot-domain accuracy, or validated threshold is claimed.
 5. Performance: only values actually present in the desktop smoke report may be described as measured. Desktop invocation timing excludes capture, decoding, resizing, Android/JNI, overlays, and battery costs. It does not establish latency, thermal, or battery behavior on the TECNO SPARK 30C.
 
@@ -40,6 +40,7 @@ Do not treat upstream promotional accuracy as Veil accuracy, and do not tune thr
 
 ## Known limitations
 
+- Static surfaces may not emit enough fresh frames for temporal confirmation. The capture fixture deliberately pulses a tiny square to test multiple actual frames; it does not establish static-screen coverage.
 - Whole-screen resizing can erase small images or distort a portrait feed; multi-image layouts and text are outside the model's established image domain.
 - Softmax scores are uncalibrated. Temporal confirmation reduces isolated triggers but cannot establish correctness or eliminate systematic errors.
 - Medical images, artwork, swimwear, cartoons, unusual lighting, compression, and partial body views may be misclassified. Demographic performance is unknown.

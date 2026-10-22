@@ -8,7 +8,7 @@ Veil is an Android voluntary wellbeing app. Never imply guaranteed blocking, per
 
 ## Commands
 
-JDK17, Android API35, pinned Gradle wrapper. Run `./gradlew testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease`; Windows use `gradlew.bat` or `tools/verify.ps1`. Use `connectedDebugAndroidTest` on an authorized emulator. Python workshop tests: from `ml`, `python -m unittest discover -s tests -v`. Run model harness per `ml/README.md` and `docs/ai/MODEL_EVALUATION.md`. Inspect exact CI commit and test reports before claiming success.
+JDK17, Android API35, pinned Gradle wrapper. Run `./gradlew testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease`; Windows use `gradlew.bat` or `tools/verify.ps1`. Install the test-only fixture and use `connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.veil.app.VeilVerificationSuite` on an authorized emulator; see docs/testing/CAPTURE_JOURNEY.md. Python workshop tests: from `ml`, `python -m unittest discover -s tests -v`. Run model harness per `ml/README.md` and `docs/ai/MODEL_EVALUATION.md`. Inspect exact CI commit and test reports before claiming success.
 
 ## Architecture and privacy rules
 

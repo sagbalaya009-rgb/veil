@@ -29,3 +29,19 @@ permission protection for exported services. A second job boots an API 35 emulat
 instrumentation tests. Both jobs use only SDK licenses already present on the hosted runner.
 A workflow definition does not itself prove a successful remote run. Device tests are separate;
 use [the device matrix](../testing/DEVICE_TEST_MATRIX.md) and record results honestly.
+
+## Private CI downloads
+
+Normal Actions artifact upload is attempted. The account artifact-storage quota was exhausted earlier during this delivery; no paid storage was purchased. Normal upload later resumed. If normal upload fails, trusted branch pushes can preserve APKs and evidence as assets of an **unpublished draft release**, only while the repository is private. The helper refuses public repositories, pull-request events, other branches, published releases and mismatched target commits. PR verification has read-only repository permission.
+
+Prefer the exact successful Actions run linked in the delivery report. Download the `veil-debug-apk` artifact and extract `app-debug.apk`. If the private fallback was used, sign in with repository access, open Releases, choose its matching `ci-<commit SHA>` draft and download `app-debug.apk`. This is automatically debug-signed for installation. `app-release-unsigned.apk` is an unsigned packaging result and cannot be installed without signing. Evidence ZIPs contain executed reports. The test fixture APK is exclusively for automated emulator tests; do not install it as Veil.
+
+Hosted runner debug keys may differ across builds. If Android rejects an update because signatures differ, preserve any wanted notes before uninstalling the previous test build; uninstall removes its private data. An owner-controlled stable signing key is a separate production requirement.
+
+The complete emulator suite is ordered so fresh-install onboarding runs before tests that mutate local state:
+
+```sh
+bash gradlew :capture-fixture:assembleDebug
+adb install -r capture-fixture/build/outputs/apk/debug/capture-fixture-debug.apk
+bash gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.veil.app.VeilVerificationSuite
+```

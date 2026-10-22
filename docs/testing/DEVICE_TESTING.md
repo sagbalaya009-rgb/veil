@@ -4,7 +4,7 @@ No physical TECNO test has been executed by this engineering session. Use only t
 
 ## Phone-only installation
 
-1. Open the linked GitHub Actions run on your phone while signed into the repository account. Download the veil-debug-apk artifact, extract the ZIP in Files and open the APK. The delivery folder also contains the actual APK if artifact retrieval succeeded.
+1. Use the delivered `Veil-0.2.0-experimental.apk`, checking its SHA256 against the delivery report. Alternatively, open the exact successful Actions run linked in the report, download `veil-debug-apk`, extract it in Files and open `app-debug.apk`. Earlier builds used private draft downloads while Actions storage was exhausted; use the final report to identify the verified build. The unsigned release APK and capture fixture are not the installable Veil test build.
 2. Android may ask to permit installation from that browser/file manager. Enable that source only if you intend to install this verified test file. No root, device administrator, bootloader change or computer is required.
 3. Open Veil, complete onboarding and review Privacy. Do not grant optional access until you understand the separate disclosures. For sideloaded-app restricted settings, stop and use Android's documented owner-controlled installation/settings flow; do not bypass security prompts.
 

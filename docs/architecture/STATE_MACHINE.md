@@ -8,7 +8,7 @@ Missing/invalid model, lost accessibility connection, projection revocation, set
 
 ## Detection and intervention
 
-Eligible foreground frame → validated model scores → provisional explicit-score threshold and temporal confirmation → recheck foreground revision/device state → persistent cooldown for that package → dismissible accessibility overlay when that package is foreground. Other apps remain available. During cooldown analysis is paused. Expiry returns to ordinary observation; false-positive dismissal and emergency exit end the cooldown immediately and record only a local event kind/time.
+Eligible foreground frame → validated model scores → provisional explicit-score threshold and temporal confirmation → recheck foreground revision/device state → persistent cooldown for that package → dismissible accessibility overlay when that package is foreground. Other apps remain available. During cooldown analysis is paused. Expiry returns to ordinary observation; false-positive dismissal stops sharing before ending the cooldown, and emergency exit stops sharing and ends current restrictions. Both record only local event kinds/times. New sharing consent is required to resume AI.
 
 ## Focus
 
