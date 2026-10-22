@@ -47,7 +47,9 @@ class CaptureJourneyTest {
             await("previous capture stops", 10_000) { !MonitoringRuntime.isRunning.value }
             store.clearAll()
             // Fresh local rules/history, no injected detections, no fabricated accessibility callback.
-            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            instrumentation.waitForIdleSync()
+            device.waitForIdle(3_000)
             assertTrue(device.wait(Until.hasObject(By.pkg(context.packageName).depth(0)), 20_000))
             if (store.accessibilityConnected.value) {
                 clickText(device, "Privacy")
@@ -65,7 +67,9 @@ class CaptureJourneyTest {
             shell("settings put secure accessibility_enabled 1")
             await("real accessibility connection", 20_000) { store.accessibilityConnected.value }
             record("accessibilityConnected")
-            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP))
+            instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP))
+            instrumentation.waitForIdleSync()
+            device.waitForIdle(3_000)
             clickText(device, "Home")
             clickText(device, "Review and start screen sharing", 60_000)
             clickText(device, "Continue to Android consent")
@@ -186,9 +190,17 @@ class CaptureJourneyTest {
     private fun clickText(device: UiDevice, text: String, timeout: Long = 15_000, click: Boolean = true) {
         val deadline = SystemClock.elapsedRealtime() + timeout
         while (SystemClock.elapsedRealtime() < deadline) {
+            device.waitForIdle(2_000)
             val node = device.findObject(textSelector(text).enabled(true))
             if (node != null) {
-                if (click) node.click()
+                if (click) {
+                    // Scroll flings/recreated activities can move a previously found text node.
+                    // Re-resolve after idle and click its actual clickable Compose/native parent.
+                    var control = node
+                    while (!control.isClickable && control.parent != null) control = control.parent!!
+                    control.click()
+                    device.waitForIdle(2_000)
+                }
                 return
             }
             // Scroll only the Veil app; never blindly swipe Android's consent/settings UI.
