@@ -165,6 +165,8 @@ jobs:
           bash gradlew --no-daemon :capture-fixture:assembleDebug
           adb install -r capture-fixture/build/outputs/apk/debug/capture-fixture-debug.apk
           bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.veil.app.VeilVerificationSuite
+          # UTP uninstalls its target after successful tests. Reinstall solely for preview.
+          adb install -r app/build/outputs/apk/debug/app-debug.apk
           adb shell am start -W -n com.veil.app/.MainActivity
           sleep 3
           adb exec-out screencap -p > veil-emulator.png
