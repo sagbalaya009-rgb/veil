@@ -16,6 +16,7 @@ android {
         targetSdk = 35
         versionCode = 3
         versionName = "0.3.0-v2-experimental"
+        manifestPlaceholders["appLabel"] = "Veil"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -24,6 +25,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".v2"
+            manifestPlaceholders["appLabel"] = "Veil V2 Preview"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
