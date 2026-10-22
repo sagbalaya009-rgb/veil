@@ -32,6 +32,7 @@ jobs:
       - name: Exercise bundled model with synthetic image fixtures
         run: python ml/evaluate_bundled_model.py --output work/ci-model-smoke.json
       - name: Preserve model smoke report
+        id: model_report
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
@@ -40,7 +41,7 @@ jobs:
           path: work/ci-model-smoke.json
           if-no-files-found: warn
       - name: Preserve model evidence in unpublished private draft
-        if: always()
+        if: always() && steps.model_report.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python tools/preserve_ci_delivery.py model
@@ -72,6 +73,7 @@ jobs:
       - name: Check merged manifest privacy properties
         run: python3 tools/verify_manifest.py
       - name: Preserve verification reports
+        id: verify_reports
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
@@ -83,6 +85,7 @@ jobs:
             app/build/intermediates/merged_manifests/debug/
           if-no-files-found: warn
       - name: Preserve installable debug APK
+        id: debug_apk
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
@@ -90,6 +93,7 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
       - name: Preserve unsigned release APK
+        id: release_apk
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
@@ -97,7 +101,7 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
       - name: Preserve APKs and verification evidence in unpublished private draft
-        if: always()
+        if: always() && (steps.verify_reports.outcome == 'failure' || steps.debug_apk.outcome == 'failure' || steps.release_apk.outcome == 'failure')
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 tools/preserve_ci_delivery.py verify
@@ -165,6 +169,7 @@ jobs:
           sleep 3
           adb exec-out screencap -p > veil-emulator.png
       - name: Preserve device test reports
+        id: emulator_reports
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
@@ -178,7 +183,7 @@ jobs:
             capture-evidence/
           if-no-files-found: warn
       - name: Preserve emulator evidence in unpublished private draft
-        if: always()
+        if: always() && steps.emulator_reports.outcome == 'failure'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 tools/preserve_ci_delivery.py emulator
