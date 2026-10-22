@@ -97,8 +97,8 @@ class CaptureJourneyTest {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             // Fresh Android emulators display an immersive-mode education panel over the
             // fixture. Dismiss its visible ordinary control; do not alter system settings.
-            device.wait(Until.findObject(By.res("android", "ok").text("Got it")), 5_000)?.click()
-            device.waitForIdle(2_000)
+            device.wait(Until.hasObject(immersiveTutorialControl()), 5_000)
+            dismissImmersiveTutorial(device)
             await("real captured frames must trigger unchanged numeric policy", 60_000) {
                 store.state.value.cooldownPackage == FIXTURE_PACKAGE && store.state.value.events.any { it.kind == "AI_INTERVENTION" }
             }
@@ -199,6 +199,7 @@ class CaptureJourneyTest {
     private fun clickText(device: UiDevice, text: String, timeout: Long = 15_000, click: Boolean = true) {
         val deadline = SystemClock.elapsedRealtime() + timeout
         while (SystemClock.elapsedRealtime() < deadline) {
+            dismissImmersiveTutorial(device)
             device.waitForIdle(2_000)
             val node = device.findObject(textSelector(text).enabled(true))
             if (node != null) {
@@ -220,6 +221,21 @@ class CaptureJourneyTest {
             SystemClock.sleep(200)
         }
         throw AssertionError("Visible enabled control not found: $text")
+    }
+
+    private fun immersiveTutorialControl() = By.res("android", "ok").text("Got it")
+
+    private fun dismissImmersiveTutorial(device: UiDevice) {
+        val selector = immersiveTutorialControl()
+        val deadline = SystemClock.elapsedRealtime() + 8_000
+        while (device.hasObject(selector) && SystemClock.elapsedRealtime() < deadline) {
+            // The education panel can animate or recur when native overlays change focus.
+            // Wait, re-resolve and confirm the real visible button actually closed it.
+            device.waitForIdle(1_000)
+            device.findObject(selector)?.click()
+            device.wait(Until.gone(selector), 1_000)
+        }
+        assertFalse("Visible Android immersive tutorial must be confirmed, not ignored", device.hasObject(selector))
     }
 
     private fun await(label: String, timeout: Long, condition: () -> Boolean) {
