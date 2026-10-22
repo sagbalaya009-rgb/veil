@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 V2 experimental preview — 2026-10-22
+
+- Add optional encrypted Recovery goals, plans, check-ins, practical coping activities and user-written faith encouragement; preserve legacy records separately.
+- Add bounded correction reports with undo and independent stop controls; reports never change model weights, thresholds or exemptions.
+- Redesign Home, Shield, Recovery, Progress and Settings; add app search, explicit health states and aggregate-only diagnostics export.
+- Close policy immediately during terminal cleanup, guard duplicate starts and correct accessibility feedback interruption handling.
+- Add offline candidate comparison, leakage/calibration and conversion parity tools. Preserve the bundled model; no dataset acquisition, training or semantic accuracy improvement is claimed.
+- Install debug previews separately from V1 with persistent private development signing. Record exact verification and remaining gates in docs/releases/V2_RELEASE_REPORT.md.
+
 ## 0.2.0 experimental — 2026-10-22
 
 - Integrate explicit MediaProjection consent and bounded, worker-thread, local frame analysis.

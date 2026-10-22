@@ -15,5 +15,7 @@
   "epochs": 10,
   "batchSize": 32,
   "learningRate": 0.0001,
+  "fineTuneEpochs": 3,
+  "fineTuneLayers": 10,
   "outputDirectory": "/controlled/path/veil-training-artifacts"
 }

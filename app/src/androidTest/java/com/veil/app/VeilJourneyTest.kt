@@ -4,6 +4,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.veil.app.services.CommitmentStore
 import org.junit.Rule
@@ -22,8 +23,8 @@ class VeilJourneyTest {
             compose.onNodeWithText("Continue").performClick()
             compose.onNodeWithText("Open Veil").performClick()
         }
-        compose.onNodeWithText("Protection status").assertIsDisplayed()
-        compose.onNodeWithText("Focus").performClick()
+        compose.onNodeWithText("Protection status").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Shield").performClick()
         compose.onNodeWithText("Set up foreground awareness").performClick()
         compose.onNodeWithText("Foreground awareness").assertIsDisplayed()
         compose.onNodeWithText("Not now").performClick()

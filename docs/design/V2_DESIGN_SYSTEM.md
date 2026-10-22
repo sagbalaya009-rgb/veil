@@ -1,0 +1,7 @@
+# V2 design system
+
+Calm, precise minimalism: Warm Ivory F2F0EA background in light appearance, Deep Ink10131B in dark, soft violet B8A4FF and mint68D5BB accents. Dark surfaces181D29 and242A38; light primary544282 and secondary226D5D improve contrast over pale accent colors. Serif section headlines, neutral body typography, generous spacing, bounded card grouping and consistent20dp padding. Static concentric arcs show three independently named states rather than a misleading universal protected badge. No random gradients, continuous animation, streak punishment or fake stats.
+
+Navigation: Home health/action; Shield selected apps/search/duration; Recovery private support; Progress bounded self-report/event history; Settings control/privacy/diagnostics. Consent dialogs keep separate disclosures. An accessible text equivalent accompanies rings; Material controls supply default semantics/touch targets. Independent per-app checkbox labels remain. Content scrolls at increased font scale; text wrapping and real TalkBack/large-font tests must be verified in the rendered app before claiming accessible qualification.
+
+Official Compose accessibility defaults: https://developer.android.com/develop/ui/compose/accessibility/api-defaults — Material controls and minimum48dp targets. No screenshot mockup is implementation evidence; release report must identify screenshots from a running V2 APK.

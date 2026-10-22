@@ -11,6 +11,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Configurator
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
+import com.veil.app.core.ProtectionTelemetry
 import com.veil.app.services.CommitmentStore
 import com.veil.app.services.MonitoringRuntime
 import com.veil.app.services.VeilMonitoringService
@@ -65,16 +66,18 @@ class CaptureJourneyTest {
             // Fresh local rules/history, no injected detections, no fabricated accessibility callback.
             instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             instrumentation.waitForIdleSync()
+            device.wait(Until.hasObject(By.res(homePackage, "overview_panel")), 5_000)
+            SystemClock.sleep(1_000)
             device.waitForIdle(3_000)
             assertTrue(device.wait(Until.hasObject(By.pkg(context.packageName).depth(0)), 20_000))
             if (store.accessibilityConnected.value) {
-                clickText(device, "Privacy")
+                clickText(device, "Settings")
                 clickText(device, "Review foreground awareness")
             } else clickText(device, "Set up foreground awareness")
             clickText(device, "I agree — open Settings")
             assertTrue("Actual Android accessibility Settings opens",
                 device.wait(Until.hasObject(By.pkg("com.android.settings").depth(0)), 15_000))
-            val component = "com.veil.app/com.veil.app.services.VeilAccessibilityService"
+            val component = "${context.packageName}/com.veil.app.services.VeilAccessibilityService"
             val configured = previousServices.takeUnless { it == "null" || it.isBlank() }
                 ?.split(':')?.toMutableSet() ?: mutableSetOf()
             configured.add(component)
@@ -85,6 +88,8 @@ class CaptureJourneyTest {
             record("accessibilityConnected")
             instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP))
             instrumentation.waitForIdleSync()
+            device.wait(Until.hasObject(By.res(homePackage, "overview_panel")), 5_000)
+            SystemClock.sleep(1_000)
             device.waitForIdle(3_000)
             clickText(device, "Home")
             clickText(device, "Review and start screen sharing", 60_000)
@@ -103,11 +108,87 @@ class CaptureJourneyTest {
                 MonitoringRuntime.status.value.startsWith("Screen sharing active")
             }
             record("projectionStarted")
+            assertTrue("Interpreter is ready only after actual native initialization", MonitoringRuntime.health.value.inferenceReady)
+            val appLabel = context.applicationInfo.loadLabel(context.packageManager).toString()
+            val priorTaskRemovals = MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L
+            device.pressRecentApps()
+            device.wait(Until.hasObject(By.res(homePackage, "overview_panel")), 5_000)
+            SystemClock.sleep(1_000)
+            device.waitForIdle(3_000)
+            device.takeScreenshot(File(evidence, "recents-before-removal.png"))
+            device.dumpWindowHierarchy(File(evidence, "recents-before-removal.xml"))
+            // Only a card identified by Veil's visible label can be swiped. Never use Clear all
+            // or blind coordinates: launcher implementations differ between emulator images.
+            val marker = if (device.currentPackageName == homePackage) {
+                device.findObject(By.desc(appLabel)) ?: device.findObject(By.text(appLabel))
+            } else null
+            var candidate = marker
+            var card: androidx.test.uiautomator.UiObject2? = null
+            repeat(8) {
+                val current = candidate
+                if (current != null && card == null) {
+                    val bounds = current.visibleBounds
+                    if (bounds.height() > device.displayHeight / 3 && bounds.width() > device.displayWidth / 3 &&
+                        bounds.height() < device.displayHeight * 95 / 100) card = current
+                    else candidate = current.parent
+                }
+            }
+            if (card == null) {
+                report.put("recentsRemovalStatus", "SKIPPED: launcher did not expose an identifiable Veil task card; no blind swipe")
+            } else {
+                val bounds = card!!.visibleBounds
+                device.swipe(bounds.centerX(), bounds.centerY(), bounds.centerX(), 0, 10)
+                SystemClock.sleep(1_000)
+                // Verify actual task-card disappearance too: some instrumented launches do
+                // not deliver onTaskRemoved even when the launcher removed their UI task.
+                var taskGone = !device.hasObject(By.res(homePackage, "task").desc(appLabel))
+                if (!taskGone) {
+                    val retry = device.findObject(By.res(homePackage, "task").desc(appLabel))?.visibleBounds
+                    if (retry != null) device.swipe(retry.centerX(), retry.centerY(), retry.centerX(), 0, 5)
+                    taskGone = device.wait(Until.gone(By.res(homePackage, "task").desc(appLabel)), 5_000)
+                }
+                report.put("recentsTaskCardGone", taskGone)
+                val removedBy = SystemClock.elapsedRealtime() + 8_000
+                while (SystemClock.elapsedRealtime() < removedBy &&
+                    (MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) <= priorTaskRemovals) {
+                    SystemClock.sleep(100)
+                }
+                val callbackReceived = (MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) > priorTaskRemovals
+                val confirmed = callbackReceived || taskGone
+                report.put("recentsTaskRemovedCallback", callbackReceived)
+                report.put("recentsRemovalStatus", if (confirmed) "CONFIRMED: identified task card removed or lifecycle callback; capture must still trigger fixture below"
+                    else "SKIPPED: targeted swipe did not confirm task removal")
+                if (confirmed) {
+                    assertTrue("Removing only the UI task must retain authorized capture", MonitoringRuntime.isRunning.value)
+                    assertTrue("Task removal must retain the initialized interpreter", MonitoringRuntime.health.value.inferenceReady)
+                    record("recentsTaskRemovedCaptureRetained")
+                }
+            }
+            // Launcher gestures vary. If the identified swipe failed, remove only this
+            // app's actual Android task through AppTask; never synthesize the service callback.
+            // This fallback qualifies task lifecycle, not a successful launcher gesture.
+            if ((MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) <= priorTaskRemovals) {
+                val tasks = context.getSystemService(android.app.ActivityManager::class.java).appTasks
+                tasks.filter { it.taskInfo.baseIntent.component?.packageName == context.packageName }
+                    .forEach { it.finishAndRemoveTask() }
+                await("Android must deliver real task removal", 10_000) {
+                    (MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) > priorTaskRemovals
+                }
+                report.put("recentsRemovalStatus", "CONFIRMED: Android AppTask removal fallback; launcher gesture not qualified")
+                report.put("recentsTaskRemovedCallback", true)
+            }
+            assertTrue("Actual task removal retains authorized capture", MonitoringRuntime.isRunning.value)
+            assertTrue("Actual task removal retains interpreter", MonitoringRuntime.health.value.inferenceReady)
+            device.pressHome()
+            assertTrue("Returning Home retains sharing before the real fixture", MonitoringRuntime.isRunning.value)
             assertEquals("No injected or premature intervention", 0, store.state.value.events.count { it.kind == "AI_INTERVENTION" })
             // Explicit exported fixture activity, installed as its own test-only APK by CI.
             context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             // Education was confirmed before capture, without any intervention on screen.
+            await("fixture has actual foreground accessibility observation", 15_000) {
+                MonitoringRuntime.foregroundPackage.value == FIXTURE_PACKAGE
+            }
             await("real captured frames must trigger unchanged numeric policy", 60_000) {
                 store.state.value.cooldownPackage == FIXTURE_PACKAGE && store.state.value.events.any { it.kind == "AI_INTERVENTION" }
             }
@@ -201,6 +282,10 @@ class CaptureJourneyTest {
             report.put("aiInterventions", eventCount).put("passed", true)
         } catch (error: Throwable) {
             report.put("passed", false).put("failure", error.toString()).put("monitoringStatus", MonitoringRuntime.status.value)
+                .put("fixtureForegroundObserved", MonitoringRuntime.foregroundPackage.value == FIXTURE_PACKAGE)
+                .put("accessibilityConnected", store.accessibilityConnected.value)
+                .put("captureRunning", MonitoringRuntime.isRunning.value)
+                .put("lastForegroundReason", MonitoringRuntime.foregroundReason.name)
             runCatching { File(evidence, "accessibility-diagnostics.txt").writeText(
                 shell("settings get secure enabled_accessibility_services") + "\n" + shell("dumpsys accessibility")) }
             runCatching { device.takeScreenshot(File(evidence, "failure.png")) }
@@ -248,7 +333,7 @@ class CaptureJourneyTest {
                 return
             }
             // Scroll only the Veil app; never blindly swipe Android's consent/settings UI.
-            if (device.currentPackageName == "com.veil.app") {
+            if (device.currentPackageName == InstrumentationRegistry.getInstrumentation().targetContext.packageName) {
                 device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4,
                     device.displayWidth / 2, device.displayHeight / 3, 15)
             }
