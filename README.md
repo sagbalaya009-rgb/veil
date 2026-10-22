@@ -1,5 +1,7 @@
 # Project Veil
 
+> **Status: UNDER DEVELOPMENT** — This repository contains an early Android MVP and ongoing engineering work. Its screen-content detection, model validation, and enforcement features are not production-ready; do not rely on Veil for active protection yet.
+
 **Project Veil** is an Android-first digital-wellbeing application that helps people enforce self-control commitments around explicit content and other distracting behaviors. Veil is designed as a **user-controlled protective layer**, not a surveillance product: processing is local, operation is visible, and the user chooses when protection is active.
 
 ## What Veil does
