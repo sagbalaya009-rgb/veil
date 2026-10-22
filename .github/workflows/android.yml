@@ -59,6 +59,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Restore private development signing key
+        env:
+          VEIL_DEBUG_KEYSTORE_B64: ${{ secrets.VEIL_V2_DEBUG_KEYSTORE }}
+        run: |
+          if [ -z "$VEIL_DEBUG_KEYSTORE_B64" ]; then
+            echo 'Trusted preview signing key is not configured.' >&2
+            exit 1
+          fi
+          python3 -c 'import os,base64,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"], "veil-v2-development.p12").write_bytes(base64.b64decode(os.environ["VEIL_DEBUG_KEYSTORE_B64"], validate=True))'
+          echo "VEIL_DEBUG_KEYSTORE=$RUNNER_TEMP/veil-v2-development.p12" >> "$GITHUB_ENV"
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
@@ -118,6 +128,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Restore private development signing key
+        env:
+          VEIL_DEBUG_KEYSTORE_B64: ${{ secrets.VEIL_V2_DEBUG_KEYSTORE }}
+        run: |
+          if [ -z "$VEIL_DEBUG_KEYSTORE_B64" ]; then
+            echo 'Trusted preview signing key is not configured.' >&2
+            exit 1
+          fi
+          python3 -c 'import os,base64,pathlib; pathlib.Path(os.environ["RUNNER_TEMP"], "veil-v2-development.p12").write_bytes(base64.b64decode(os.environ["VEIL_DEBUG_KEYSTORE_B64"], validate=True))'
+          echo "VEIL_DEBUG_KEYSTORE=$RUNNER_TEMP/veil-v2-development.p12" >> "$GITHUB_ENV"
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools

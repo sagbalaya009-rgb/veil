@@ -24,6 +24,16 @@ android {
         }
     }
 
+    // Dedicated development key supplied only to trusted CI; never commit key material.
+    signingConfigs.getByName("debug") {
+        System.getenv("VEIL_DEBUG_KEYSTORE")?.let { path ->
+            storeFile = file(path)
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".v2"
