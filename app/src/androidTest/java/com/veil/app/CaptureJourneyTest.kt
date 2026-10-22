@@ -175,6 +175,10 @@ class CaptureJourneyTest {
             } finally {
                 config.setUiAutomationFlags(originalFlags)
                 File(evidence, "capture-journey.json").writeText(report.toString(2))
+                // UTP uninstalls the target after tests. Preserve only this synthetic test
+                // evidence via emulator shell before app-private external files are removed.
+                shell("mkdir -p /sdcard/Download/veil-capture-evidence")
+                shell("cp -R " + evidence.absolutePath + "/. /sdcard/Download/veil-capture-evidence/")
             }
         }
     }
