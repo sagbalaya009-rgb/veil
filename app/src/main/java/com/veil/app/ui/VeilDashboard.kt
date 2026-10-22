@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -65,6 +66,12 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
     var breathSeconds by remember { mutableIntStateOf(0) }
     LaunchedEffect(recoveryRequest) {
         if (recoveryRequest > 0) { legacy = false; tab = "Reset" }
+    }
+    val view = LocalView.current
+    DisposableEffect(view, breathing) {
+        val previous = view.keepScreenOn
+        if (breathing) view.keepScreenOn = true
+        onDispose { view.keepScreenOn = previous }
     }
     val capture = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         consentPending = false
