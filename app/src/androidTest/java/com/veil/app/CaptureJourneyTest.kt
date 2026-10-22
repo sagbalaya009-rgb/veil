@@ -171,6 +171,9 @@ class CaptureJourneyTest {
             context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             // Education was confirmed before capture, without any intervention on screen.
+            await("fixture has actual foreground accessibility observation", 15_000) {
+                MonitoringRuntime.foregroundPackage.value == FIXTURE_PACKAGE
+            }
             await("real captured frames must trigger unchanged numeric policy", 60_000) {
                 store.state.value.cooldownPackage == FIXTURE_PACKAGE && store.state.value.events.any { it.kind == "AI_INTERVENTION" }
             }
@@ -264,6 +267,9 @@ class CaptureJourneyTest {
             report.put("aiInterventions", eventCount).put("passed", true)
         } catch (error: Throwable) {
             report.put("passed", false).put("failure", error.toString()).put("monitoringStatus", MonitoringRuntime.status.value)
+                .put("fixtureForegroundObserved", MonitoringRuntime.foregroundPackage.value == FIXTURE_PACKAGE)
+                .put("accessibilityConnected", store.accessibilityConnected.value)
+                .put("captureRunning", MonitoringRuntime.isRunning.value)
             runCatching { File(evidence, "accessibility-diagnostics.txt").writeText(
                 shell("settings get secure enabled_accessibility_services") + "\n" + shell("dumpsys accessibility")) }
             runCatching { device.takeScreenshot(File(evidence, "failure.png")) }

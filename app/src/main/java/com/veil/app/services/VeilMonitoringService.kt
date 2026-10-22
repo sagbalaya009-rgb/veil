@@ -192,7 +192,16 @@ class VeilMonitoringService : Service() {
             ) {
                 evaluator.reset()
                 lastPackage = null
-                setCaptureStatus(MonitoringRuntime.CaptureState.PAUSED, "Screen sharing active · analysis paused on this screen")
+                val pauseReason = when {
+                    !visible -> "Android reports captured content hidden"
+                    !store.accessibilityConnected.value -> "app intervention access disconnected"
+                    !getSystemService(PowerManager::class.java).isInteractive -> "screen off"
+                    getSystemService(KeyguardManager::class.java).isKeyguardLocked -> "device locked"
+                    packageName == null -> "waiting for foreground app observation"
+                    isEssentialPackage(this, packageName) -> "system or Veil screen excluded"
+                    else -> "cooldown active"
+                }
+                setCaptureStatus(MonitoringRuntime.CaptureState.PAUSED, "Screen sharing active · analysis paused: $pauseReason")
                 return
             }
             if (packageName != lastPackage) {
