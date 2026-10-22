@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /** Runtime health is deliberately ephemeral: a new process never claims old capture consent. */
 object MonitoringRuntime {
+    enum class ForegroundReason { APP, SELF, ESSENTIAL, SYSTEM_UI, INTERRUPTED, LEAVING, UNKNOWN }
+    @Volatile var foregroundReason = ForegroundReason.UNKNOWN
+        private set
     enum class CaptureState { OFF, STARTING, WAITING, ANALYZING, PAUSED, NO_RECENT_FRAMES, INTERRUPTED }
     data class Health(val serviceRunning: Boolean = false, val captureState: CaptureState = CaptureState.OFF, val modelReady: Boolean = false, val inferenceReady: Boolean = false, val resumeRequired: Boolean = true)
     data class ForegroundObservation(val packageName: String?, val revision: Long)
@@ -24,9 +27,10 @@ object MonitoringRuntime {
     private val mutableRunning = MutableStateFlow(false)
     val isRunning: StateFlow<Boolean> = mutableRunning.asStateFlow()
 
-    @Synchronized fun updateForegroundPackage(packageName: String?) {
+    @Synchronized fun updateForegroundPackage(packageName: String?, reason: ForegroundReason = if (packageName == null) ForegroundReason.UNKNOWN else ForegroundReason.APP) {
         if (mutableForegroundPackage.value != packageName) foregroundRevision++
         mutableForegroundPackage.value = packageName
+        foregroundReason = reason
     }
     @Synchronized internal fun foregroundObservation() = ForegroundObservation(mutableForegroundPackage.value, foregroundRevision)
     @Synchronized internal fun updateRunning(running: Boolean) {

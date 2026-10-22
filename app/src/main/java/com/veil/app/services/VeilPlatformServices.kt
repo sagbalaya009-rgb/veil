@@ -35,7 +35,14 @@ class VeilAccessibilityService : AccessibilityService() {
         store.connection(true)
         if (pkg == packageName && overlay != null && event.className?.toString() != MainActivity::class.java.name) return
         foreground = pkg
-        MonitoringRuntime.updateForegroundPackage(pkg.takeUnless { isEssentialPackage(this, it) })
+        val essential = isEssentialPackage(this, pkg)
+        val reason = when {
+            pkg == packageName -> MonitoringRuntime.ForegroundReason.SELF
+            pkg == "com.android.systemui" -> MonitoringRuntime.ForegroundReason.SYSTEM_UI
+            essential -> MonitoringRuntime.ForegroundReason.ESSENTIAL
+            else -> MonitoringRuntime.ForegroundReason.APP
+        }
+        MonitoringRuntime.updateForegroundPackage(pkg.takeUnless { essential }, reason)
         render()
     }
     private fun render() {
@@ -91,13 +98,13 @@ class VeilAccessibilityService : AccessibilityService() {
         // Window removal/Home launch can coalesce accessibility events. Do not let the
         // timer reattach the previous app's overlay while navigation is in flight.
         foreground = null
-        MonitoringRuntime.updateForegroundPackage(null)
+        MonitoringRuntime.updateForegroundPackage(null, MonitoringRuntime.ForegroundReason.LEAVING)
         removeOverlay()
     }
     private fun removeOverlay() {
         overlay?.let { view -> runCatching { getSystemService(WindowManager::class.java).removeView(view) } }; overlay = null
     }
-    override fun onInterrupt() { foreground = null; MonitoringRuntime.updateForegroundPackage(null); removeOverlay(); store.connection(false) }
+    override fun onInterrupt() { foreground = null; MonitoringRuntime.updateForegroundPackage(null, MonitoringRuntime.ForegroundReason.INTERRUPTED); removeOverlay(); store.connection(false) }
     override fun onUnbind(intent: Intent?): Boolean { cleanup(); return super.onUnbind(intent) }
     override fun onDestroy() { cleanup(); super.onDestroy() }
     private fun cleanup() {

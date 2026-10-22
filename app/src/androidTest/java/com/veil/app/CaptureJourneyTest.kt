@@ -270,6 +270,7 @@ class CaptureJourneyTest {
                 .put("fixtureForegroundObserved", MonitoringRuntime.foregroundPackage.value == FIXTURE_PACKAGE)
                 .put("accessibilityConnected", store.accessibilityConnected.value)
                 .put("captureRunning", MonitoringRuntime.isRunning.value)
+                .put("lastForegroundReason", MonitoringRuntime.foregroundReason.name)
             runCatching { File(evidence, "accessibility-diagnostics.txt").writeText(
                 shell("settings get secure enabled_accessibility_services") + "\n" + shell("dumpsys accessibility")) }
             runCatching { device.takeScreenshot(File(evidence, "failure.png")) }
