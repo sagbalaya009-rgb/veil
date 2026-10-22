@@ -6,6 +6,10 @@ V1 already used a started mediaProjection foreground service, a separate worker 
 
 A confirmed code defect was that finishSession stopped native capture asynchronously while leaving the running policy flag true until onDestroy. V2 closes that gate immediately, avoiding interventions during terminal cleanup. Duplicate start deliveries cannot initialize a second capture/token while a session is running.
 
+An additional confirmed lifecycle misuse cleared foreground/connection state in AccessibilityService.onInterrupt. Android defines this callback as interruption of accessibility feedback, not service disconnection. Veil emits no speech feedback, so this callback now leaves monitoring state intact; actual unbind/destroy still disconnect and stop capture. The regression test calls this feedback callback and checks that a foreground observation survives. This fixes the callback contract but does not, by itself, establish the cause of every Recents failure.
+
+In emulator run 39809733085, the real task card disappeared and onTaskRemoved was received while the capture service remained alive. Later inference paused because its foreground observation became null. Run 39827374429 passed the integration journey after the callback change, but its launcher swipe did not remove the task. That run cannot establish a Recents fix. The subsequent test requires an actual Android task-removal callback, using an explicitly recorded AppTask fallback when the identified launcher gesture fails.
+
 ## Implemented behavior
 
 - The capture service explicitly remains independent of the activity task. onTaskRemoved counts a technical event and leaves an existing valid session alone. It does not restart anything.
