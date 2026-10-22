@@ -91,6 +91,10 @@ class CaptureJourneyTest {
             // Explicit exported fixture activity, installed as its own test-only APK by CI.
             context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            // Fresh Android emulators display an immersive-mode education panel over the
+            // fixture. Dismiss its visible ordinary control; do not alter system settings.
+            device.wait(Until.findObject(By.res("android", "ok").text("Got it")), 5_000)?.click()
+            device.waitForIdle(2_000)
             await("real captured frames must trigger unchanged numeric policy", 60_000) {
                 store.state.value.cooldownPackage == FIXTURE_PACKAGE && store.state.value.events.any { it.kind == "AI_INTERVENTION" }
             }
