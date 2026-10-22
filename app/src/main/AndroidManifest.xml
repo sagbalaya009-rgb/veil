@@ -15,6 +15,7 @@
         android:name=".VeilApplication"
         android:allowBackup="false"
         android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@drawable/ic_veil_launcher"
         android:label="Veil"
         android:supportsRtl="true"

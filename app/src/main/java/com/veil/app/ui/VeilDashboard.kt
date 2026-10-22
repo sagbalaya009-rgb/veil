@@ -11,6 +11,8 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -238,10 +240,10 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
                 }
             }
             if (disclosure) AlertDialog(onDismissRequest = { disclosure = false }, title = { Text("Foreground awareness") }, text = {
-                Text("Veil uses Accessibility Service to receive the package name of the foreground app and display a dismissible protective screen for your chosen apps and AI cooldowns. It does not retrieve screen text, read messages, perform gestures or upload activity. Foreground names stay in memory; selected rules stay locally. You can turn it off in Android Settings at any time. This is voluntary wellbeing support, not an accessibility tool.")
+                Text("Veil uses Accessibility Service to receive the package name of the foreground app and display a dismissible protective screen for your chosen apps and AI cooldowns. It does not retrieve screen text, read messages, perform gestures or upload activity. Foreground names stay in memory; selected rules stay locally. You can turn it off in Android Settings at any time. This is voluntary wellbeing support, not an accessibility tool.", modifier = Modifier.verticalScroll(rememberScrollState()))
             }, confirmButton = { TextButton(onClick = { disclosure = false; context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) { Text("I agree — open Settings") } }, dismissButton = { TextButton(onClick = { disclosure = false }) { Text("Not now") } })
             if (captureDisclosure) AlertDialog(onDismissRequest = { captureDisclosure = false }, title = { Text("Share your screen with Veil?") }, text = {
-                Text("Android will ask to share this display. Visible frames are analyzed locally with an experimental adult-content classifier, then discarded. No images are saved or sent. Screening may be wrong or miss content; protected surfaces cannot be analyzed. A visible foreground notification and Android sharing indicator remain. Stop at any time from Android or Veil. Foreground awareness is required for app-specific interventions.")
+                Text("Android will ask to share this display. Visible frames are analyzed locally with an experimental adult-content classifier, then discarded. No images are saved or sent. Screening may be wrong or miss content; protected surfaces cannot be analyzed. A visible foreground notification and Android sharing indicator remain. Stop at any time from Android or Veil. Foreground awareness is required for app-specific interventions.", modifier = Modifier.verticalScroll(rememberScrollState()))
             }, confirmButton = { TextButton(onClick = {
                 captureDisclosure = false
                 consentPending = true

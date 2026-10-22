@@ -160,7 +160,7 @@ jobs:
           adb shell input keyevent 82
           bash gradlew --no-daemon :capture-fixture:assembleDebug
           adb install -r capture-fixture/build/outputs/apk/debug/capture-fixture-debug.apk
-          bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest
+          bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.veil.app.VeilVerificationSuite
           adb shell am start -W -n com.veil.app/.MainActivity
           sleep 3
           adb exec-out screencap -p > veil-emulator.png

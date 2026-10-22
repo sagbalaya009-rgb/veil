@@ -15,6 +15,7 @@ import com.veil.app.services.CommitmentStore
 import com.veil.app.services.MonitoringRuntime
 import com.veil.app.services.VeilMonitoringService
 import java.io.File
+import java.util.regex.Pattern
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -60,7 +61,7 @@ class CaptureJourneyTest {
                 ?.split(':')?.toMutableSet() ?: mutableSetOf()
             configured.add(component)
             // Emulator provisioning only. Android actually binds the production service.
-            shell("settings put secure enabled_accessibility_services " + quote(configured.joinToString(":")))
+            shell("settings put secure enabled_accessibility_services " + settingValue(configured.joinToString(":")))
             shell("settings put secure accessibility_enabled 1")
             await("real accessibility connection", 20_000) { store.accessibilityConnected.value }
             record("accessibilityConnected")
@@ -97,7 +98,7 @@ class CaptureJourneyTest {
             device.dumpWindowHierarchy(File(evidence, "real-detection-overlay.xml"))
             clickText(device, "Leave this app")
             await("safe Home removes intervention overlay", 10_000) {
-                !device.hasObject(By.text("Leave this app")) && MonitoringRuntime.foregroundPackage.value == null
+                !device.hasObject(textSelector("Leave this app")) && MonitoringRuntime.foregroundPackage.value == null
             }
             record("safeHomeExit")
             assertNull("System Settings is never blocked", store.blockingReason("com.android.settings"))
@@ -114,11 +115,48 @@ class CaptureJourneyTest {
             SystemClock.sleep(2_500)
             assertEquals("Stopped capture must not immediately re-block the synthetic fixture", eventCount,
                 store.state.value.events.count { it.kind == "AI_INTERVENTION" })
-            assertFalse(device.hasObject(By.text("Leave this app")))
+            assertFalse(device.hasObject(textSelector("Leave this app")))
             record("falsePositiveExit")
+
+            // System B uses the actual bound service while AI is off. Only rule setup uses the
+            // store API; real monotonic time, service ticks, overlay and exits remain unmodified.
+            assertTrue("Accessibility remains actually bound after stopping AI", store.accessibilityConnected.value)
+            val focusStarted = SystemClock.elapsedRealtime()
+            store.startFocus(setOf(FIXTURE_PACKAGE), 1)
+            clickText(device, "Leave this app", 15_000, click = false)
+            assertFalse("Focus must not restart screen sharing", MonitoringRuntime.isRunning.value)
+            assertNotNull("The chosen fixture app is restricted during focus", store.blockingReason(FIXTURE_PACKAGE))
+            device.takeScreenshot(File(evidence, "focus-without-ai-overlay.png"))
+            record("focusWithoutAiOverlay")
+            await("one-minute focus expires through actual service ticks", 75_000) {
+                store.state.value.focusPackages.isEmpty() &&
+                    store.state.value.events.any { it.kind == "FOCUS_COMPLETED" } &&
+                    !device.hasObject(textSelector("Leave this app"))
+            }
+            val actualFocusElapsed = SystemClock.elapsedRealtime() - focusStarted
+            assertTrue("Real focus must last at least 60 seconds; no deadline mutation", actualFocusElapsed >= 60_000)
+            assertNull(store.blockingReason(FIXTURE_PACKAGE))
+            assertFalse(MonitoringRuntime.isRunning.value)
+            assertTrue(store.accessibilityConnected.value)
+            report.put("actualOneMinuteFocusElapsedMs", actualFocusElapsed)
+            record("focusActuallyExpired")
+
+            store.startFocus(setOf(FIXTURE_PACKAGE), 1)
+            clickText(device, "Emergency exit — end restrictions", 15_000)
+            await("real emergency control clears focus and overlay while AI stays off", 10_000) {
+                store.state.value.focusPackages.isEmpty() && store.state.value.focusEndElapsed == 0L &&
+                    !MonitoringRuntime.isRunning.value && !device.hasObject(textSelector("Leave this app"))
+            }
+            assertTrue(store.state.value.events.any { it.kind == "FOCUS_ENDED_EARLY" })
+            assertNull(store.blockingReason(FIXTURE_PACKAGE))
+            assertEquals("Focus timer and emergency exit must not produce AI events", eventCount,
+                store.state.value.events.count { it.kind == "AI_INTERVENTION" })
+            record("focusEmergencyExit")
             report.put("aiInterventions", eventCount).put("passed", true)
         } catch (error: Throwable) {
             report.put("passed", false).put("failure", error.toString()).put("monitoringStatus", MonitoringRuntime.status.value)
+            runCatching { File(evidence, "accessibility-diagnostics.txt").writeText(
+                shell("settings get secure enabled_accessibility_services") + "\n" + shell("dumpsys accessibility")) }
             runCatching { device.takeScreenshot(File(evidence, "failure.png")) }
             runCatching { device.dumpWindowHierarchy(File(evidence, "failure.xml")) }
             throw error
@@ -144,7 +182,7 @@ class CaptureJourneyTest {
     private fun clickText(device: UiDevice, text: String, timeout: Long = 15_000, click: Boolean = true) {
         val deadline = SystemClock.elapsedRealtime() + timeout
         while (SystemClock.elapsedRealtime() < deadline) {
-            val node = device.findObject(By.text(text).enabled(true))
+            val node = device.findObject(textSelector(text).enabled(true))
             if (node != null) {
                 if (click) node.click()
                 return
@@ -170,10 +208,16 @@ class CaptureJourneyTest {
 
     private fun restoreSetting(device: UiDevice, key: String, previous: String) {
         if (previous == "null" || previous.isBlank()) device.executeShellCommand("settings delete secure $key")
-        else device.executeShellCommand("settings put secure $key " + quote(previous))
+        else device.executeShellCommand("settings put secure $key " + settingValue(previous))
     }
 
-    private fun quote(value: String) = "'" + value.replace("'", "'\\''") + "'"
+    // UiAutomation executes argv directly; shell quotes become literal setting characters.
+    private fun settingValue(value: String): String {
+        require(value.matches(Regex("[A-Za-z0-9_./:$-]+"))) { "Unexpected emulator setting value" }
+        return value
+    }
+    private fun textSelector(text: String) = By.text(Pattern.compile(Pattern.quote(text),
+        Pattern.CASE_INSENSITIVE or Pattern.UNICODE_CASE))
     private fun isEmulator() = Build.HARDWARE in setOf("ranchu", "goldfish") ||
         Build.FINGERPRINT.startsWith("generic") || Build.MODEL.contains("sdk_gphone")
 

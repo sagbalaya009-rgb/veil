@@ -23,6 +23,14 @@ if app is None:
 for attribute in ("allowBackup", "usesCleartextTraffic"):
     if app.get(ANDROID + attribute) != "false":
         errors.append(f"application {attribute} must be false")
+if app.get(ANDROID + "dataExtractionRules") != "@xml/data_extraction_rules":
+    errors.append("Explicit cloud-backup and device-transfer exclusion rules are required")
+rules = ET.parse(repo / "app/src/main/res/xml/data_extraction_rules.xml").getroot()
+for transport in ("cloud-backup", "device-transfer"):
+    node = rules.find(transport)
+    excluded = set() if node is None else {entry.get("domain") for entry in node.findall("exclude") if entry.get("path") == "."}
+    if not {"root", "file", "database", "sharedpref", "external"}.issubset(excluded):
+        errors.append(f"Incomplete {transport} private-data exclusions")
 for service in app.findall("service"):
     if service.get(ANDROID + "exported") == "true" and service.get(ANDROID + "permission") != "android.permission.BIND_ACCESSIBILITY_SERVICE":
         errors.append(f"Unprotected exported service: {service.get(ANDROID + 'name')}")
