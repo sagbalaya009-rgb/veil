@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.os.Bundle
@@ -23,9 +24,16 @@ class FixtureActivity : Activity() {
             BitmapFactory.Options().apply { inScaled = false })
         setContentView(object : View(this) {
             private val paint = Paint().apply { isFilterBitmap = false; isAntiAlias = false }
+            private var pulse = false
             override fun onDraw(canvas: Canvas) {
                 super.onDraw(canvas)
                 canvas.drawBitmap(image, null, Rect(0, 0, width, height), paint)
+                // Tiny benign visual pulse ensures actual new display buffers for temporal
+                // confirmation; a static surface need not continuously emit capture frames.
+                paint.color = if (pulse) Color.WHITE else Color.BLACK
+                canvas.drawRect(0f, 0f, 4f, 4f, paint)
+                pulse = !pulse
+                postInvalidateDelayed(250)
             }
         })
     }
