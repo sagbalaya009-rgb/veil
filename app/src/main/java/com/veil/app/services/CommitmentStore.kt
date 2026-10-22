@@ -35,6 +35,12 @@ class CommitmentStore private constructor(context: Context) {
     val state: StateFlow<CommitmentSnapshot> = mutable
     private val connected = MutableStateFlow(false)
     val accessibilityConnected: StateFlow<Boolean> = connected
+
+    init {
+        // read() prunes expired metadata in memory. Persist that normalized snapshot once
+        // on reopening too, even when the user makes no setting or rule changes.
+        change { it }
+    }
     fun connection(active: Boolean) { connected.value = active }
     fun bootCount(): Int = Settings.Global.getInt(app.contentResolver, Settings.Global.BOOT_COUNT, -1)
 
