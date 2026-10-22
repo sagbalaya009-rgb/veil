@@ -1,6 +1,7 @@
 package com.veil.app
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -109,10 +110,30 @@ private enum class VeilDestination { HOME, RESET, NOTE }
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private var recoveryRequest by mutableStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { com.veil.app.ui.VeilDashboard(legacyRecovery = { VeilApp() }) }
+        consumeRecoveryRequest(intent)
+        setContent {
+            com.veil.app.ui.VeilDashboard(legacyRecovery = { VeilApp() }, recoveryRequest = recoveryRequest)
+        }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        consumeRecoveryRequest(intent)
+    }
+
+    private fun consumeRecoveryRequest(request: Intent) {
+        if (request.getBooleanExtra(EXTRA_OPEN_RECOVERY, false)) {
+            request.removeExtra(EXTRA_OPEN_RECOVERY)
+            recoveryRequest++
+        }
+    }
+
+    companion object { const val EXTRA_OPEN_RECOVERY = "com.veil.app.OPEN_RECOVERY" }
 }
 
 @Composable

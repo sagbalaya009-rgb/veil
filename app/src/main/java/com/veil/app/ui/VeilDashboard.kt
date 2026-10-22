@@ -38,7 +38,7 @@ import java.util.Date
 private data class AppChoice(val label: String, val pkg: String)
 
 @Composable
-fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
+fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int = 0) {
     val context = LocalContext.current
     val store = remember { CommitmentStore.get(context) }
     val state by store.state.collectAsStateWithLifecycle()
@@ -63,6 +63,9 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit) {
     var reflection by remember { mutableStateOf("") }
     var breathing by rememberSaveable { mutableStateOf(false) }
     var breathSeconds by remember { mutableIntStateOf(0) }
+    LaunchedEffect(recoveryRequest) {
+        if (recoveryRequest > 0) { legacy = false; tab = "Reset" }
+    }
     val capture = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         consentPending = false
         if (result.resultCode == Activity.RESULT_OK && result.data != null && !MonitoringRuntime.isRunning.value) {

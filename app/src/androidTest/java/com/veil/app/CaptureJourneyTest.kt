@@ -115,6 +115,30 @@ class CaptureJourneyTest {
             }
             record("safeHomeExit")
             assertNull("System Settings is never blocked", store.blockingReason("com.android.settings"))
+            // Real overlay navigation must route to Reset, including an already existing task.
+            context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            clickText(device, "Open recovery", 15_000)
+            await("recovery action opens the actual Reset page", 15_000) {
+                device.currentPackageName == context.packageName && device.hasObject(textSelector("Guided breathing"))
+            }
+            record("recoveryOpened")
+            val priorRecoveryEvents = store.state.value.events.count { it.kind == "RECOVERY_SELF_REPORTED" }
+            val breathingStarted = SystemClock.elapsedRealtime()
+            clickText(device, "Begin breathing")
+            await("actual one-minute breathing guide completes without clock mutation", 75_000) {
+                store.state.value.events.count { it.kind == "RECOVERY_SELF_REPORTED" } > priorRecoveryEvents
+            }
+            val breathingElapsed = SystemClock.elapsedRealtime() - breathingStarted
+            assertTrue("Guide completion must use at least 60 seconds of actual elapsed time", breathingElapsed >= 60_000)
+            clickText(device, "Begin breathing", click = false)
+            assertEquals("Completing recovery does not silently clear the AI cooldown", FIXTURE_PACKAGE,
+                store.state.value.cooldownPackage)
+            assertTrue("Sharing remains consented until the explicit stop control", MonitoringRuntime.isRunning.value)
+            device.takeScreenshot(File(evidence, "breathing-guide-completed.png"))
+            report.put("actualOneMinuteBreathingElapsedMs", breathingElapsed)
+            record("breathingGuideCompleted")
+
             // Returning to this app demonstrates persisted app-specific cooldown, not a global lock.
             context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
