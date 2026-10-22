@@ -14,6 +14,7 @@ import org.junit.runners.Suite
     RecoveryStorePersistenceTest::class,
     RecoveryJourneyTest::class,
     FeedbackStoreTest::class,
+    AccessibilityInterruptTest::class,
     CaptureJourneyTest::class,
 )
 class VeilVerificationSuite

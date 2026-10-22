@@ -104,7 +104,11 @@ class VeilAccessibilityService : AccessibilityService() {
     private fun removeOverlay() {
         overlay?.let { view -> runCatching { getSystemService(WindowManager::class.java).removeView(view) } }; overlay = null
     }
-    override fun onInterrupt() { foreground = null; MonitoringRuntime.updateForegroundPackage(null, MonitoringRuntime.ForegroundReason.INTERRUPTED); removeOverlay(); store.connection(false) }
+    override fun onInterrupt() {
+        // Android interrupts accessibility feedback (for example speech) on focus changes.
+        // This is not an unbind or permission revocation. Veil emits no speech feedback.
+        // Keep foreground/session state; actual unbind/destroy below owns disconnection.
+    }
     override fun onUnbind(intent: Intent?): Boolean { cleanup(); return super.onUnbind(intent) }
     override fun onDestroy() { cleanup(); super.onDestroy() }
     private fun cleanup() {
