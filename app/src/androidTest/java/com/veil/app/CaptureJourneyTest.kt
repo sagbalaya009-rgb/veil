@@ -50,6 +50,18 @@ class CaptureJourneyTest {
             context.stopService(Intent(context, VeilMonitoringService::class.java))
             await("previous capture stops", 10_000) { !MonitoringRuntime.isRunning.value }
             store.clearAll()
+            // Confirm first-use education while no capture/rules can create an overlay. A
+            // tutorial node can remain exposed behind an accessibility overlay; clicking its
+            // stale coordinates during detection could press the real emergency exit instead.
+            context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            assertTrue(device.wait(Until.hasObject(By.pkg(FIXTURE_PACKAGE).depth(0)), 15_000))
+            device.wait(Until.hasObject(immersiveTutorialControl()), 5_000)
+            dismissImmersiveTutorial(device)
+            assertFalse(MonitoringRuntime.isRunning.value)
+            assertTrue(store.state.value.events.isEmpty())
+            record("fixtureTutorialConfirmedBeforeCapture")
+            device.pressHome()
             // Fresh local rules/history, no injected detections, no fabricated accessibility callback.
             instrumentation.startActivitySync(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
             instrumentation.waitForIdleSync()
@@ -95,10 +107,7 @@ class CaptureJourneyTest {
             // Explicit exported fixture activity, installed as its own test-only APK by CI.
             context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            // Fresh Android emulators display an immersive-mode education panel over the
-            // fixture. Dismiss its visible ordinary control; do not alter system settings.
-            device.wait(Until.hasObject(immersiveTutorialControl()), 5_000)
-            dismissImmersiveTutorial(device)
+            // Education was confirmed before capture, without any intervention on screen.
             await("real captured frames must trigger unchanged numeric policy", 60_000) {
                 store.state.value.cooldownPackage == FIXTURE_PACKAGE && store.state.value.events.any { it.kind == "AI_INTERVENTION" }
             }
@@ -223,7 +232,8 @@ class CaptureJourneyTest {
     private fun clickText(device: UiDevice, text: String, timeout: Long = 15_000, click: Boolean = true) {
         val deadline = SystemClock.elapsedRealtime() + timeout
         while (SystemClock.elapsedRealtime() < deadline) {
-            dismissImmersiveTutorial(device)
+            assertFalse("Unexpected education panel must not be clicked through a live intervention",
+                device.hasObject(immersiveTutorialControl()))
             device.waitForIdle(2_000)
             val node = device.findObject(textSelector(text).enabled(true))
             if (node != null) {
@@ -253,6 +263,8 @@ class CaptureJourneyTest {
         val selector = immersiveTutorialControl()
         val deadline = SystemClock.elapsedRealtime() + 8_000
         while (device.hasObject(selector) && SystemClock.elapsedRealtime() < deadline) {
+            assertFalse("Tutorial confirmation is permitted only before capture", MonitoringRuntime.isRunning.value)
+            assertFalse(device.hasObject(textSelector("Emergency exit — end restrictions")))
             // The education panel can animate or recur when native overlays change focus.
             // Wait, re-resolve and confirm the real visible button actually closed it.
             device.waitForIdle(1_000)
