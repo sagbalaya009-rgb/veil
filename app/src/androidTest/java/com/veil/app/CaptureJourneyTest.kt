@@ -33,6 +33,10 @@ class CaptureJourneyTest {
         val originalFlags = config.uiAutomationFlags
         config.setUiAutomationFlags(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES)
         val device = UiDevice.getInstance(instrumentation)
+        val homePackage = context.packageManager.resolveActivity(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME),
+            android.content.pm.PackageManager.MATCH_DEFAULT_ONLY,
+        )?.activityInfo?.packageName ?: throw AssertionError("Emulator must have a default launcher")
         val evidence = File(context.getExternalFilesDir(null), "capture-evidence").apply { mkdirs() }
         fun shell(command: String): String = device.executeShellCommand(command).trim()
         val previousServices = shell("settings get secure enabled_accessibility_services")
@@ -106,7 +110,8 @@ class CaptureJourneyTest {
             device.dumpWindowHierarchy(File(evidence, "real-detection-overlay.xml"))
             clickText(device, "Leave this app")
             await("safe Home removes intervention overlay", 10_000) {
-                !device.hasObject(textSelector("Leave this app")) && MonitoringRuntime.foregroundPackage.value == null
+                !device.hasObject(textSelector("Leave this app")) && MonitoringRuntime.foregroundPackage.value == null &&
+                    device.currentPackageName == homePackage
             }
             record("safeHomeExit")
             assertNull("System Settings is never blocked", store.blockingReason("com.android.settings"))

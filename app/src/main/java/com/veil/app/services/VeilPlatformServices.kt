@@ -62,11 +62,11 @@ class VeilAccessibilityService : AccessibilityService() {
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = 16 })
         }
         button("Leave this app") {
-            removeOverlay()
+            leaveCurrentSurface()
             runCatching { startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         }
         button("Open recovery") {
-            removeOverlay()
+            leaveCurrentSurface()
             runCatching { startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)) }
         }
         if (store.state.value.cooldownPackage == pkg) button("Incorrect detection — stop guardian") { MonitoringRuntime.stop(this); store.dismissCooldown(true); removeOverlay() }
@@ -75,6 +75,13 @@ class VeilAccessibilityService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT).apply { gravity = Gravity.CENTER }
         try { getSystemService(WindowManager::class.java).addView(scroll, params); overlay = scroll }
         catch (_: RuntimeException) { foreground = null; MonitoringRuntime.updateForegroundPackage(null); store.connection(false); MonitoringRuntime.stop(this) }
+    }
+    private fun leaveCurrentSurface() {
+        // Window removal/Home launch can coalesce accessibility events. Do not let the
+        // timer reattach the previous app's overlay while navigation is in flight.
+        foreground = null
+        MonitoringRuntime.updateForegroundPackage(null)
+        removeOverlay()
     }
     private fun removeOverlay() {
         overlay?.let { view -> runCatching { getSystemService(WindowManager::class.java).removeView(view) } }; overlay = null
