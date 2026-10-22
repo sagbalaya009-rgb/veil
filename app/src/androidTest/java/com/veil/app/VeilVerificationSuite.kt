@@ -11,6 +11,9 @@ import org.junit.runners.Suite
     LocalPersistenceTest::class,
     CommitmentStoreTest::class,
     BundledModelInferenceTest::class,
+    RecoveryStorePersistenceTest::class,
+    RecoveryJourneyTest::class,
+    FeedbackStoreTest::class,
     CaptureJourneyTest::class,
 )
 class VeilVerificationSuite

@@ -70,7 +70,17 @@ class VeilAccessibilityService : AccessibilityService() {
             runCatching { startActivity(Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_RECOVERY, true)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)) }
         }
-        if (store.state.value.cooldownPackage == pkg) button("Incorrect detection — stop guardian") { MonitoringRuntime.stop(this); store.dismissCooldown(true); removeOverlay() }
+        if (store.state.value.cooldownPackage == pkg) {
+            button("Was this intervention correct?") {
+                leaveCurrentSurface()
+                runCatching { startActivity(Intent(this, MainActivity::class.java).putExtra(MainActivity.EXTRA_OPEN_RECOVERY, true)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)) }
+            }
+            button("Incorrect detection — stop guardian") {
+                com.veil.app.services.FeedbackStore.get(this).report(com.veil.app.core.Correction.NOT_EXPLICIT)
+                MonitoringRuntime.stop(this); store.dismissCooldown(true); removeOverlay()
+            }
+        }
         val scroll = ScrollView(this).apply { isFillViewport = true; addView(panel) }
         val params = WindowManager.LayoutParams(-1, -1, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT).apply { gravity = Gravity.CENTER }

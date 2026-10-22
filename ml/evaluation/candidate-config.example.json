@@ -1,0 +1,11 @@
+{
+  "models": [
+    {
+      "modelId": "reviewed-baseline-v1",
+      "path": "/controlled/models/baseline.tflite",
+      "sha256": "replace-with-reviewed-64-character-sha256",
+      "contract": "gantman-five-rgb01",
+      "thresholds": [0.9]
+    }
+  ]
+}

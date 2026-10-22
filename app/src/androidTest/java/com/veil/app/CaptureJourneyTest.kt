@@ -11,6 +11,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Configurator
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
+import com.veil.app.core.ProtectionTelemetry
 import com.veil.app.services.CommitmentStore
 import com.veil.app.services.MonitoringRuntime
 import com.veil.app.services.VeilMonitoringService
@@ -68,7 +69,7 @@ class CaptureJourneyTest {
             device.waitForIdle(3_000)
             assertTrue(device.wait(Until.hasObject(By.pkg(context.packageName).depth(0)), 20_000))
             if (store.accessibilityConnected.value) {
-                clickText(device, "Privacy")
+                clickText(device, "Settings")
                 clickText(device, "Review foreground awareness")
             } else clickText(device, "Set up foreground awareness")
             clickText(device, "I agree — open Settings")
@@ -103,6 +104,49 @@ class CaptureJourneyTest {
                 MonitoringRuntime.status.value.startsWith("Screen sharing active")
             }
             record("projectionStarted")
+            assertTrue("Interpreter is ready only after actual native initialization", MonitoringRuntime.health.value.inferenceReady)
+            val priorTaskRemovals = MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L
+            device.pressRecentApps()
+            device.waitForIdle(3_000)
+            device.takeScreenshot(File(evidence, "recents-before-removal.png"))
+            device.dumpWindowHierarchy(File(evidence, "recents-before-removal.xml"))
+            // Only a card identified by Veil's visible label can be swiped. Never use Clear all
+            // or blind coordinates: launcher implementations differ between emulator images.
+            val marker = if (device.currentPackageName == homePackage) {
+                device.findObject(By.desc("Veil")) ?: device.findObject(By.text("Veil"))
+            } else null
+            var candidate = marker
+            var card: androidx.test.uiautomator.UiObject2? = null
+            repeat(8) {
+                val current = candidate
+                if (current != null && card == null) {
+                    val bounds = current.visibleBounds
+                    if (bounds.height() > device.displayHeight / 3 && bounds.width() > device.displayWidth / 3 &&
+                        bounds.height() < device.displayHeight * 95 / 100) card = current
+                    else candidate = current.parent
+                }
+            }
+            if (card == null) {
+                report.put("recentsRemovalStatus", "SKIPPED: launcher did not expose an identifiable Veil task card; no blind swipe")
+            } else {
+                val bounds = card!!.visibleBounds
+                device.swipe(bounds.centerX(), bounds.centerY(), bounds.centerX(), 0, 25)
+                val removedBy = SystemClock.elapsedRealtime() + 8_000
+                while (SystemClock.elapsedRealtime() < removedBy &&
+                    (MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) <= priorTaskRemovals) {
+                    SystemClock.sleep(100)
+                }
+                val confirmed = (MonitoringRuntime.telemetry.snapshot().events[ProtectionTelemetry.Event.TASK_REMOVED] ?: 0L) > priorTaskRemovals
+                report.put("recentsRemovalStatus", if (confirmed) "CONFIRMED: real task-removal callback; capture must still trigger fixture below"
+                    else "SKIPPED: targeted swipe did not produce task-removal callback; task removal not verified")
+                if (confirmed) {
+                    assertTrue("Removing only the UI task must retain authorized capture", MonitoringRuntime.isRunning.value)
+                    assertTrue("Task removal must retain the initialized interpreter", MonitoringRuntime.health.value.inferenceReady)
+                    record("recentsTaskRemovedCaptureRetained")
+                }
+            }
+            device.pressHome()
+            assertTrue("Returning Home retains sharing before the real fixture", MonitoringRuntime.isRunning.value)
             assertEquals("No injected or premature intervention", 0, store.state.value.events.count { it.kind == "AI_INTERVENTION" })
             // Explicit exported fixture activity, installed as its own test-only APK by CI.
             context.startActivity(Intent().setComponent(ComponentName(FIXTURE_PACKAGE, "com.veil.fixture.FixtureActivity"))

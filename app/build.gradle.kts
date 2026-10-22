@@ -14,8 +14,8 @@ android {
         applicationId = "com.veil.app"
         minSdk = 31
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0-experimental"
+        versionCode = 3
+        versionName = "0.3.0-v2-experimental"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
