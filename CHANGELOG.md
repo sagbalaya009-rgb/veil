@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 unified experimental
+
+- Consolidate installation into one Veil package, com.veil.app, at the owner's request. Preserve V1 and V2 source snapshots in GitHub.
+- Replace the nested old dashboard with a saved-note screen that follows the current theme and reports completed writes accurately.
+- Consolidate reflection/activity controls, clarify Recovery deletion and protection-history copy, and keep correction reports contextual or in Settings.
+- Separate scheduled start delay from session duration; explain intentional capture pauses on Veil/system screens and disable inactive Stop sharing.
+- Add scheduled-focus and saved-note journey regressions. See docs/releases/UNIFIED_RELEASE_REPORT.md for executed checks and phone installation status.
+
 ## 0.3.0 V2 experimental preview — 2026-10-22
 
 - Add optional encrypted Recovery goals, plans, check-ins, practical coping activities and user-written faith encouragement; preserve legacy records separately.

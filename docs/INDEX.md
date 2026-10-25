@@ -3,6 +3,7 @@
 The master directive supplied on 2026-10-21 overrides historical specifications where they conflict. Current implementation and verification are described here; previous product notes remain historical context, not evidence of completed features.
 
 - [Repository audit](audits/REPOSITORY_AUDIT.md)
+- [Current unified release record](releases/UNIFIED_RELEASE_REPORT.md)
 - [V2 implementation](V2_OVERVIEW.md), [V2 release evidence](releases/V2_RELEASE_REPORT.md), [V2 test gates](testing/V2_TEST_PLAN.md)
 - [Architecture overview](architecture/OVERVIEW.md)
 - [Android platform architecture](architecture/android-architecture.md)

@@ -6,6 +6,8 @@ Veil is an Android voluntary wellbeing app. Never imply guaranteed blocking, per
 
 `app/core`: pure Kotlin policy and monotonic deadlines. `app/services`: capture, local model, package-only accessibility overlays and `CommitmentStore`. `app/data`: existing Room settings/notes. `app/ui/VeilDashboard.kt`: current entry flow. `MainActivity.kt` retains the existing localized recovery-plan UI. `ml`: local-only evaluation/training workshop. The web project is independent; do not deploy it as part of Android work.
 
+The unified 0.3.1 build uses com.veil.app and label Veil for both build types. The active original-note route is SavedRecoveryNote inside the current theme; do not reconnect the old VeilApp simulated-preview dashboard as live protection. Historical V1 remains codex/veil-mvp and V2 remains archive/veil-v2-0.3.0. Read docs/releases/UNIFIED_RELEASE_REPORT.md for current qualification and installation state. Owner-authorized clean installation removes both old app sandboxes; AndroidKeyStore data cannot be promised recoverable after uninstall.
+
 ## Commands
 
 JDK17, Android API35, pinned Gradle wrapper. Run `./gradlew testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease`; Windows use `gradlew.bat` or `tools/verify.ps1`. Install the test-only fixture and use `connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.veil.app.VeilVerificationSuite` on an authorized emulator; see docs/testing/CAPTURE_JOURNEY.md. Python workshop tests: from `ml`, `python -m unittest discover -s tests -v`. Run model harness per `ml/README.md` and `docs/ai/MODEL_EVALUATION.md`. Inspect exact CI commit and test reports before claiming success.
