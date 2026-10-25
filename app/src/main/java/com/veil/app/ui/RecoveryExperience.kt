@@ -116,7 +116,7 @@ import java.util.Date
             }, enabled = state.storageAvailable) { Text("I want to note a setback") }
         }
         Text("Veil supports self-management, not diagnosis or medical treatment. If distress or disruption is substantial, consider speaking with a qualified professional.", style = MaterialTheme.typography.bodySmall)
-        TextButton(onClick = { confirmDeletion = true }) { Text("Delete all recovery data") }
+        TextButton(onClick = { confirmDeletion = true }) { Text("Delete recovery profile and check-ins") }
     }
     if (confirmDeletion) AlertDialog(onDismissRequest = { confirmDeletion = false }, title = { Text("Delete recovery data?") }, text = { Text("This removes Recovery goals, encouragement, coping plan and check-ins from this device. The saved recovery note and protection settings are separate.") }, confirmButton = {
         TextButton(onClick = {
