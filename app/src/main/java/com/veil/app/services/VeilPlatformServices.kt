@@ -24,6 +24,7 @@ class VeilAccessibilityService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
     private var overlay: View? = null
     private var foreground: String? = null
+    private val foregroundEvents = com.veil.app.core.ForegroundEventOrder()
     private val store by lazy { CommitmentStore.get(this) }
     private val tick = object : Runnable {
         override fun run() { store.tick(); render(); handler.postDelayed(this, 1000) }
@@ -33,6 +34,13 @@ class VeilAccessibilityService : AccessibilityService() {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString() ?: return
         store.connection(true)
+        val changes = event.contentChangeTypes
+        val disappeared = changes and AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_DISAPPEARED != 0
+        val titleOnly = changes and AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_TITLE != 0 &&
+            changes and AccessibilityEvent.CONTENT_CHANGE_TYPE_PANE_APPEARED == 0
+        // Recents can finish removing a launcher pane after another app is visible.
+        // Its disappearance is not a foreground transition. Never inspect event text/source.
+        if (!foregroundEvents.accept(event.eventTime, disappeared, titleOnly)) return
         if (pkg == packageName && overlay != null && event.className?.toString() != MainActivity::class.java.name) return
         foreground = pkg
         val essential = isEssentialPackage(this, pkg)
