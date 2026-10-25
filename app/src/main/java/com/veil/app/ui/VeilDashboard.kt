@@ -86,7 +86,6 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
     var selected by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var minutes by rememberSaveable { mutableStateOf("25") }
     var delayMinutes by rememberSaveable { mutableStateOf("0") }
-    var reflection by remember { mutableStateOf("") }
     var breathing by rememberSaveable { mutableStateOf(false) }
     var breathSeconds by remember { mutableIntStateOf(0) }
     LaunchedEffect(recoveryRequest) {
@@ -188,7 +187,7 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
                                     item { Panel("Screen guardian") {
                                         Text("Experimental local screening. Protected surfaces cannot be analyzed. Phone-feed accuracy is not established.")
                                         Button(onClick = { captureDisclosure = true }, enabled = modelAvailable && connected && !running && !consentPending) { Text("Review and start screen sharing") }
-                                        OutlinedButton(onClick = { MonitoringRuntime.stop(context) }) { Text("Stop screen sharing") }
+                                        OutlinedButton(onClick = { MonitoringRuntime.stop(context) }, enabled = running) { Text("Stop screen sharing") }
                                         if (!connected) TextButton(onClick = { disclosure = true }) { Text("Set up foreground awareness") }
                                     } }
                                     item { Panel("Your commitment") {
@@ -210,8 +209,10 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
                                     if (!connected) item { Button(onClick = { disclosure = true }) { Text("Set up foreground awareness") } }
                                     if (state.focusRemaining(now, store.bootCount()) > 0) {
                                         item { Panel("Current session") {
-                                            Text("${timeLeft(state.focusRemaining(now, store.bootCount()))} remaining · ${state.focusPackages.size} apps")
-                                            if (now < state.focusStartElapsed) Text("Starts in ${timeLeft(state.focusStartElapsed - now)}")
+                                            if (now < state.focusStartElapsed) {
+                                                Text("Scheduled · ${state.focusPackages.size} apps")
+                                                Text("Starts in ${timeLeft(state.focusStartElapsed - now)} · duration ${timeLeft(state.focusEndElapsed - state.focusStartElapsed)}")
+                                            } else Text("${timeLeft(state.focusRemaining(now, store.bootCount()))} remaining · ${state.focusPackages.size} apps")
                                             OutlinedButton(onClick = { store.endFocus() }) { Text("End focus early") }
                                         } }
                                     }
@@ -242,22 +243,16 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
                                         Text(if (breathing) "${if (breathSeconds % 8 < 4) "Breathe in" else "Breathe out"} · ${60 - breathSeconds}s" else "One minute. Four seconds in, four seconds out. Breathe comfortably.")
                                         Button(onClick = { breathing = !breathing }) { Text(if (breathing) "Stop breathing guide" else "Begin breathing") }
                                     } }
-                                    item { Panel("Reflect or move") {
-                                        OutlinedTextField(reflection, { reflection = it.take(500) }, label = { Text("What do you want to return to?") }, modifier = Modifier.fillMaxWidth())
-                                        Text("Reflection stays in memory until this screen is destroyed or you clear it. Alternatively, stretch, drink water or choose a few comfortable push-ups. Physical activity is optional and self reported.")
-                                        Button(onClick = { reflection = ""; store.recoveryComplete(); message = "Recovery noted. Return at your own pace." }) { Text("I completed a recovery activity") }
-                                    } }
                                     if (state.cooldownPackage.isNotBlank()) item {
                                         OutlinedButton(onClick = { feedback.report(com.veil.app.core.Correction.NOT_EXPLICIT); MonitoringRuntime.stop(context); store.dismissCooldown(true) }) { Text("Incorrect detection — stop guardian") }
                                         TextButton(onClick = { MonitoringRuntime.stop(context); store.dismissCooldown() }) { Text("Emergency exit — stop guardian") }
                                     }
                                     item { RecoveryExperience(recovery) }
-                                    item { FeedbackExperience(feedback) }
                                     item { TextButton(onClick = { legacy = true }) { Text("Open recovery plan and local notes") } }
                                 }
                                 "History" -> {
                                     item { RecoveryProgress(recovery) }
-                                    item { Headline("Progress, kept private."); Text("Event types and times only. Up to 100 events, retained for 30 days. No captured images or app usage history.") }
+                                    item { Headline("Protection history"); Text("The protection log below contains event types and times only. Optional encrypted Recovery records are shown separately above. Up to 100 protection events, retained for 30 days. No captured images or app usage history.") }
                                     if (state.events.isEmpty()) item { Text("No local events yet.") }
                                     items(state.events.reversed()) { event ->
                                         Text("${event.kind.lowercase().replace('_', ' ')}\n${DateFormat.getDateTimeInstance().format(Date(event.at))}")

@@ -30,4 +30,17 @@ class VeilJourneyTest {
         compose.onNodeWithText("Not now").performClick()
         compose.onNodeWithText("Protect your attention.").assertIsDisplayed()
     }
+
+    @Test fun scheduledFocusSeparatesStartDelayFromDuration() {
+        val store = CommitmentStore.get(compose.activity)
+        store.onboard()
+        try {
+            store.startFocus(setOf("org.example.distraction"), 1, 10)
+            compose.onNodeWithText("Shield").performClick()
+            compose.onNodeWithText("Scheduled · 1 apps").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("duration 01:00", substring = true).assertIsDisplayed()
+        } finally {
+            store.endFocus()
+        }
+    }
 }

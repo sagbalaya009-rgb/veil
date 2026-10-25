@@ -197,7 +197,11 @@ class VeilMonitoringService : Service() {
                     !store.accessibilityConnected.value -> "app intervention access disconnected"
                     !getSystemService(PowerManager::class.java).isInteractive -> "screen off"
                     getSystemService(KeyguardManager::class.java).isKeyguardLocked -> "device locked"
-                    packageName == null -> "waiting for foreground app observation"
+                    packageName == null -> when (MonitoringRuntime.foregroundReason) {
+                        MonitoringRuntime.ForegroundReason.SELF -> "Veil is open; open another app to screen it"
+                        MonitoringRuntime.ForegroundReason.SYSTEM_UI, MonitoringRuntime.ForegroundReason.ESSENTIAL -> "system screen excluded"
+                        else -> "waiting for foreground app observation"
+                    }
                     isEssentialPackage(this, packageName) -> "system or Veil screen excluded"
                     else -> "cooldown active"
                 }

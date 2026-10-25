@@ -14,8 +14,8 @@ android {
         applicationId = "com.veil.app"
         minSdk = 31
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3.0-v2-experimental"
+        versionCode = 4
+        versionName = "0.3.1-unified-experimental"
         manifestPlaceholders["appLabel"] = "Veil"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -36,8 +36,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".v2"
-            manifestPlaceholders["appLabel"] = "Veil V2 Preview"
+            manifestPlaceholders["appLabel"] = "Veil"
         }
         release {
             isMinifyEnabled = false

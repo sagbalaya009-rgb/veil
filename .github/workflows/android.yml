@@ -187,7 +187,7 @@ jobs:
           bash gradlew --no-daemon --stacktrace connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.veil.app.VeilVerificationSuite
           # UTP uninstalls its target after successful tests. Reinstall solely for preview.
           adb install -r app/build/outputs/apk/debug/app-debug.apk
-          adb shell am start -W -n com.veil.app.v2/com.veil.app.MainActivity
+          adb shell am start -W -n com.veil.app/com.veil.app.MainActivity
           sleep 3
           adb exec-out screencap -p > veil-emulator.png
       - name: Preserve device test reports
