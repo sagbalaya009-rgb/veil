@@ -7,6 +7,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.veil.app.services.CommitmentStore
 import org.junit.Rule
@@ -49,7 +52,8 @@ class VeilJourneyTest {
     @Test fun savedNoteUsesOneInterfaceAndReportsCompletedSave() {
         CommitmentStore.get(compose.activity).onboard()
         compose.onNodeWithText("Recovery").performClick()
-        compose.onNodeWithText("Saved recovery note").performScrollTo().performClick()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Saved recovery note"))
+        compose.onNodeWithText("Saved recovery note").performClick()
         compose.onNodeWithText("Saved recovery note").assertIsDisplayed()
         compose.waitUntil(10_000) {
             compose.onAllNodesWithText("Local note storage is loading or unavailable.").fetchSemanticsNodes().isEmpty()
@@ -60,7 +64,8 @@ class VeilJourneyTest {
             compose.onAllNodesWithText("Recovery note saved.").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Back to dashboard").performClick()
-        compose.onNodeWithText("Saved recovery note").performScrollTo().performClick()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Saved recovery note"))
+        compose.onNodeWithText("Saved recovery note").performClick()
         compose.onNodeWithText("A synthetic saved note").assertIsDisplayed()
         compose.onNodeWithText("Your recovery note").performTextReplacement("")
         compose.onNodeWithText("Save recovery note").performScrollTo().performClick()

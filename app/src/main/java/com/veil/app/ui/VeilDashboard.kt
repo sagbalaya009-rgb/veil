@@ -248,8 +248,8 @@ fun VeilDashboard(legacyRecovery: @Composable () -> Unit, recoveryRequest: Int =
                                         OutlinedButton(onClick = { feedback.report(com.veil.app.core.Correction.NOT_EXPLICIT); MonitoringRuntime.stop(context); store.dismissCooldown(true) }) { Text("Incorrect detection — stop guardian") }
                                         TextButton(onClick = { MonitoringRuntime.stop(context); store.dismissCooldown() }) { Text("Emergency exit — stop guardian") }
                                     }
-                                    item { RecoveryExperience(recovery) }
                                     item { TextButton(onClick = { legacy = true }) { Text("Saved recovery note") } }
+                                    item { RecoveryExperience(recovery) }
                                 }
                                 "History" -> {
                                     item { RecoveryProgress(recovery) }
