@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import random
+import math
 import sys
 import time
 from collections.abc import Iterable
@@ -113,6 +114,7 @@ def validate_dataset_manifest(path: Path, verify_files: bool = True) -> DatasetV
                 if not isinstance(required_count, int) or isinstance(required_count, bool) or required_count <= 0:
                     errors.append(f"minimumImageCounts.{split}.{label} must be a reviewed positive integer.")
     counts: dict[str, dict[str, int]] = {}
+    leakage_records = []
     if not isinstance(splits, dict):
         errors.append("splits must define train, validation, and evaluation directories.")
     else:
@@ -130,21 +132,32 @@ def validate_dataset_manifest(path: Path, verify_files: bool = True) -> DatasetV
                     continue
                 folder = Path(raw_path).expanduser()
                 parent_folders.add(folder.parent.resolve())
+                if folder.name != label:
+                    errors.append(f"splits.{split}.{label} must name the exact {label} class directory.")
                 if verify_files:
                     if not folder.is_dir():
                         errors.append(f"Required data directory does not exist: {folder}")
                         continue
-                    count = len(image_files(folder))
+                    files = image_files(folder)
+                    leakage_records.extend((file, split, label) for file in files)
+                    count = len(files)
                     counts[split][label] = count
                     if count == 0:
                         errors.append(f"Required data directory has no supported images: {folder}")
-                    required_count = minimum_counts[split][label] if isinstance(minimum_counts, dict) else None
+                    reviewed = minimum_counts.get(split, {}) if isinstance(minimum_counts, dict) else {}
+                    required_count = reviewed.get(label) if isinstance(reviewed, dict) else None
                     if isinstance(required_count, int) and count < required_count:
                         errors.append(f"Required data directory {folder} has {count} images; the reviewed minimum is {required_count}.")
             if len(parent_folders) > 1:
                 errors.append(f"splits.{split} class folders must share one parent directory.")
     if errors:
         raise RefusalError("Dataset validation refused:\n- " + "\n- ".join(errors))
+    if verify_files:
+        from evaluation.leakage import reject_split_leakage
+        try:
+            reject_split_leakage(leakage_records)
+        except (ValueError, OSError) as error:
+            raise RefusalError(f"Dataset leakage/decoding validation refused: {error}") from error
     return DatasetValidation(manifest=manifest, class_counts=counts)
 
 
@@ -159,8 +172,15 @@ def validate_training_config(path: Path) -> dict[str, Any]:
     if config.get("architecture") != "MobileNetV3Small":
         errors.append("architecture must be MobileNetV3Small for the first Veil candidate.")
     for key in ("randomSeed", "epochs", "batchSize", "learningRate"):
-        if not isinstance(config.get(key), (int, float)) or isinstance(config.get(key), bool) or config[key] <= 0:
+        if not isinstance(config.get(key), (int, float)) or isinstance(config.get(key), bool) or not math.isfinite(config[key]) or config[key] <= 0:
             errors.append(f"{key} must be a positive number.")
+        elif key != "learningRate" and type(config[key]) is not int:
+            errors.append(f"{key} must be an integer.")
+    for key in ("fineTuneEpochs", "fineTuneLayers"):
+        if type(config.get(key, 0)) is not int or config.get(key, 0) < 0:
+            errors.append(f"{key} must be a nonnegative integer.")
+    if config.get("fineTuneEpochs", 0) > 0 and config.get("fineTuneLayers", 0) < 1:
+        errors.append("fineTuneLayers must be positive when fine tuning is enabled.")
     output_directory = required_text(config, "outputDirectory", errors)
     if output_directory and not Path(output_directory).expanduser().is_absolute():
         errors.append("outputDirectory must be an absolute local path.")
@@ -192,7 +212,7 @@ def validate_evaluation_policy(path: Path) -> dict[str, Any]:
         required_text(policy, key, errors)
     for key in ("minPrecision", "minRecall", "maxFalsePositiveRate", "maxMedianInferenceMs"):
         value = policy.get(key)
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
+        if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value):
             errors.append(f"{key} must be a reviewed numeric release gate, not empty.")
     if isinstance(policy.get("minPrecision"), (int, float)) and not 0 < policy["minPrecision"] <= 1:
         errors.append("minPrecision must be between 0 and 1.")
@@ -229,11 +249,13 @@ def _dataset(tf: Any, manifest: dict[str, Any], split: str, batch_size: int, shu
         label_mode="binary",
         class_names=list(MODEL_CLASS_ORDER),
         image_size=EXPECTED_SHAPE[:2],
+        interpolation="nearest",
         batch_size=batch_size,
         shuffle=shuffle,
         seed=seed,
     )
-    return dataset.prefetch(tf.data.AUTOTUNE)
+    # Candidate exported input is RGB float [0,1], exactly matching this mapping.
+    return dataset.map(lambda images, labels: (tf.cast(images, tf.float32) / 255.0, labels)).prefetch(tf.data.AUTOTUNE)
 
 
 def train(manifest_path: Path, config_path: Path) -> Path:
@@ -243,6 +265,7 @@ def train(manifest_path: Path, config_path: Path) -> Path:
     seed = int(config["randomSeed"])
     random.seed(seed)
     tf.keras.utils.set_random_seed(seed)
+    tf.config.experimental.enable_op_determinism()
     train_data = _dataset(tf, validated.manifest, "train", int(config["batchSize"]), shuffle=True, seed=seed)
     validation_data = _dataset(tf, validated.manifest, "validation", int(config["batchSize"]), shuffle=False, seed=seed)
 
@@ -252,12 +275,14 @@ def train(manifest_path: Path, config_path: Path) -> Path:
         weights=None,
         input_shape=EXPECTED_SHAPE,
         pooling="avg",
+        include_preprocessing=False,
     )
     backbone.load_weights(checkpoint_path)
     backbone.trainable = False
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=EXPECTED_SHAPE),
-        tf.keras.layers.Rescaling(1.0 / 255.0),
+        # MobileNetV3 without its built-in rescaler expects [-1,1]. Do this once.
+        tf.keras.layers.Rescaling(2.0, offset=-1.0),
         backbone,
         tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(1, activation="sigmoid", name="explicit_confidence"),
@@ -269,7 +294,25 @@ def train(manifest_path: Path, config_path: Path) -> Path:
     )
     artifact_dir = Path(config["outputDirectory"]).expanduser()
     artifact_dir.mkdir(parents=True, exist_ok=True)
-    history = model.fit(train_data, validation_data=validation_data, epochs=int(config["epochs"]))
+    if any(artifact_dir.iterdir()):
+        raise RefusalError("Training output directory must be empty to preserve prior runs.")
+    def callbacks(phase):
+        return [tf.keras.callbacks.ModelCheckpoint(str(artifact_dir / f"{phase}-best.keras"), monitor="val_loss", save_best_only=True),
+                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=3, restore_best_weights=True)]
+    history = model.fit(train_data, validation_data=validation_data, epochs=int(config["epochs"]), callbacks=callbacks("head"))
+    fine_history = None
+    if config.get("fineTuneEpochs", 0):
+        backbone.trainable = True
+        for layer in backbone.layers[:-int(config["fineTuneLayers"])]:
+            layer.trainable = False
+        # Preserve pretrained moving statistics during small-data adaptation.
+        for layer in backbone.layers:
+            if isinstance(layer, tf.keras.layers.BatchNormalization):
+                layer.trainable = False
+        model.compile(optimizer=tf.keras.optimizers.Adam(float(config["learningRate"]) / 10),
+                      loss=tf.keras.losses.BinaryCrossentropy(),
+                      metrics=[tf.keras.metrics.Precision(name="precision"), tf.keras.metrics.Recall(name="recall")])
+        fine_history = model.fit(train_data, validation_data=validation_data, epochs=int(config["fineTuneEpochs"]), callbacks=callbacks("fine-tune"))
     output = artifact_dir / "candidate.keras"
     model.save(output)
     _write_json(artifact_dir / "training-run.json", {
@@ -281,6 +324,14 @@ def train(manifest_path: Path, config_path: Path) -> Path:
         "inputContract": {"shape": EXPECTED_SHAPE, "normalization": EXPECTED_NORMALIZATION, "positiveClass": "explicit"},
         "baseCheckpoint": config["baseCheckpoint"],
         "history": history.history,
+        "fineTuneHistory": fine_history.history if fine_history else None,
+        "configSha256": sha256(config_path),
+        "manifestSha256": sha256(manifest_path),
+        "tensorflowVersion": tf.__version__,
+        "pythonVersion": sys.version.split()[0],
+        "randomSeed": seed,
+        "deterministicOpsRequested": True,
+        "physicalDevices": [device.device_type for device in tf.config.list_physical_devices()],
         "candidateModel": str(output),
         "candidateModelSha256": sha256(output),
     })
@@ -304,6 +355,8 @@ def evaluate(manifest_path: Path, policy_path: Path, model_path: Path, threshold
         started = time.perf_counter()
         prediction = model(images, training=False).numpy().reshape(-1)[0]
         latencies_ms.append((time.perf_counter() - started) * 1000)
+        if not math.isfinite(float(prediction)) or not 0 <= float(prediction) <= 1:
+            raise RefusalError("Candidate emitted a non-finite or unbounded score.")
         probabilities.append(float(prediction))
         true_labels.append(int(labels.numpy().reshape(-1)[0]))
     if not true_labels:
@@ -317,6 +370,7 @@ def evaluate(manifest_path: Path, policy_path: Path, model_path: Path, threshold
         and metrics["falsePositiveRate"] <= policy["maxFalsePositiveRate"]
         and median_ms <= policy["maxMedianInferenceMs"]
     )
+    from evaluation.metrics import summarize
     output = model_path.parent / "evaluation-report.json"
     _write_json(output, {
         "policyId": policy["policyId"],
@@ -329,10 +383,13 @@ def evaluate(manifest_path: Path, policy_path: Path, model_path: Path, threshold
         "threshold": threshold,
         "imageCount": len(true_labels),
         "metrics": metrics,
+        "calibrationAndRates": summarize(true_labels, probabilities, threshold),
+        "evaluationManifestSha256": sha256(manifest_path),
+        "evaluationPolicySha256": sha256(policy_path),
         "medianInferenceMs": median_ms,
         "passed": passed,
         "limitations": [
-            "This local workstation result is not a Galaxy M20 benchmark.",
+            "This local workstation result is not a TECNO phone benchmark.",
             "An approved independent challenge set is required before Android enforcement.",
         ],
     })
@@ -359,19 +416,29 @@ def binary_metrics(true_labels: Iterable[int], predicted_labels: Iterable[int]) 
     }
 
 
-def export_tflite(evaluation_report_path: Path, policy_path: Path, model_path: Path, output: Path) -> Path:
+def export_tflite(evaluation_report_path: Path, policy_path: Path, model_path: Path, output: Path,
+                  quantization: str = "none", max_absolute_error: float = 0.001) -> Path:
     report = read_json(evaluation_report_path)
     validate_passing_evaluation_report(report, model_path)
-    validate_evaluation_policy(policy_path)
+    policy = validate_evaluation_policy(policy_path)
+    validate_report_policy(report, policy, policy_path)
+    if quantization not in ("none", "float16", "dynamic") or not math.isfinite(max_absolute_error) or not 0 < max_absolute_error <= 0.01:
+        raise RefusalError("Use a supported quantization mode and parity tolerance in (0,0.01].")
+    if output.exists() or output.with_suffix(".export.json").exists():
+        raise RefusalError("Export refuses to replace an existing artifact or parity report.")
     if not model_path.is_file():
         raise RefusalError(f"Candidate model does not exist: {model_path}")
     tf = _tensorflow()
     model = tf.keras.models.load_model(model_path)
-    input_shape = tuple(model.inputs[0].shape.as_list()[1:])
-    output_shape = tuple(model.outputs[0].shape.as_list()[1:])
+    input_shape = tuple(model.inputs[0].shape[1:])
+    output_shape = tuple(model.outputs[0].shape[1:])
     if input_shape != EXPECTED_SHAPE or output_shape != (1,):
         raise RefusalError(f"Candidate model contract must be input {EXPECTED_SHAPE} and one output score.")
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    if quantization != "none":
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        if quantization == "float16":
+            converter.target_spec.supported_types = [tf.float16]
     try:
         converted = converter.convert()
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -386,10 +453,44 @@ def export_tflite(evaluation_report_path: Path, policy_path: Path, model_path: P
             raise RefusalError("Converted TFLite input no longer satisfies Veil's float 224×224 RGB contract.")
         if tuple(output_details["shape"].tolist()) != (1, 1) or output_dtype != tf.float32:
             raise RefusalError("Converted TFLite output no longer satisfies Veil's one-float confidence contract.")
+        import numpy as np
+        rng = np.random.default_rng(20261022)
+        inputs = [np.full((1, *EXPECTED_SHAPE), value, dtype=np.float32) for value in (0, .5, 1)]
+        inputs += [rng.random((1, *EXPECTED_SHAPE), dtype=np.float32) for _ in range(5)]
+        errors = []
+        for tensor in inputs:
+            expected = np.asarray(model(tensor, training=False))
+            interpreter.set_tensor(details["index"], tensor)
+            interpreter.invoke()
+            actual = interpreter.get_tensor(output_details["index"])
+            if not np.isfinite(expected).all() or not np.isfinite(actual).all():
+                raise RefusalError("Export parity emitted non-finite scores.")
+            errors.append(float(np.max(np.abs(expected-actual))))
+        if max(errors) > max_absolute_error:
+            raise RefusalError("Export numerical equivalence exceeded the reviewed tolerance.")
+        _write_json(output.with_suffix(".export.json"), {"schemaVersion": 2, "sourceSha256": sha256(model_path),
+            "tfliteSha256": sha256(output), "quantization": quantization, "inputContract": EXPECTED_NORMALIZATION,
+            "syntheticParityCases": len(inputs), "maxAbsoluteError": max(errors), "tolerance": max_absolute_error,
+            "semanticQuantizationEvaluation": "required separately on approved held-out images", "releaseQualified": False})
     except Exception:
         output.unlink(missing_ok=True)
+        output.with_suffix(".export.json").unlink(missing_ok=True)
         raise
     return output
+
+
+def validate_report_policy(report, policy, policy_path):
+    """A caller cannot substitute a weaker policy after an earlier passing report."""
+    if report.get("policyId") != policy["policyId"] or report.get("evaluationPolicySha256") != sha256(policy_path):
+        raise RefusalError("Export policy differs from the evaluated policy.")
+    metrics = report.get("metrics", {})
+    checks = ((metrics.get("precision"), policy["minPrecision"], True),
+              (metrics.get("recall"), policy["minRecall"], True),
+              (metrics.get("falsePositiveRate"), policy["maxFalsePositiveRate"], False),
+              (report.get("medianInferenceMs"), policy["maxMedianInferenceMs"], False))
+    for value, gate, minimum in checks:
+        if type(value) not in (int, float) or not math.isfinite(value) or (value < gate if minimum else value > gate):
+            raise RefusalError("Export metrics do not satisfy the exact reviewed policy.")
 
 
 def create_review_manifest(
@@ -407,7 +508,15 @@ def create_review_manifest(
         raise RefusalError(f"TensorFlow Lite model does not exist: {model_path}")
     dataset = validate_dataset_manifest(dataset_manifest_path, verify_files=False).manifest
     report = read_json(evaluation_report_path)
-    validate_passing_evaluation_report(report, model_path)
+    export_record = read_json(model_path.with_suffix(".export.json"))
+    # Keras evaluation belongs to the source model; bind it through the parity
+    # record instead of pretending the converted TFLite bytes share its checksum.
+    if report.get("passed") is not True or export_record.get("sourceSha256") != report.get("modelSha256"):
+        raise RefusalError("Export source does not match a passing source-model evaluation.")
+    if export_record.get("tfliteSha256") != sha256(model_path):
+        raise RefusalError("Export record does not match the TFLite artifact.")
+    if export_record.get("releaseQualified") is not False:
+        raise RefusalError("A conversion record cannot confer release qualification.")
     if report.get("datasetId") != dataset["datasetId"]:
         raise RefusalError("Review manifest creation is blocked because the evaluation report names a different dataset.")
     for label, value in (("source_url", source_url), ("evaluation_report_url", evaluation_report_url)):
@@ -417,7 +526,7 @@ def create_review_manifest(
         if not value.strip():
             raise RefusalError(f"{label} must be completed for Android release review.")
     _write_json(output, {
-        "modelId": "veil-explicit-v1",
+        "modelId": "veil-binary-candidate-" + sha256(model_path)[:12],
         "sha256": sha256(model_path),
         "sourceUrl": source_url,
         "license": dataset["license"],
@@ -431,6 +540,9 @@ def create_review_manifest(
         "inputChannels": 3,
         "outputScores": 1,
         "normalization": EXPECTED_NORMALIZATION,
+        "releaseQualified": False,
+        "requiresAndroidAdapterMigration": True,
+        "mobileSemanticEvaluation": "required before deployment; source-model evaluation is insufficient",
     })
     return output
 
@@ -469,6 +581,8 @@ def build_parser() -> argparse.ArgumentParser:
     export_command.add_argument("--policy", type=Path, required=True)
     export_command.add_argument("--model", type=Path, required=True)
     export_command.add_argument("--output", type=Path, required=True)
+    export_command.add_argument("--quantization", choices=("none", "float16", "dynamic"), default="none")
+    export_command.add_argument("--max-absolute-error", type=float, default=0.001)
     review_command = commands.add_parser("create-review-manifest", help="Create Android review data only after a passing evaluation")
     review_command.add_argument("--model", type=Path, required=True)
     review_command.add_argument("--dataset-manifest", type=Path, required=True)
@@ -493,7 +607,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "evaluate":
             print(evaluate(args.manifest, args.policy, args.model, args.threshold))
         elif args.command == "export-tflite":
-            print(export_tflite(args.evaluation_report, args.policy, args.model, args.output))
+            print(export_tflite(args.evaluation_report, args.policy, args.model, args.output, args.quantization, args.max_absolute_error))
         elif args.command == "create-review-manifest":
             print(create_review_manifest(
                 args.model, args.dataset_manifest, args.evaluation_report, args.output,

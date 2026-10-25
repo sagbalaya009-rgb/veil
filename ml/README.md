@@ -59,6 +59,14 @@ python3 ml/veil_ml.py export-tflite --evaluation-report /controlled/path/evaluat
 python3 ml/veil_ml.py create-review-manifest --model /controlled/path/veil_explicit_v1.tflite --dataset-manifest /controlled/path/dataset-manifest.json --evaluation-report /controlled/path/evaluation-report.json --output /controlled/path/veil_explicit_v1.review.json
 ```
 
+## V2 comparison and training repairs
+
+`ml/evaluation/benchmark.py` compares hash-pinned local TFLite candidates using a reviewed manifest, aggregate confusion/calibration/strata metrics, sampled temporal replay and an optional center-crop experiment. See [V2 evaluation](../docs/ai/MODEL_EVALUATION_V2.md) for the manifest/contract and honest limits. It never downloads images or promotes a model automatically.
+
+The training workshop now validates decoded/near-duplicate split leakage, normalizes RGB exactly once, explicitly disables MobileNetV3's built-in preprocessing, supports a frozen-head phase followed by an optional bounded fine-tune phase, and records reproducibility evidence/checkpoints. Export binds the evaluated policy and checks Keras/TFLite numerical parity for float, dynamic and float16 conversions. The converted review manifest remains unqualified and requires an Android binary-adapter migration. See [fine-tuning guide](../docs/ai/FINE_TUNING_GUIDE.md).
+
+No V2 semantic dataset was supplied or acquired, no new model was trained, and no improved precision/recall is claimed. The earlier paragraph's scalar classifier describes a future candidate interface, not the currently shipped five-output Android contract.
+
 ## Privacy and safety boundaries
 
 > Never use screenshots, photos, messages, browser history, accessibility events, or any other information from a Veil user as training or evaluation data.

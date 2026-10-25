@@ -14,8 +14,9 @@ android {
         applicationId = "com.veil.app"
         minSdk = 31
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0-experimental"
+        versionCode = 4
+        versionName = "0.3.1-unified-experimental"
+        manifestPlaceholders["appLabel"] = "Veil"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -23,7 +24,20 @@ android {
         }
     }
 
+    // Dedicated development key supplied only to trusted CI; never commit key material.
+    signingConfigs.getByName("debug") {
+        System.getenv("VEIL_DEBUG_KEYSTORE")?.let { path ->
+            storeFile = file(path)
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            manifestPlaceholders["appLabel"] = "Veil"
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

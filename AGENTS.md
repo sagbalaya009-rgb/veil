@@ -6,6 +6,8 @@ Veil is an Android voluntary wellbeing app. Never imply guaranteed blocking, per
 
 `app/core`: pure Kotlin policy and monotonic deadlines. `app/services`: capture, local model, package-only accessibility overlays and `CommitmentStore`. `app/data`: existing Room settings/notes. `app/ui/VeilDashboard.kt`: current entry flow. `MainActivity.kt` retains the existing localized recovery-plan UI. `ml`: local-only evaluation/training workshop. The web project is independent; do not deploy it as part of Android work.
 
+The unified 0.3.1 build uses com.veil.app and label Veil for both build types. The active original-note route is SavedRecoveryNote inside the current theme; do not reconnect the old VeilApp simulated-preview dashboard as live protection. Historical V1 remains codex/veil-mvp and V2 remains archive/veil-v2-0.3.0. Read docs/releases/UNIFIED_RELEASE_REPORT.md for current qualification and installation state. Owner-authorized clean installation removes both old app sandboxes; AndroidKeyStore data cannot be promised recoverable after uninstall.
+
 ## Commands
 
 JDK17, Android API35, pinned Gradle wrapper. Run `./gradlew testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease`; Windows use `gradlew.bat` or `tools/verify.ps1`. Install the test-only fixture and use `connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.veil.app.VeilVerificationSuite` on an authorized emulator; see docs/testing/CAPTURE_JOURNEY.md. Python workshop tests: from `ml`, `python -m unittest discover -s tests -v`. Run model harness per `ml/README.md` and `docs/ai/MODEL_EVALUATION.md`. Inspect exact CI commit and test reports before claiming success.
@@ -21,3 +23,6 @@ Keep code-pinned SHA256, source, full upstream license, tensor shape/dtype/label
 ## Done means evidence
 
 Build, applicable unit/instrumentation tests, lint and privacy checks must pass on the exact delivered commit. Record host, emulator and physical results separately. Keep docs/current status truthful, retain user work and migration paths, test denial/revocation/start-stop/failure/reboot handling. No store publication, purchased services or signing under the owner without authorization. Commit source and deliver a real APK plus checksum; do not invent download links or benchmarks.
+
+## V2 additions
+Work in services/RecoveryStore and core/recovery for optional encrypted wellbeing records; no legacy faith migration. services/FeedbackStore is independent versioned metadata only; feedback never changes thresholds, model weights or app exemptions. ui/RecoveryExperience contains functional preference/plan/check-in/strategy forms. MonitoringRuntime.health and ProtectionTelemetry are process-only technical state/counters; diagnosticText must exclude every recovery/feedback/content field. V2 preserves the current model until approved independent evaluation demonstrates a replacement. See docs/V2_OVERVIEW.md and docs/audits/V2_BASELINE_AUDIT.md. Cloud push workflow also runs on codex/veil-v2. Never run the full instrumentation suite on an owner's phone; use emulator isolation.
