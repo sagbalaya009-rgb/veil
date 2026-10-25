@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         consumeRecoveryRequest(intent)
         setContent {
-            com.veil.app.ui.VeilDashboard(legacyRecovery = { VeilApp() }, recoveryRequest = recoveryRequest)
+            com.veil.app.ui.VeilDashboard(legacyRecovery = { SavedRecoveryNote() }, recoveryRequest = recoveryRequest)
         }
     }
 
@@ -134,6 +134,29 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object { const val EXTRA_OPEN_RECOVERY = "com.veil.app.OPEN_RECOVERY" }
+}
+
+@Composable
+private fun SavedRecoveryNote(viewModel: VeilViewModel = hiltViewModel()) {
+    var draft by remember { mutableStateOf("") }
+    var saving by remember { mutableStateOf(false) }
+    var result by remember { mutableStateOf("") }
+    LaunchedEffect(viewModel.noteStorageReady) {
+        if (viewModel.noteStorageReady) draft = viewModel.recoveryNote
+    }
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        item { Text("Saved recovery note", style = MaterialTheme.typography.headlineMedium) }
+        item { Text("A reusable note from the original Veil, kept in local app storage. This note is separate from encrypted Recovery check-ins; it is not encrypted by Veil. Saving an empty note deletes its text.") }
+        item { OutlinedTextField(draft, { draft = it.take(2000); result = "" }, label = { Text("Your recovery note") }, enabled = viewModel.noteStorageReady && !saving, modifier = Modifier.fillMaxWidth()) }
+        item { Button(onClick = {
+            saving = true
+            viewModel.saveRecoveryNote(draft.trim()) { saved ->
+                saving = false
+                result = if (saved) "Recovery note saved." else "Could not save. Your draft is still here."
+            }
+        }, enabled = viewModel.noteStorageReady && !saving) { Text(if (saving) "Saving…" else "Save recovery note") } }
+        item { Text(if (!viewModel.noteStorageReady) "Local note storage is loading or unavailable." else result) }
+    }
 }
 
 @Composable
@@ -769,21 +792,32 @@ class VeilViewModel @Inject constructor(
         private set
     var recoveryNote by mutableStateOf("")
         private set
+    var noteStorageReady by mutableStateOf(false)
+        private set
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            val saved = repository.loadSettings()
-            settings = repository.settingsFrom(saved)
-            engine = ProtectionEngine(settings = settings)
-            state = engine.state
-            recoveryNote = settings.recoveryNote
+        viewModelScope.launch {
+            val saved = runCatching { kotlinx.coroutines.withContext(Dispatchers.IO) { repository.loadSettings() } }
+            saved.onSuccess {
+                settings = repository.settingsFrom(it)
+                engine = ProtectionEngine(settings = settings)
+                state = engine.state
+                recoveryNote = settings.recoveryNote
+                noteStorageReady = true
+            }
         }
     }
 
-    fun saveRecoveryNote(note: String) {
-        settings = settings.copy(recoveryNote = note)
-        recoveryNote = note
-        persistSettings()
+    fun saveRecoveryNote(note: String, onResult: (Boolean) -> Unit = {}) {
+        if (!noteStorageReady) { onResult(false); return }
+        val updated = settings.copy(recoveryNote = note)
+        viewModelScope.launch {
+            val saved = runCatching { kotlinx.coroutines.withContext(Dispatchers.IO) {
+                repository.saveSettings(updated, onboardingComplete = true)
+            } }.isSuccess
+            if (saved) { settings = updated; recoveryNote = note }
+            onResult(saved)
+        }
     }
 
     fun setCooldownCompletionNotificationsEnabled(enabled: Boolean) {

@@ -101,7 +101,7 @@ class RecoveryJourneyTest {
             assertEquals(1, store.state.value.helpfulActivities)
             assertEquals(2, store.state.value.records.size)
         }
-        click("Delete all V2 recovery data")
+        click("Delete all recovery data")
         compose.onNodeWithText("Delete recovery data").performClick()
         compose.runOnIdle {
             assertEquals(RecoveryState(), store.state.value)
@@ -127,7 +127,7 @@ class RecoveryJourneyTest {
         compose.onNodeWithText("Check-in saved privately.").assertDoesNotExist()
         compose.onNodeWithText("Preferences saved on this device.").assertDoesNotExist()
         assertArrayEquals(corrupted, file.readBytes())
-        click("Delete all V2 recovery data")
+        click("Delete all recovery data")
         compose.onNodeWithText("Delete recovery data").performClick()
         compose.runOnIdle { assertTrue(store.state.value.storageAvailable) }
     }

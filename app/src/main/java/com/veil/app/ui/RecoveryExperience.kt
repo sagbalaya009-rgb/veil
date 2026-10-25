@@ -116,13 +116,13 @@ import java.util.Date
             }, enabled = state.storageAvailable) { Text("I want to note a setback") }
         }
         Text("Veil supports self-management, not diagnosis or medical treatment. If distress or disruption is substantial, consider speaking with a qualified professional.", style = MaterialTheme.typography.bodySmall)
-        TextButton(onClick = { confirmDeletion = true }) { Text("Delete all V2 recovery data") }
+        TextButton(onClick = { confirmDeletion = true }) { Text("Delete all recovery data") }
     }
-    if (confirmDeletion) AlertDialog(onDismissRequest = { confirmDeletion = false }, title = { Text("Delete recovery data?") }, text = { Text("This removes V2 goals, encouragement, coping plan and check-ins from this device. Legacy notes and protection settings are separate.") }, confirmButton = {
+    if (confirmDeletion) AlertDialog(onDismissRequest = { confirmDeletion = false }, title = { Text("Delete recovery data?") }, text = { Text("This removes Recovery goals, encouragement, coping plan and check-ins from this device. The saved recovery note and protection settings are separate.") }, confirmButton = {
         TextButton(onClick = {
             val deleted = store.deleteAll()
             if (deleted) { goals = emptySet(); mode = EncouragementMode.PRACTICAL; reminder = ""; planTrigger = ""; planAction = ""; note = ""; intensity = null; trigger = null; lastActivityId = null; activity = RecoveryActivity.GROUNDING; editing = false }
-            message = if (deleted) "V2 recovery data deleted." else "Deletion could not be completed."
+            message = if (deleted) "Recovery data deleted." else "Deletion could not be completed."
             confirmDeletion = false
         }) { Text("Delete recovery data") }
     }, dismissButton = { TextButton(onClick = { confirmDeletion = false }) { Text("Cancel") } })
